@@ -18,17 +18,17 @@ export class ActivityService {
     private loadingService: LoadingService
   ) { }
 
-  async getActivity(orcs: string, activityType: string, activityId: string, fetchFacilities: boolean = false, fetchProducts: boolean = true) {
+  async getActivity(orcs: string, activityType: string, activityId: string, fetchFacilities = false, fetchProducts = true) {
     const queryParams = {
       orcs: orcs,
       activityType: activityType,
       activityId: activityId,
     };
 
-    if(fetchFacilities) {
+    if (fetchFacilities) {
       queryParams['fetchFacilities'] = true;
     }
-    if(fetchProducts) {
+    if (fetchProducts) {
       queryParams['fetchProducts'] = true;
     }
 

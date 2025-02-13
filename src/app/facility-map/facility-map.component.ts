@@ -13,8 +13,6 @@ export class FacilityMapComponent implements AfterViewInit, OnDestroy {
   private mapContainer!: ElementRef<HTMLElement>;
   private map: Map | undefined;
 
-  constructor() { }
-
   ngAfterViewInit() {
     this.map = new Map({
       container: this.mapContainer.nativeElement,

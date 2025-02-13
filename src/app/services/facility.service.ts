@@ -18,14 +18,14 @@ export class FacilityService {
     private loadingService: LoadingService
   ) { }
 
-  async getFacility(orcs: string, facilityType: string, facilityId: string, fetchActivities: boolean = true) {
+  async getFacility(orcs: string, facilityType: string, facilityId: string, fetchActivities = true) {
     const queryParams = {
       orcs: orcs,
       facilityType: facilityType,
       facilityId: facilityId,
     };
 
-    if(fetchActivities) {
+    if (fetchActivities) {
       queryParams['fetchActivities'] = true;
     }
 

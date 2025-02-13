@@ -101,7 +101,6 @@
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "browsers": "ChromeHeadlessNoSandbox",
             "polyfills": [
               "zone.js",
               "zone.js/testing"
@@ -118,7 +117,8 @@
               "src/styles.scss",
               "node_modules/maplibre-gl/dist/maplibre-gl.css"
             ],
-            "scripts": []
+            "scripts": [],
+            "karmaConfig": "karma.conf.js"
           }
         },
         "lint": {

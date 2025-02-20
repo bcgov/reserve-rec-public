@@ -1,0 +1,31 @@
+<app-facility-map class="facility-map"></app-facility-map>
+
+<div class="container mb-5">
+    <section class="mt-5">
+        <h1>{{data?.displayName || '-'}}</h1>
+        <div class="row">
+            <div class="col">
+                <img [src]="data?.imageUrl || ''" alt="Facility Image" class="img-fluid">
+            </div>
+            <div class="col">
+                <p>{{data?.description || '-'}}</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="mt-5">
+        <h2>Activities</h2>
+        <div *ngFor="let activity of data?.activities">
+            <div class="row">
+                <div class="col-11">
+                    <h3>{{activity.displayName}}</h3>
+                    <p>{{activity.description}}</p>
+                </div>
+                <div class="col-1">
+                    <button class="btn btn-primary" (click)="navigate(activity.orcs, activity.activityType
+, activity.identifier)">Book Now</button>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

@@ -1,0 +1,46 @@
+<div class="row m-0 p-0 h-100">
+    <!-- Cards -->
+    <div class="col-4">
+        <ng-container *ngIf="loading">
+            <div class="d-flex align-items-center justify-content-center h-100">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </ng-container>
+        <div class="row card-view" *ngIf="!loading">
+            <div class="col-12 p-3" *ngIf="!data">
+                You must provide a search term.
+            </div>
+            <div class="col-12 p-3" *ngIf="data?.length === 0">
+                No search results.
+            </div>
+            <ng-container *ngFor="let item of data || []">
+                <div class="col-12 p-0">
+                    <div class="card"
+                        (click)="navigate(item._source.orcs, item._source.facilityType, item._source.identifier)">
+                        <img *ngIf="item._source.displayName !== 'Cam\'s Black Tusk Boat Ride Extravaganza'"
+                            src="{{item._source.imageUrl}}"
+                            alt="https://64.media.tumblr.com/7fd9c899b7a8214e3686414b098914c0/tumblr_plmmzrgMx91y27xwio3_250.gifv"
+                            class="card-img-top" alt="placeholder">
+                        <img *ngIf="item._source.displayName === 'Cam\'s Black Tusk Boat Ride Extravaganza'"
+                            src="assets/images/black_tusk.png"
+                            alt="https://64.media.tumblr.com/7fd9c899b7a8214e3686414b098914c0/tumblr_plmmzrgMx91y27xwio3_250.gifv"
+                            class="card-img-top" alt="placeholder">
+                        <div class="card-body">
+                            <h5 class="card-title">{{item._source.displayName}}
+                            </h5>
+                            <p class="card-text">{{item._source.description}}</p>
+                            <!-- <a href="#" class="btn btn-primary">Find on map</a> -->
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+
+    <!-- Map -->
+    <div class="search-map p-0">
+        <app-search-map></app-search-map>
+    </div>
+</div>

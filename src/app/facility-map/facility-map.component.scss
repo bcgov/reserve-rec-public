@@ -1,0 +1,21 @@
+.map-wrap {
+    position: relative;
+    height: 100% !important;
+    width: 100% !important;
+    // height: calc(100vh - 77px);
+    /* calculate height of the screen minus the heading */
+}
+
+.map {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+}
+
+.watermark {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    z-index: 999;
+}

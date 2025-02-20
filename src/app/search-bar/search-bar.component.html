@@ -1,0 +1,5 @@
+<div class="d-flex">
+    <input class="form-control me-2" type="text" ngDefaultControl (keyup.enter)="search()" [(ngModel)]="searchBox"
+        placeholder="Search" aria-label="Search">
+    <button class="btn btn-outline-success" (click)="search()">Search</button>
+</div>

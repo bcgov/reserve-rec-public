@@ -1,0 +1,22 @@
+@import 'maplibre-gl/dist/maplibre-gl.css';
+
+@import "@digitalspace/bcparks-bootstrap-theme/dist/scss/bootstrap-theme.scss";
+@media (prefers-color-scheme: dark) {
+  :root {
+    --amplify-components-button-primary-background-color: rgba(1, 51, 102, 1);
+    --amplify-components-tabs-item-active-color: rgba(1, 51, 102, 1);
+  }
+}
+
+// regular style toast
+@import 'ngx-toastr/toastr';
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+app-root {
+  min-height: 100vh;
+}

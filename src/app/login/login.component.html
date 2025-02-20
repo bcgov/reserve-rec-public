@@ -1,0 +1,10 @@
+<div class="d-flex align-items-center justify-content-around">
+    <div class="amplify-auth-container">
+        <amplify-authenticator>
+            <ng-template amplifySlot="authenticated" let-user="user" let-signOut="signOut">
+                <h1>Welcome {{ user.signInDetails.loginId }}!</h1>
+                <button (click)="signOut()">Sign Out</button>
+            </ng-template>
+        </amplify-authenticator>
+    </div>
+</div>

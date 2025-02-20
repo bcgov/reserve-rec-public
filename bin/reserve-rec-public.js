@@ -12,7 +12,7 @@ new ReserveRecPublicStack(app, 'ReserveRecPublicStack', {
 
     // Custom environment variables
     ENVIRONMENT: process.env.ENVIRONMENT || 'dev',
-    S3_BUCKET_ADMIN: process.env.S3_BUCKET_PUBLIC || 'reserve-rec-public-cdk',
+    S3_BUCKET_PUBLIC: process.env.S3_BUCKET_PUBLIC || 'reserve-rec-public-cdk',
     API_STAGE: process.env.API_STAGE || 'api',
   }
 });

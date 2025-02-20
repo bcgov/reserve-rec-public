@@ -28,6 +28,8 @@
     "@types/geojson": "^7946.0.14",
     "@types/maplibre-gl": "^1.14.0",
     "aws-amplify": "^6.6.0",
+    "aws-cdk-lib": "^2.178.2",
+    "constructs": "^10.0.0",
     "guid-typescript": "^1.0.9",
     "maplibre-gl": "^4.7.1",
     "ngx-toastr": "^19.0.0",

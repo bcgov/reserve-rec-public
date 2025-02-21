@@ -25,7 +25,7 @@ export class AuthService {
           identityPoolId: this.configService.config['PUBLIC_IDENTITY_POOL_ID'],
           loginWith: {
             oauth: {
-              domain: this.configService.config['OAUTH_DOMAIN'],
+              domain: this.configService.config['PUBLIC_USER_POOL_DOMAIN_URL'],
               scopes: ['openid', 'email', 'profile', 'aws.cognito.signin.user.admin'],
               redirectSignIn: ['http://localhost:4200'],
               redirectSignOut: ['http://localhost:4200'],
@@ -45,13 +45,13 @@ export class AuthService {
 
   /**
    * Listens to authentication events and handles them accordingly.
-   * 
-   * This method sets up a listener for various authentication events such as 
-   * user sign-in, sign-out, token refresh, and sign-in with redirect. Depending 
-   * on the event type, it logs the event and performs necessary actions like 
-   * checking if the user is signed in, setting a refresh token, or clearing the 
+   *
+   * This method sets up a listener for various authentication events such as
+   * user sign-in, sign-out, token refresh, and sign-in with redirect. Depending
+   * on the event type, it logs the event and performs necessary actions like
+   * checking if the user is signed in, setting a refresh token, or clearing the
    * user data.
-   * 
+   *
    * @private
    * @async
    * @returns {Promise<void>} A promise that resolves when the event handling is complete.
@@ -88,11 +88,11 @@ export class AuthService {
 
   /**
    * Checks if the user is signed in.
-   * 
+   *
    * This method attempts to retrieve the current user and set it to the `user` property.
    * If the user is signed in, it logs an informational message and a debug message with the user details.
    * If the user is not signed in, it sets the `user` property to `null`.
-   * 
+   *
    * @returns {Promise<void>} A promise that resolves when the check is complete.
    * @throws Will throw an error if the user is not signed in.
    */
@@ -113,10 +113,10 @@ export class AuthService {
 
   /**
    * Sets the refresh token and schedules the next refresh based on the token's expiration time.
-   * 
+   *
    * @param {boolean} [forceRefresh=false] - Whether to force a refresh of the authentication session.
    * @returns {Promise<void>} - A promise that resolves when the refresh operation is complete.
-   * 
+   *
    * @throws {Error} - Throws an error if the token refresh fails.
    */
   async setRefresh(forceRefresh = false) {

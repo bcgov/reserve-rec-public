@@ -2,7 +2,7 @@
 name: Epic Template
 about: Template for epics
 title: 'Epic:'
-labels: PRDT
+labels: ''
 assignees: ''
 
 ---

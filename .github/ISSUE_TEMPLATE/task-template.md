@@ -2,7 +2,7 @@
 name: Task Template
 about: Template for Tasks
 title: ''
-labels: PRDT
+labels: ''
 assignees: ''
 
 ---

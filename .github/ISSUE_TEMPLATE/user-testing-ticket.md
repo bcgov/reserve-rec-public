@@ -34,7 +34,7 @@ assignees: ''
 #### In Progress pipeline:
 - [ ] User Tests scheduled
 - [ ] Prototype tested
-- [ ] Findings documented
+- [ ] Findings documented - in Jira board of research*** 
 #### PO Review pipeline:
 - [ ] Acceptance criteria are checked by Product Owner
 - [ ] Approved by Product Owner

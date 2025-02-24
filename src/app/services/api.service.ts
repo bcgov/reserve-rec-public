@@ -50,7 +50,7 @@ export class ApiService implements OnDestroy {
       this.apiPath = window.location.origin + '/api';
     }
 
-    this.headers = new HttpHeaders().set('x-api-key', this.configService.config['API_KEY']).set('Authorization', 'change-me');
+    this.headers = new HttpHeaders().set('x-api-key', this.configService.config['API_KEY']);
     if (!this.headers) {
       console.log('No API key provided.');
     }
@@ -87,6 +87,7 @@ export class ApiService implements OnDestroy {
           .pipe(catchError(this.errorHandler));
       } else {
         headers = new HttpHeaders().set('Authorization', `guest`);
+        console.log('calling as guest');
         return this.http.get(`${this.apiPath}/${pk}?${queryString}`, { headers })
           .pipe(catchError(this.errorHandler));
       }

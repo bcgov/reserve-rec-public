@@ -13,7 +13,7 @@ assignees: ''
 
 #### Acceptance Criteria:
 May include any/all of the following:
-- [ ] reflect on previous research to determine gaps in knowledge as well as outdated data
+- [ ] Check previous research already done to determine gaps in knowledge as well as outdated data. 
 - [ ] Conduct research with relevant users
 - [ ] Combine Research findings
 - [ ] Observe where user problems arise

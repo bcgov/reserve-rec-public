@@ -17,6 +17,7 @@ May include any/all of the following:
 - [ ] Conduct research with relevant users
 - [ ] Combine Research findings
 - [ ] Observe where user problems arise
+- [ ] Complete everything in DOD below as per research ticket requirements
 
 #### Dependencies:
 

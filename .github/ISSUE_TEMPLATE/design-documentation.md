@@ -1,5 +1,5 @@
 ---
-name: Design Hand-off
+name: Design Documentation
 about: Describe this issue template's purpose here.
 title: ''
 labels: ''
@@ -32,7 +32,7 @@ assignees: ''
 
 ### Definition of Done: Design hand-off ticket
 #### In Progress pipeline:
-- [ ] Designer generates documentation to support development efforts
+- [ ] Designer generates documentation to support development efforts (eg: figma, components, etc)
 - [ ] Designer works alongside developers to ensure functionality expectations are understood.
 #### PO Review pipeline:
 - [ ] Acceptance criteria are checked by Product Owner

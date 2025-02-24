@@ -50,7 +50,7 @@ export class ApiService implements OnDestroy {
       this.apiPath = window.location.origin + '/api';
     }
 
-    this.headers = new HttpHeaders().set('x-api-key', this.configService.config['API_KEY']);
+    this.headers = new HttpHeaders().set('x-api-key', this.configService.config['API_KEY']).set('Authorization', 'change-me');
     if (!this.headers) {
       console.log('No API key provided.');
     }

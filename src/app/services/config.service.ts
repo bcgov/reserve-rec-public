@@ -66,7 +66,7 @@ export class ConfigService {
     while (true) {
       try {
         // Add blank Auth header to prevent 401
-        let headers = new HttpHeaders().set('Authorization', 'None');
+        let headers = new HttpHeaders().set('Authorization', 'Guest');
         return (await firstValueFrom(this.httpClient.get<any>(`/api/config`, { headers })))['data'];
       } catch (err) {
         console.log(err);

@@ -23,16 +23,16 @@ May include any/all of the following:
 - Blocked by
 - Blocking
 
-###Relevant documentation as reference:
+### Relevant documentation as reference:
 [insert links]
 [synthesis document/mural link]
 
-###Definition of Ready: Research ticket
+### Definition of Ready: Research ticket
 
 - [ ] Acceptance criteria are included
 - [ ] relevant documentation to context is linked
 
-###Definition of Done: Research ticket
+### Definition of Done: Research ticket
  - [ ] Synthesis of research document/mural
 #### PO Review pipeline:
  - [ ] Acceptance criteria are checked by Product Owner

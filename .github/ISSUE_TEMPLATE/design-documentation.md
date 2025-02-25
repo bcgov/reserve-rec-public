@@ -1,8 +1,8 @@
 ---
 name: Design Documentation
 about: Describe this issue template's purpose here.
-title: ''
-labels: ''
+title: "[Design Documentation]"
+labels: Reservations
 assignees: ''
 
 ---
@@ -10,7 +10,6 @@ assignees: ''
 ### Design work description and context:
 
 (Note: Work outlined in this phase of the [design workflow](https://app.mural.co/t/bcparks2575/m/bcparks2575/1740009580466/581d5ec8e845cefd5dfab701fe51a23292eb742c) is to generate documentation to support development efforts).
-
 
 ### Acceptance Criteria:
 - [ ] 
@@ -24,6 +23,7 @@ assignees: ''
 
 ### Relevant documentation as reference:
 [insert links]
+[figma documentation link]
 
 ### Definition of Ready: Design Hand-off ticket
 
@@ -31,9 +31,9 @@ assignees: ''
 - [ ] relevant documentation to context is linked
 
 ### Definition of Done: Design hand-off ticket
-#### In Progress pipeline:
-- [ ] Designer generates documentation to support development efforts (eg: figma, components, etc)
-- [ ] Designer works alongside developers to ensure functionality expectations are understood.
+- [ ] Documentation of design work
+- [ ] Documentation is peer reviewed by developers
+
 #### PO Review pipeline:
 - [ ] Acceptance criteria are checked by Product Owner
 - [ ] Approved by Product Owner

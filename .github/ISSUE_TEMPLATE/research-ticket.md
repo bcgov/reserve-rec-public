@@ -7,32 +7,33 @@ assignees: ''
 
 ---
 
-#### Research work description and context:
+### Research work description and context:
   -
   - 
 
-#### Acceptance Criteria:
+### Acceptance Criteria:
 May include any/all of the following:
-- [ ] Check previous research already done to determine gaps in knowledge as well as outdated data. 
-- [ ] Conduct research with relevant users
-- [ ] Combine Research findings
-- [ ] Observe where user problems arise
+- [ ] Review previous research
+  - What do we already know? Is the information outdated?
+  - What are our knowledge gaps?
 - [ ] Complete everything in DOD below as per research ticket requirements
+- [ ]
 
-#### Dependencies:
-
+### Dependencies:
 - Blocked by
 - Blocking
 
-**Relevant documentation as reference:**
+###Relevant documentation as reference:
 [insert links]
+[synthesis document/mural link]
 
-**Definition of Ready: Research ticket**
+###Definition of Ready: Research ticket
 
 - [ ] Acceptance criteria are included
 - [ ] relevant documentation to context is linked
 
-**Definition of Done: Research ticket** 
- - [ ] Research work is reviewed by another peer
+###Definition of Done: Research ticket
+ - [ ] Synthesis of research document/mural
+#### PO Review pipeline:
  - [ ] Acceptance criteria are checked by Product Owner
  - [ ] Approved by Product Owner

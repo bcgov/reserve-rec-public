@@ -87,6 +87,7 @@ export class ApiService implements OnDestroy {
           .pipe(catchError(this.errorHandler));
       } else {
         headers = new HttpHeaders().set('Authorization', `guest`);
+        console.log('calling as guest');
         return this.http.get(`${this.apiPath}/${pk}?${queryString}`, { headers })
           .pipe(catchError(this.errorHandler));
       }

@@ -20,7 +20,8 @@
             "allowedCommonJsDependencies": [
               "lodash",
               "qrcode",
-              "maplibre-gl"
+              "maplibre-gl",
+              "guid-typescript"
             ],
             "outputPath": "dist/reserve-rec-public",
             "index": "src/index.html",

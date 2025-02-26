@@ -65,6 +65,7 @@ export class ConfigService {
     // The delay is increased based on the fibonacci sequence.
     while (true) {
       try {
+        // Add blank Auth header to prevent 401
         return (await firstValueFrom(this.httpClient.get<any>(`/api/config`)))['data'];
       } catch (err) {
         console.log(err);

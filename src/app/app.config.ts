@@ -3,7 +3,7 @@ import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
 import { ConfigService } from './services/config.service';
-import { HttpClient, provideHttpClient } from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
 import { ApiService } from './services/api.service';
 import { AuthService } from './services/auth.service';
 import { provideAnimations } from '@angular/platform-browser/animations';

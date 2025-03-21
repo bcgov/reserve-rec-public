@@ -22,14 +22,14 @@
     "@angular/router": "^19.2.3",
     "@aws-amplify/ui-angular": "^5.0.25",
     "@digitalspace/bcparks-bootstrap-theme": "^1.4.6",
-    "@maplibre/ngx-maplibre-gl": "^18.1.1",
+    "@maplibre/ngx-maplibre-gl": "^19.0.0",
     "@popperjs/core": "^2.11.8",
     "@types/bootstrap": "^5.2.10",
     "@types/geojson": "^7946.0.14",
     "@types/maplibre-gl": "^1.14.0",
     "aws-amplify": "^6.6.0",
     "guid-typescript": "^1.0.9",
-    "maplibre-gl": "^4.7.1",
+    "maplibre-gl": "^5.2.0",
     "ngx-toastr": "^19.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
@@ -41,7 +41,7 @@
     "@angular/compiler-cli": "^19.2.3",
     "@babel/helper-hoist-variables": "^7.24.7",
     "@types/jasmine": "~5.1.0",
-    "angular-eslint": "18.1.0",
+    "angular-eslint": "^19.2.1",
     "babel-preset-es2015": "^6.24.1",
     "eslint": "^9.6.0",
     "jasmine-core": "~5.1.0",
@@ -51,6 +51,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "typescript": "~5.8.2",
-    "typescript-eslint": "8.0.0-alpha.38"
+    "typescript-eslint": "^8.0.0",
+    "vite": "^6.2.2"
   }
 }

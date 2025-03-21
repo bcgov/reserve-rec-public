@@ -6,11 +6,10 @@ import { ActivityService } from '../services/activity.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-activity-details',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './activity-details.component.html',
-  styleUrl: './activity-details.component.scss'
+    selector: 'app-activity-details',
+    imports: [CommonModule],
+    templateUrl: './activity-details.component.html',
+    styleUrl: './activity-details.component.scss'
 })
 export class ActivityDetailsComponent implements OnInit {
   public orcs;

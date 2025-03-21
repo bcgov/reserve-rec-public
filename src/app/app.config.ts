@@ -1,4 +1,4 @@
-import { APP_INITIALIZER, ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, provideZoneChangeDetection, inject, provideAppInitializer } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
@@ -22,12 +22,10 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    {
-      provide: APP_INITIALIZER,
-      useFactory: initConfig,
-      deps: [ConfigService, ApiService, AuthService, HttpClient],
-      multi: true
-    },
+    provideAppInitializer(() => {
+      const initializerFn = (initConfig)(inject(ConfigService), inject(ApiService), inject(AuthService));
+      return initializerFn();
+    }),
     provideAnimations(),
     provideToastr(), // Toastr providers
     ConfigService

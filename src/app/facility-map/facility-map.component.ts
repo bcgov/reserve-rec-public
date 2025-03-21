@@ -2,11 +2,10 @@ import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@ang
 import { Map } from 'maplibre-gl';
 
 @Component({
-  selector: 'app-facility-map',
-  standalone: true,
-  imports: [],
-  templateUrl: './facility-map.component.html',
-  styleUrl: './facility-map.component.scss'
+    selector: 'app-facility-map',
+    imports: [],
+    templateUrl: './facility-map.component.html',
+    styleUrl: './facility-map.component.scss'
 })
 export class FacilityMapComponent implements AfterViewInit, OnDestroy {
   @ViewChild('facilityMap')

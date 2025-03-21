@@ -3,11 +3,10 @@ import { AmplifyAuthenticatorModule } from '@aws-amplify/ui-angular';
 import { AuthService } from '../services/auth.service';
 
 @Component({
-  selector: 'app-login',
-  standalone: true,
-  imports: [AmplifyAuthenticatorModule],
-  templateUrl: './login.component.html',
-  styleUrl: './login.component.scss'
+    selector: 'app-login',
+    imports: [AmplifyAuthenticatorModule],
+    templateUrl: './login.component.html',
+    styleUrl: './login.component.scss'
 })
 export class LoginComponent {
   public user = null;

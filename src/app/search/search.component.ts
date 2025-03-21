@@ -7,11 +7,10 @@ import { Router } from '@angular/router';
 import { SearchMapComponent } from "../search-map/search-map.component";
 
 @Component({
-  standalone: true,
-  selector: 'app-search',
-  templateUrl: './search.component.html',
-  styleUrls: ['./search.component.scss'],
-  imports: [CommonModule, SearchMapComponent]
+    selector: 'app-search',
+    templateUrl: './search.component.html',
+    styleUrls: ['./search.component.scss'],
+    imports: [CommonModule, SearchMapComponent]
 })
 export class SearchComponent {
   public data = null;

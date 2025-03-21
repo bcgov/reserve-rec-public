@@ -5,11 +5,10 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-search-bar',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './search-bar.component.html',
-  styleUrl: './search-bar.component.scss'
+    selector: 'app-search-bar',
+    imports: [CommonModule, FormsModule],
+    templateUrl: './search-bar.component.html',
+    styleUrl: './search-bar.component.scss'
 })
 export class SearchBarComponent {
   private searchService = inject(SearchService);

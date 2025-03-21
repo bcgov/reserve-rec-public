@@ -20,6 +20,7 @@
     "@angular/platform-browser": "^19.2.3",
     "@angular/platform-browser-dynamic": "^19.2.3",
     "@angular/router": "^19.2.3",
+    "@aws-amplify/core": "^6.10.6",
     "@aws-amplify/ui-angular": "^5.0.25",
     "@digitalspace/bcparks-bootstrap-theme": "^1.4.6",
     "@maplibre/ngx-maplibre-gl": "^19.0.0",

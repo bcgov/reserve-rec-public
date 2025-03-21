@@ -384,6 +384,20 @@
     tslib "^2.5.0"
     uuid "^9.0.0"
 
+"@aws-amplify/core@^6.10.6":
+  version "6.10.6"
+  resolved "https://registry.yarnpkg.com/@aws-amplify/core/-/core-6.10.6.tgz#587c6dd1d66b58ef4965088cc289d2f253d143c9"
+  integrity sha512-I6fTpKpno5HGuI/NlWvjo7VMBPqSX0TirLsLO/tSLXZstB48zivbtYrEuFZ4QnZMxg0Y2Ghj9jDRe5Yhlubqqg==
+  dependencies:
+    "@aws-crypto/sha256-js" "5.2.0"
+    "@aws-sdk/types" "3.398.0"
+    "@smithy/util-hex-encoding" "2.0.0"
+    "@types/uuid" "^9.0.0"
+    js-cookie "^3.0.5"
+    rxjs "^7.8.1"
+    tslib "^2.5.0"
+    uuid "^9.0.0"
+
 "@aws-amplify/data-schema-types@*":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@aws-amplify/data-schema-types/-/data-schema-types-1.2.0.tgz#fd4ed507adf0786f4ea005121726c72c739d4db0"
@@ -5889,12 +5903,12 @@ eslint-scope@^8.2.0:
     esrecurse "^4.3.0"
     estraverse "^5.2.0"
 
-eslint-visitor-keys@^3.4.3:
+eslint-visitor-keys@^3.3.0, eslint-visitor-keys@^3.4.3:
   version "3.4.3"
   resolved "https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-3.4.3.tgz#0cd72fe8550e3c2eae156a96a4dddcd1c8ac5800"
   integrity sha512-wpc+LXeiyiisxPlEkUzU6svyS1frIO3Mgxj1fdy7Pm8Ygzguax2N3Fa/D/ag1WqbOprdI+uY6wMUl8/a2G+iag==
 
-eslint-visitor-keys@^4.0.0, eslint-visitor-keys@^4.2.0:
+eslint-visitor-keys@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-4.2.0.tgz#687bacb2af884fcdda8a6e7d65c606f46a14cd45"
   integrity sha512-UyLnSehNt62FFhSwjZlHmeokpRK59rcz29j+F1/aDgbkbRTk7wIc9XzdoasMUbRNKDM0qQt/+BJ4BrpFeABemw==

@@ -5,14 +5,13 @@ import { AuthService } from '../services/auth.service';
 import { ToastService, ToastTypes } from '../services/toast.service';
 
 @Component({
-  selector: 'app-profile-offcanvas',
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-  ],
-  templateUrl: './profile-offcanvas.component.html',
-  styleUrl: './profile-offcanvas.component.scss'
+    selector: 'app-profile-offcanvas',
+    imports: [
+        CommonModule,
+        RouterModule,
+    ],
+    templateUrl: './profile-offcanvas.component.html',
+    styleUrl: './profile-offcanvas.component.scss'
 })
 export class ProfileOffcanvasComponent {
   public user = null;

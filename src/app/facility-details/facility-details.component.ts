@@ -7,11 +7,10 @@ import { FacilityMapComponent } from '../facility-map/facility-map.component';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-permit-details',
-  standalone: true,
-  imports: [FacilityMapComponent, CommonModule],
-  templateUrl: './facility-details.component.html',
-  styleUrl: './facility-details.component.scss'
+    selector: 'app-permit-details',
+    imports: [FacilityMapComponent, CommonModule],
+    templateUrl: './facility-details.component.html',
+    styleUrl: './facility-details.component.scss'
 })
 export class FacilityDetailsComponent implements OnInit {
   public orcs;

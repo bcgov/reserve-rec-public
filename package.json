@@ -12,14 +12,14 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^18.2.8",
-    "@angular/common": "^18.2.5",
-    "@angular/compiler": "^18.2.5",
-    "@angular/core": "^18.2.5",
-    "@angular/forms": "^18.2.5",
-    "@angular/platform-browser": "^18.2.5",
-    "@angular/platform-browser-dynamic": "^18.2.5",
-    "@angular/router": "^18.2.5",
+    "@angular/animations": "^19.2.3",
+    "@angular/common": "^19.2.3",
+    "@angular/compiler": "^19.2.3",
+    "@angular/core": "^19.2.3",
+    "@angular/forms": "^19.2.3",
+    "@angular/platform-browser": "^19.2.3",
+    "@angular/platform-browser-dynamic": "^19.2.3",
+    "@angular/router": "^19.2.3",
     "@aws-amplify/ui-angular": "^5.0.25",
     "@digitalspace/bcparks-bootstrap-theme": "^1.4.6",
     "@maplibre/ngx-maplibre-gl": "^18.1.1",
@@ -33,12 +33,12 @@
     "ngx-toastr": "^19.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
-    "zone.js": "~0.14.10"
+    "zone.js": "~0.15.0"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^18.2.5",
-    "@angular/cli": "^18.2.5",
-    "@angular/compiler-cli": "^18.2.5",
+    "@angular-devkit/build-angular": "^19.2.4",
+    "@angular/cli": "^19.2.4",
+    "@angular/compiler-cli": "^19.2.3",
     "@babel/helper-hoist-variables": "^7.24.7",
     "@types/jasmine": "~5.1.0",
     "angular-eslint": "18.1.0",
@@ -50,7 +50,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "typescript": "~5.4.2",
+    "typescript": "~5.8.2",
     "typescript-eslint": "8.0.0-alpha.38"
   }
 }

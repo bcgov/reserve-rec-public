@@ -17,6 +17,7 @@
   window.__env.PUBLIC_USER_POOL_CLIENT_ID = "7ui3kd8505rkv1duknj57en10o";
   window.__env.PUBLIC_IDENTITY_POOL_ID = "ca-central-1:3d6679c6-21c1-44fd-91f5-c1217a117560";
   window.__env.PUBLIC_USER_POOL_DOMAIN_URL = "reserve-rec-dev.auth.ca-central-1.amazoncognito.com";
+  window.__env.API_KEY = "api-key-here";
 
   // Add any feature-toggles
   // window.__env.coolFeatureActive = false;

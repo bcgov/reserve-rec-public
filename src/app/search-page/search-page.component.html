@@ -1,0 +1,18 @@
+<div class="search-container d-flex align-items-center">
+    <div class="container-md">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="mb-5">Book Camping</h1>
+                <p class="fw-bold">Where</p>
+                <div class="col-12">
+                    <div class="d-flex flex-column flex-lg-row gap-2">
+                        <input class="form-control flex-grow-1 w-lg-75" type="text" ngDefaultControl
+                            (keyup.enter)="search()" [(ngModel)]="searchBox" placeholder="Park name"
+                            aria-label="Search">
+                        <button class="btn btn-primary w-lg-25" (click)="search()">Search</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

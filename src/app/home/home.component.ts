@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
-import { AlphaPageComponent } from '../alpha-page/alpha-page.component';
+import { SearchPageComponent } from '../search-page/search-page.component';
 
 @Component({
     selector: 'app-home',
-    imports: [AlphaPageComponent],
+    imports: [SearchPageComponent],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss'
 })

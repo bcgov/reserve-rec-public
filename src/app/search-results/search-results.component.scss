@@ -1,0 +1,49 @@
+.card-view {
+  position: fixed;
+  overflow-y: scroll;
+  height: calc(100% - 131.73px);
+  width: 33%;
+
+  /* IE and Edge */
+  -ms-overflow-style: none;
+  /* Firefox */
+  scrollbar-width: none;
+}
+
+.card-view::-webkit-scrollbar {
+  display: none;
+}
+
+.search-map {
+  height: calc(100vh - 131.73px);
+  width: 100%;
+  display: inline-block;
+
+}
+
+.card-body {
+  background-color: #c6c6c6;
+}
+
+.search-results-container {
+  background-color: #f2f2f2;
+}
+
+.search-results-container button {
+  background: #627c96;
+  color: white;
+  font-size: 14px;
+  border-radius: 0px;
+}
+
+.search-results-container button:hover {
+  background-color: white;
+}
+
+@media only screen and (max-width: 991px) {
+  .card-container {
+    max-height: 400px; /* Adjust this value based on your needs */
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+}

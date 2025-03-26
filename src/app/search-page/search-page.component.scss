@@ -1,0 +1,27 @@
+
+button {
+  background: #627c96;
+  color: white;
+  border-radius: 0px;
+  height: 75px;
+  min-width: 150px;
+}
+
+button:hover {
+  background-color: white;
+}
+
+input {
+  height: 75px;
+  border: 2px solid darkgray;
+  border-radius: 0px;
+}
+
+input::placeholder {
+  font-style:italic;
+}
+
+.search-container {
+  background-color: #c6c6c6;
+  min-height: 50vh;
+}

@@ -9,7 +9,7 @@ import { LoadingService } from './loading.service';
 @Injectable({
   providedIn: 'root'
 })
-export class SearchService {
+export class SearchService {  
 
   constructor(
     private dataService: DataService,
@@ -18,60 +18,18 @@ export class SearchService {
     private loadingService: LoadingService
   ) { }
 
-
-  async fetchAll() {
+  async searchByQuery(query: string) {
     const queryParams = {
-      text: 'all',
-    };
-    try {
-      const res: any[] = (await lastValueFrom(this.apiService.get(`search`, queryParams)))['data']['hits'];
-      this.dataService.setItemValue(Constants.dataIds.ALL, res);
-    } catch (error) {
-      this.loggerService.error(error);
-    }
-  }
-
-  async getFacilities(query: string) {
-    const queryParams = {
-      text: query,
-      schema: 'facility',
+      text: query
     };
     try {
       this.loadingService.addToFetchList(Constants.dataIds.SEARCH_RESULTS);
-      const res: any[] = (await lastValueFrom(this.apiService.get(`search`, queryParams)))['data']['hits'];
-      // const permitArray = [];
-      // // UI: group up AM, PM, DAY passes as one entry 
-      // const dayUsePermits = res.filter((item) => {
-      //   if (item._source.permitType === 'dayuse') {
-      //     return true;
-      //   }
-      //   permitArray.push(item);
-      //   return false;
-      // });
-      // const groupedDayUsePermits = this.consolidateDayUse(dayUsePermits);
-      // permitArray.push(...groupedDayUsePermits);
-
-      // this.dataService.setItemValue(Constants.dataIds.SEARCH_RESULTS, permitArray);
+      const res: any[] = (await lastValueFrom(this.apiService.post(`search`, queryParams)))['data']['hits'];
+      
       this.dataService.setItemValue(Constants.dataIds.SEARCH_RESULTS, res);
       this.loadingService.removeFromFetchList(Constants.dataIds.SEARCH_RESULTS);
     } catch (error) {
       this.loggerService.error(error);
     }
   }
-
-  // consolidateDayUse(dayUsePermits) {
-  //   const groupedDayUsePermits = Object.values(dayUsePermits.reduce((acc, item) => {
-  //     const parentSk = item._source.parent.sk;
-  //     if (!acc[parentSk]) {
-  //       // This will cause the first DUP permit to be the one that shows up in the list in the UI
-  //       acc[parentSk] = { parentSk, groupedDayUsePermits: [], _source: item._source };
-
-  //       // Update the displayName
-  //       acc[parentSk]._source.displayName = item._source.displayName.replace(/(AM|PM|DAY)/, '');
-  //     }
-  //     acc[parentSk].groupedDayUsePermits.push(item);
-  //     return acc;
-  //   }, {}));
-  //   return groupedDayUsePermits
-  // }
 }

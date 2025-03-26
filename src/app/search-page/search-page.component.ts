@@ -5,12 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 @Component({
-    selector: 'app-search-bar',
+    selector: 'app-search-page',
     imports: [CommonModule, FormsModule],
-    templateUrl: './search-bar.component.html',
-    styleUrl: './search-bar.component.scss'
+    templateUrl: './search-page.component.html',
+    styleUrl: './search-page.component.scss'
 })
-export class SearchBarComponent {
+export class SearchPageComponent {
   private searchService = inject(SearchService);
   searchBox = '';
 
@@ -20,10 +20,10 @@ export class SearchBarComponent {
     console.log("Searching for: ", this.searchBox);
     // Get search results and put into data service
     if (this.searchBox !== '') {
-      this.searchService.getFacilities(this.searchBox);
+      this.searchService.searchByQuery(this.searchBox);
     }
 
     // Then navigate to search page
-    this.router.navigate(['/search']);
+    this.router.navigate(['/results']);
   }
 }

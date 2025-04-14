@@ -1,3 +1,33 @@
 .amplify-auth-container {
     padding-top: 5rem;
+    width: 50%; /* Set the width to 50% of the screen */
+    margin: 0 auto; /* Center the container horizontally */
+}
+
+.custom-grid {
+    gap: var(--amplify-space-xxl);
+  }
+.custom-view {
+padding: var(--amplify-space-medium);
+}
+
+.custom-sign-in-button {
+  background-color: #047d95;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%; 
+  text-align: center;
+}
+
+.custom-sign-in-button:hover {
+  background-color: #013366;
+}
+
+.full-width {
+  display: block;
+  margin: 0 auto; 
 }

@@ -2,7 +2,7 @@
   <div class="amplify-auth-container">
     <amplify-authenticator [loginMechanisms]="['email']" [signUpAttributes]="['email']">
       
-      <ng-template amplifySlot="header">
+      <ng-template amplifySlot="footer">
         
         <button class="custom-sign-in-button" (click)="signInWithRedirect()">Sign in with BC Services Card</button>
       </ng-template>

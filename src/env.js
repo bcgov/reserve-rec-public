@@ -13,11 +13,13 @@
   window.__env.API_PATH = "api";
   window.__env.GH_HASH = "local-build";
 
-  window.__env.PUBLIC_USER_POOL_ID = "ca-central-1_nXF7h0SwT";
-  window.__env.PUBLIC_USER_POOL_CLIENT_ID = "7ui3kd8505rkv1duknj57en10o";
-  window.__env.PUBLIC_IDENTITY_POOL_ID = "ca-central-1:3d6679c6-21c1-44fd-91f5-c1217a117560";
-  window.__env.PUBLIC_USER_POOL_DOMAIN_URL = "reserve-rec-dev.auth.ca-central-1.amazoncognito.com";
-  window.__env.API_KEY = "api-key-here";
+
+//PublicPool2
+  window.__env.PUBLIC_USER_POOL_ID = "ca-central-1_3VK9jbezb";
+  window.__env.PUBLIC_USER_POOL_CLIENT_ID = "6bae9a3cms44aseme02do57nkg";
+  window.__env.PUBLIC_IDENTITY_POOL_ID = "ca-central-1:0821f46c-bfa0-4d0f-99f9-e2d246b620ec";
+  window.__env.PUBLIC_USER_POOL_DOMAIN_URL = "ca-central-13vk9jbezb.auth.ca-central-1.amazoncognito.com";
+  // window.__env.API_KEY = "api-key-here";
 
   // Add any feature-toggles
   // window.__env.coolFeatureActive = false;

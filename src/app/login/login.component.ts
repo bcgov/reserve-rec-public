@@ -16,4 +16,8 @@ export class LoginComponent {
       this.user = this.authService.user();
     });
   }
+
+  signInWithRedirect() {
+      return this.authService.federatedSignIn(); // Default to Cognito-hosted UI
+  }
 }

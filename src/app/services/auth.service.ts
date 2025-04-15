@@ -3,8 +3,9 @@ import { Amplify } from "aws-amplify";
 import { ConfigService } from './config.service';
 import { getCurrentUser } from 'aws-amplify/auth/cognito';
 import { Hub } from 'aws-amplify/utils';
-import { fetchAuthSession, signOut } from 'aws-amplify/auth';
+import { fetchAuthSession, signOut, signInWithRedirect, } from 'aws-amplify/auth';
 import { LoggerService } from './logger.service';
+
 
 @Injectable({
   providedIn: 'root'
@@ -23,17 +24,17 @@ export class AuthService {
           userPoolId: this.configService.config['PUBLIC_USER_POOL_ID'],
           userPoolClientId: this.configService.config['PUBLIC_USER_POOL_CLIENT_ID'],
           identityPoolId: this.configService.config['PUBLIC_IDENTITY_POOL_ID'],
-          loginWith: {
-            oauth: {
+         loginWith:{
+             oauth: {
               domain: this.configService.config['PUBLIC_USER_POOL_DOMAIN_URL'],
               scopes: ['openid', 'email', 'profile', 'aws.cognito.signin.user.admin'],
               redirectSignIn: ['http://localhost:4200'],
               redirectSignOut: ['http://localhost:4200'],
               responseType: 'code',
             }
-          },
         },
       },
+    }
     });
 
     await this.listenToAuthEvents();
@@ -43,6 +44,43 @@ export class AuthService {
     }
   }
 
+  async signUp({
+    username,
+    password,
+    email,
+    phone_number
+  }: {
+    username: string;
+    password: string;
+    email: string;
+    phone_number: string;
+  }) {
+    try {
+      const { isSignUpComplete, userId, nextStep } = await this.signUp({
+        username,
+        password,
+        email,
+        phone_number
+      });
+         
+
+      console.log('Sign-up successful:', userId);
+      return { isSignUpComplete, userId, nextStep };
+    } catch (error) {
+      console.error('Error signing up:', error);
+      throw error;
+    }
+  }
+
+  async federatedSignIn(): Promise<void> {
+    try {
+        await signInWithRedirect();
+    } catch (error) {
+      this.loggerService.error(`Error during federated sign-in: ${error}`);
+      throw error;
+    }
+  }
+  
   /**
    * Listens to authentication events and handles them accordingly.
    *

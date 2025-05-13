@@ -20,6 +20,13 @@ concurrency:
   group: deploy-reserve-rec-public-test
   cancel-in-progress: false
 
+env:
+  PUBLIC_STACK_NAME: ${{ vars.PUBLIC_STACK_NAME }}
+  API_STAGE: ${{ vars.API_STAGE }}
+  ENVIRONMENT: ${{ vars.ENVIRONMENT }}
+  S3_BUCKET: ${{ vars.S3_BUCKET_PUBLIC }}
+  DISTRIBUTION: ${{ secrets.DISTRIBUTION }}
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -49,12 +56,6 @@ jobs:
       ### CDK Synth
       - name: CDK Synth
         run: cdk synth
-        env:
-          # Variables
-          PUBLIC_STACK_NAME: ${{ vars.PUBLIC_STACK_NAME }}
-          API_STAGE: ${{ vars.API_STAGE }}
-          ENVIRONMENT: ${{ vars.ENVIRONMENT }}
-          S3_BUCKET_PUBLIC: ${{ vars.S3_BUCKET_PUBLIC }}
 
       ## CDK Deploy
       - name: CDK Deploy
@@ -89,7 +90,6 @@ jobs:
       ### Upload dist to S3 ###
       - name: Deploy to S3
         env:
-          S3_BUCKET: ${{ vars.S3_BUCKET_PUBLIC }}
           DIR_NAME: ${{ github.sha }}
         run: |
           echo "Deploying to $S3_BUCKET/$DIR_NAME"
@@ -100,5 +100,4 @@ jobs:
       - name: Invalidate CloudFront
         uses: chetan/invalidate-cloudfront-action@v2
         env:
-          DISTRIBUTION: ${{ secrets.DISTRIBUTION }}
           PATHS: "/*"

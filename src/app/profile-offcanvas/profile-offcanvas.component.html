@@ -4,8 +4,9 @@
 </button>
 <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
     <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="offcanvasNavbarLabel">{{ user?.signInDetails?.loginId ?
-            user.signInDetails.loginId : 'Campy McCampface' }}</h5>
+        <h5 class="offcanvas-title" id="offcanvasNavbarLabel">
+            {{ user?.signInDetails?.loginId || 'Campy McCampface' }}
+        </h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body">
@@ -14,9 +15,14 @@
                 <a class="nav-link active" aria-current="page" data-bs-dismiss="offcanvas" aria-label="Close"
                     routerLink="/login">Sign up / Log in</a>
             </li>
+
             <li class="nav-item" *ngIf="user">
-                <button type="button" class="btn btn-link" aria-current="page" data-bs-dismiss="offcanvas"
-                    aria-label="Close" (click)="logout()">Log out</button>
+                <a class="nav-link active" aria-current="page" data-bs-dismiss="offcanvas" aria-label="Close"
+                    (click)="logout()">Sign Out</a>
+            </li>
+            <li class="nav-item" *ngIf="user">
+                <a class="nav-link active" aria-current="page" data-bs-dismiss="offcanvas" aria-label="Close"
+                    routerLink="/account">My Account</a>
             </li>
         </ul>
     </div>

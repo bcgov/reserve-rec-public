@@ -1,9 +1,24 @@
 <nav class="navbar bg-primary">
-    <div class="container py-2">
+    <div class="container py-2 d-flex justify-content-between align-items-center">
         <a class="navbar-brand" href="">
             <img src="assets/images/BCParks_Primary_Reversed-cropped-0080416cb5f347c8e7c33f32739f17ca.svg"
                 alt="Bootstrap" height="45">
         </a>
-        <app-profile-offcanvas></app-profile-offcanvas>
+        <div class="d-flex align-items-center">
+            <button class="btn btn-outline-light square-btn me-2" (click)="cart()">Cart</button>
+            <!-- Account Dropdown -->
+            <div class="dropdown me-2">
+                <button class="btn btn-outline-light dropdown-toggle square-btn" type="button" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    {{ user ? (user.given_name + ' ' + user.family_name) : 'Login' }}
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="accountDropdown">
+                    <li><a class="dropdown-item btn" routerLink="/account" *ngIf="user">Account</a></li>
+                    <li><a class="dropdown-item btn" routerLink="/account-details" *ngIf="user">Account Details</a></li>
+                    <li><a class="dropdown-item btn" routerLink="/my-bookings" *ngIf="user">My Bookings</a></li>
+                    <li><a class="dropdown-item btn-link" (click)="logout()" *ngIf="user">Log Out</a></li>
+                    <li><a class="dropdown-item btn-link" routerLink="/login" *ngIf="!user">Log In</a></li>
+                </ul>
+            </div>
+        </div>
     </div>
 </nav>

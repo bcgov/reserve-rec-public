@@ -1,19 +1,12 @@
 <div class="d-flex align-items-center justify-content-around">
   <div class="amplify-auth-container">
-    <amplify-authenticator [loginMechanisms]="['email']" [signUpAttributes]="['email']">
-      
-      <ng-template amplifySlot="footer">
-        
+    <amplify-authenticator [loginMechanisms]="['email']" [signUpAttributes]="['email', 'given_name', 'family_name']" >
+      <ng-template amplifySlot="footer" let-user="user" let-signOut="signOut">
         <button class="custom-sign-in-button" (click)="signInWithRedirect()">Sign in with BC Services Card</button>
       </ng-template>
-
       <ng-template amplifySlot="authenticated" let-user="user" let-signOut="signOut">
-        <h2>Welcome, {{ user.email }}!</h2>
         <button (click)="signOut()">Sign Out</button>
       </ng-template>
-
     </amplify-authenticator>
-
-    
   </div>
 </div>

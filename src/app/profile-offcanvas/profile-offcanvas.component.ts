@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, effect } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { Subscription } from 'rxjs';
 import { ToastService, ToastTypes } from '../services/toast.service';
 
 @Component({
@@ -14,16 +15,16 @@ import { ToastService, ToastTypes } from '../services/toast.service';
     styleUrl: './profile-offcanvas.component.scss'
 })
 export class ProfileOffcanvasComponent {
-  public user = null;
 
-  constructor(private authService: AuthService, private toastService: ToastService) {
-    effect(() => {
-      this.user = this.authService.user();
-    });
+  constructor(private authService: AuthService) {}
+
+  get user() {
+    return this.authService.user();
   }
 
-  async logout() {
-    await this.authService.logout();
-    this.toastService.addMessage("", 'Logged out successfully', ToastTypes.SUCCESS);
+
+  logout() {
+    this.authService.updateUser(null); // Clear the user
+    this.authService.logout(); // Call the sign-out logic
   }
 }

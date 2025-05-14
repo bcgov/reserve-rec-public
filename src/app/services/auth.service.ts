@@ -1,21 +1,20 @@
 import { Injectable, signal } from '@angular/core';
 import { Amplify } from "aws-amplify";
 import { ConfigService } from './config.service';
-import { getCurrentUser } from 'aws-amplify/auth/cognito';
 import { Hub } from 'aws-amplify/utils';
-import { fetchAuthSession, signOut, signInWithRedirect, } from 'aws-amplify/auth';
+import { fetchAuthSession, signOut, signInWithRedirect, fetchUserAttributes} from 'aws-amplify/auth';
 import { LoggerService } from './logger.service';
-
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  public user = signal(null);
+  public user = signal<any>(null); // Observable for user updates
   public session = signal(null);
   jwtToken: any;
 
-  constructor(private configService: ConfigService, private loggerService: LoggerService) { }
+  constructor(private configService: ConfigService, private loggerService: LoggerService, private router: Router) { }
 
   async init() {
     Amplify.configure({
@@ -80,7 +79,6 @@ export class AuthService {
       throw error;
     }
   }
-  
   /**
    * Listens to authentication events and handles them accordingly.
    *
@@ -98,14 +96,16 @@ export class AuthService {
     Hub.listen('auth', async ({ payload }) => {
       switch (payload.event) {
         case 'signedIn':
+          const userAttributes = await fetchUserAttributes(); // Await the user attributes
+          this.updateUser(userAttributes); // Set the resolved user attributes
           this.loggerService.info('User has signed in successfully.');
-          await this.checkIfSignedIn();
-          this.jwtToken = this.session().credentials.sessionToken;
+          const session = await fetchAuthSession();
+          this.jwtToken = session.credentials.sessionToken;
           await this.setRefresh();
           break;
         case 'signedOut':
           this.loggerService.info('User has signed out successfully.');
-          this.user.set(null);
+          this.updateUser(null);
           this.session.set(null);
           break;
         case 'tokenRefresh':
@@ -124,30 +124,6 @@ export class AuthService {
     });
   }
 
-  /**
-   * Checks if the user is signed in.
-   *
-   * This method attempts to retrieve the current user and set it to the `user` property.
-   * If the user is signed in, it logs an informational message and a debug message with the user details.
-   * If the user is not signed in, it sets the `user` property to `null`.
-   *
-   * @returns {Promise<void>} A promise that resolves when the check is complete.
-   * @throws Will throw an error if the user is not signed in.
-   */
-  async checkIfSignedIn() {
-    // check if there's a current user first
-    try {
-      this.user.set(await getCurrentUser());
-      this.session.set(await fetchAuthSession());
-      this.jwtToken = this.session()?.credentials?.sessionToken;
-    } catch (error) {
-      this.loggerService.debug('No user is currently signed in.');
-      this.loggerService.debug(error);
-      this.user.set(null);
-      this.session.set(null);
-    }
-
-  }
 
   /**
    * Sets the refresh token and schedules the next refresh based on the token's expiration time.
@@ -158,26 +134,68 @@ export class AuthService {
    * @throws {Error} - Throws an error if the token refresh fails.
    */
   async setRefresh(forceRefresh = false) {
-    this.session.set(await fetchAuthSession({ forceRefresh: forceRefresh }));
-    if (this.session().tokens) {
-      this.jwtToken = this.session().tokens.accessToken.toString();
-      this.loggerService.debug(JSON.stringify(this.session(), null, 2));
-      // Set refresh to half the expiry time
-      const refreshInterval = ((this.session().tokens.accessToken.payload.exp * 1000) - Date.now()) / 2;
-      if (refreshInterval > 0) {
-        setTimeout(async () => {
-          try {
-            await this.setRefresh(true);
-            this.loggerService.info('Token refreshed successfully.');
-          } catch (error) {
-            console.error('Error refreshing token:', error);
-          }
-        }, refreshInterval);
-      }
+    try{
+      this.session.set(await fetchAuthSession({ forceRefresh: forceRefresh }));
+      if (this.session().tokens) {
+        this.jwtToken = this.session().tokens.accessToken.toString();
+        this.loggerService.debug(JSON.stringify(this.session(), null, 2));
+        const refreshInterval = ((this.session().tokens.accessToken.payload.exp * 1000) - Date.now()) / 2;
+        if (refreshInterval > 0) {
+          setTimeout(async () => {
+            try {
+              await this.setRefresh(true);
+              this.loggerService.info('Token refreshed successfully.');
+            } catch (error) {
+              console.error('Error refreshing token:', error);
+              const currentTime = Date.now() / 1000;
+              const refreshTokenExp = this.session().tokens.refreshToken.payload.exp;
+              //This is just kicking user out to login page. TODO: Add a modal to confirm logout or stay logged in?
+              if (currentTime >= refreshTokenExp) {
+                this.loggerService.info('Refresh token expired. Logging out...');
+                await this.logout(); 
+                this.router.navigate(['/login']); 
+              }
+            }
+          }, refreshInterval);
+        }
+      } 
+    }catch (error) {
+      console.error('Error setting refresh token:', error);
+      await this.logout(); // Log out on error
+      this.router.navigate(['/login']); // Redirect to login
     }
   }
 
+  //Use this to ensure signal gets cleared
   async logout() {
     await signOut();
+    this.updateUser(null); 
+    this.session.set(null);
+    console.log('User logged out', this.user);
+  }
+  
+  updateUser(user: any) {
+    this.user.set(user); // update the signal anytime user changes
+  }
+
+  //Just use to confirm is user is logged
+  getCurrentUser() {
+    try {
+      return this.user() || null; 
+    } catch (error) {
+      this.loggerService.error(`Error fetching current user: ${error}`);
+      return null; 
+    }
+  }
+
+  async checkIfSignedIn() {
+    try {
+      this.updateUser(await fetchUserAttributes()); //Fetch the attributes - Has all of the current user data plus the additional attributes
+      this.session.set(await fetchAuthSession());
+      this.jwtToken = this.session()?.credentials?.sessionToken;
+    } catch (error) {
+      //no User clear signals
+      this.logout();
+    }
   }
 }

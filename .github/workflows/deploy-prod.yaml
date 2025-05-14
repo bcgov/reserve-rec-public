@@ -109,12 +109,12 @@ jobs:
       ### Upload dist to S3 ###
       - name: Deploy to S3
         env:
-          S3_BUCKET: ${{ vars.STACK_NAME }}-${{ vars.ENVIRONMENT_STAGE }}
+          S3_BUCKET_PUBLIC: ${{ vars.STACK_NAME }}-${{ vars.ENVIRONMENT_STAGE }}
           DIR_NAME: ${{ github.sha }}
         run: |
-          aws s3 sync dist s3://$S3_BUCKET/$DIR_NAME
-          aws s3 rm s3://$S3_BUCKET/ --recursive --exclude "*" --include "latest/*"
-          aws s3 sync dist s3://$S3_BUCKET/latest
+          aws s3 sync dist s3://$S3_BUCKET_PUBLIC/$DIR_NAME
+          aws s3 rm s3://$S3_BUCKET_PUBLIC/ --recursive --exclude "*" --include "latest/*"
+          aws s3 sync dist s3://$S3_BUCKET_PUBLIC/latest
 
       - name: Invalidate CloudFront
         uses: chetan/invalidate-cloudfront-action@v2

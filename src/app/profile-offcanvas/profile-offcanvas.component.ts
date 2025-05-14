@@ -1,9 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, effect } from '@angular/core';
+import { Component} from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
-import { Subscription } from 'rxjs';
-import { ToastService, ToastTypes } from '../services/toast.service';
 
 @Component({
     selector: 'app-profile-offcanvas',

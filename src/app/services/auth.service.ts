@@ -95,7 +95,7 @@ export class AuthService {
   private async listenToAuthEvents() {
     Hub.listen('auth', async ({ payload }) => {
       switch (payload.event) {
-        case 'signedIn':
+        case 'signedIn': {
           const userAttributes = await fetchUserAttributes(); // Await the user attributes
           this.updateUser(userAttributes); // Set the resolved user attributes
           this.loggerService.info('User has signed in successfully.');
@@ -103,23 +103,29 @@ export class AuthService {
           this.jwtToken = session.credentials.sessionToken;
           await this.setRefresh();
           break;
-        case 'signedOut':
+        }
+        case 'signedOut': {
           this.loggerService.info('User has signed out successfully.');
           this.updateUser(null);
           this.session.set(null);
           break;
-        case 'tokenRefresh':
+        }
+        case 'tokenRefresh': {
           this.loggerService.info('Auth tokens have been refreshed.');
           break;
-        case 'tokenRefresh_failure':
+        }
+        case 'tokenRefresh_failure':{
           this.loggerService.info('Failure while refreshing auth tokens.');
           break;
-        case 'signInWithRedirect':
+        }
+        case 'signInWithRedirect':{
           this.loggerService.info('signInWithRedirect API has successfully been resolved.');
           break;
-        case 'signInWithRedirect_failure':
+        }
+        case 'signInWithRedirect_failure':{
           this.loggerService.info('Failure while trying to resolve signInWithRedirect API.');
           break;
+        }
       }
     });
   }
@@ -194,7 +200,7 @@ export class AuthService {
       this.session.set(await fetchAuthSession());
       this.jwtToken = this.session()?.credentials?.sessionToken;
     } catch (error) {
-      //no User clear signals
+      console.log('User is not signed in:', error);
       this.logout();
     }
   }

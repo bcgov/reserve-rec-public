@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit} from '@angular/core';
+import { Component} from '@angular/core';
 import { ProfileOffcanvasComponent } from '../profile-offcanvas/profile-offcanvas.component';
 import { AuthService } from '../services/auth.service';
 import { RouterModule } from '@angular/router';

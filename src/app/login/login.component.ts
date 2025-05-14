@@ -1,6 +1,5 @@
-import { Component, effect } from '@angular/core';
+import { Component } from '@angular/core';
 import { AmplifyAuthenticatorModule } from '@aws-amplify/ui-angular';
-import { Subscription } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { CommonModule } from '@angular/common';
 

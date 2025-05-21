@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
 
 export class LoginComponent implements OnInit{
   constructor(private authService: AuthService) {}
-  currentDate: string = '';
+  currentDate = '';
   ngOnInit() {
     const now = new Date();
     const options: Intl.DateTimeFormatOptions = { month: 'short', day: '2-digit', year: 'numeric' };

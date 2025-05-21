@@ -1,50 +1,61 @@
-<div class="container-fluid h-100">
-    <div class="d-flex flex-column flex-lg-row">
+<div class="container-fluid p-0">
+    <div class="d-flex flex-column-reverse flex-md-row">
+
         <!-- Left Column: Search Results -->
-        <div class="search-results-container col-lg-4 p-4 d-flex flex-column">
-            <!-- Mini Search -->
-            <div class="text-center mb-3">
-                <div class="input-group">
-                    <input class="form-control" type="text" ngDefaultControl (keyup.enter)="search()"
-                        [(ngModel)]="searchBox" placeholder="Park name" aria-label="Search">
-                    <button class="btn ml-3" (click)="search()">Search</button>
+        <div class="search-results-container col-lg-4 p-0 d-flex flex-column">
+
+            <!-- Sticky Header Section -->
+            <div class="search-header pt-4 px-4">
+                <!-- Search Term -->
+                <div class="border d-flex align-items-center px-3 py-2 mb-3 bg-white">
+                    <i class="fa-regular fa-location-dot me-2"></i>
+                    <span class="flex-grow-1">{{ searchTerm }}</span>
+                    <i class="fa-solid fa-xmark"></i>
                 </div>
-            </div>
 
-            <h2 class="fw-bold mt-3">Search Results</h2>
-            <hr class="my-4">
-            <h5 class="fw-semibold mb-4">Select a campground</h5>
-
-            <!-- Loading Spinner -->
-            <ng-container *ngIf="loading">
-                <div class="d-flex align-items-center justify-content-center flex-grow-1">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
+                <h2 id="search-results" tabindex="-1">Search Results</h2>
+                <hr class="my-3">
+                
+                <!-- Jump to section -->
+                <div *ngIf="!isEmpty; else loading_search" class="mb-3">
+                    <p class="text-muted">Jump to section</p>
+                    <div class="btn-group" role="group">
+                        <ng-container *ngFor="let category of categories">
+                            <button *ngIf="(categorizedData[category.id]?.length ?? 0) > 0" class="btn me-2"
+                                (click)="scrollToAnchor(category.id)" [attr.aria-label]="'Jump to ' + category.title">
+                                {{ category.title }}
+                            </button>
+                        </ng-container>
                     </div>
                 </div>
-            </ng-container>
-
-            <!-- Search Results -->
-            <div class="flex-grow-1 overflow-auto" *ngIf="!loading">
-                <div class="p-3 text-muted" *ngIf="!data">
-                    You must provide a search term.
-                </div>
-                <div class="p-3 text-muted" *ngIf="data?.length === 0">
-                    No search results.
-                </div>
-                <div class="card-container" *ngIf="data?.length > 0">
-                    <ng-container *ngFor="let item of data">
-                        <div class="card mb-2"
-                            (click)="navigate(null, null, null)">
-                            <div class="card-body d-flex justify-content-between align-items-center">
-                                <p class="fw-bold mt-3">{{item._source.displayName}}</p>
-                                <i class="fs-4"> > </i>
-                            </div>
+                
+                <!-- Loading -->
+                <ng-template #loading_search>
+                    <div *ngIf="loading; else no_matches" class="d-flex align-items-center justify-content-center" aria-live="polite">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
-                    </ng-container>
-                </div>
+                    </div>
+                    <!-- No matches -->
+                    <ng-template #no_matches>
+                        <p class="text-muted fst-italic">No matching results found.</p>
+                    </ng-template>
+                </ng-template>
+            </div>
+
+            <!-- Scrollable Content Area -->
+            <div class="search-body flex-grow-1 overflow-auto px-4 pb-4 mb-3">
+                <!-- Search Results -->
+                <ng-container *ngFor="let category of categories">
+                    <app-search-result-section [id]="category.id" [title]="category.title"
+                        [navigation]="category.navigation" [items]="categorizedData[category.id] || []"
+                        *ngIf="(categorizedData[category.id]?.length ?? 0) > 0">
+                    </app-search-result-section>
+                </ng-container>
             </div>
         </div>
+
+
 
         <!-- Right Column: Map -->
         <div class="search-map p-0">

@@ -1,0 +1,36 @@
+.btn-edit {
+    background-color: transparent; 
+    color: #C7C7C7; 
+    border: none; 
+    padding: 0; 
+    font-size: 0.875rem; 
+    cursor: pointer; 
+    }
+  
+  .btn-edit:hover {
+    color: #A7A7A7; 
+  }
+
+  .phoneText {
+    font-size: 0.875rem; 
+    color: #C7C7C7;
+  }
+
+  .list-group-item {
+    background-color: transparent; 
+    border: none; 
+    color: #2464A4; 
+    font-weight: normal; 
+    padding-left: 10px; 
+  }
+  .list-group-item:hover {
+    color: #0056b3; 
+    font-weight: bold; 
+    border-left: 4px solid #0056b3; 
+    padding-left: 6px; 
+    text-decoration: none; 
+  }
+
+  .details-section {
+    padding-bottom: 5%; 
+  }

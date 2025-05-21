@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { AmplifyAuthenticatorModule } from '@aws-amplify/ui-angular';
 import { AuthService } from '../services/auth.service';
 import { CommonModule } from '@angular/common';
@@ -11,8 +11,14 @@ import { CommonModule } from '@angular/common';
     styleUrl: './login.component.scss'
 })
 
-export class LoginComponent {
+export class LoginComponent implements OnInit{
   constructor(private authService: AuthService) {}
+  currentDate: string = '';
+  ngOnInit() {
+    const now = new Date();
+    const options: Intl.DateTimeFormatOptions = { month: 'short', day: '2-digit', year: 'numeric' };
+    this.currentDate = new Intl.DateTimeFormat('en-US', options).format(now).replace(',', '').replace(' ', '-');
+  }
 
   get user() {
     return this.authService.user(); // Directly bind to the signal
@@ -20,5 +26,8 @@ export class LoginComponent {
 
   signInWithRedirect() {
     return this.authService.federatedSignIn(); // Default to Cognito-hosted UI
+  }
+  logCurrentDate() {
+    console.log('Current Date:', this.currentDate);
   }
 }

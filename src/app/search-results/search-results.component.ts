@@ -76,7 +76,7 @@ export class SearchResultsComponent implements OnInit {
     this.categorizedData = result;
   }
 
-  isCategorizedDataEmpty(data: { [key: string]: any[] }): boolean {
+  isCategorizedDataEmpty(data: Record<string, any[]>): boolean {
     return Object.values(data).every(arr => arr.length === 0);
   }
 

@@ -13,10 +13,7 @@ describe('FooterComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [FooterComponent],
-      providers: [LoggerService, {
-        provide: ConfigService, useValue: { config: { GH_HASH: 'testing' } }
-      }, provideHttpClient(),
-        provideHttpClientTesting()]
+      providers: [LoggerService, ConfigService, provideHttpClient(), provideHttpClientTesting()]
     })
       .compileComponents();
 

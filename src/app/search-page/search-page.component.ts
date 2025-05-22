@@ -17,13 +17,9 @@ export class SearchPageComponent {
   constructor(private router: Router) { }
 
   search(): void {
-    console.log("Searching for: ", this.searchBox);
-    // Get search results and put into data service
-    if (this.searchBox !== '') {
-      this.searchService.searchByQuery(this.searchBox);
+    const query = this.searchBox.trim();
+    if (query) {
+      this.router.navigate(['/results'], { queryParams: { search: query } });
     }
-
-    // Then navigate to search page
-    this.router.navigate(['/results']);
   }
 }

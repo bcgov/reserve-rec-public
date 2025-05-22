@@ -8,10 +8,7 @@ describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
-      providers: [{
-        provide: ConfigService, useValue: { config: { GH_HASH: 'testing' } }
-      }, provideHttpClient(),
-      provideHttpClientTesting()]
+      providers: [ConfigService, provideHttpClient(), provideHttpClientTesting()]
     }).compileComponents();
   });
 

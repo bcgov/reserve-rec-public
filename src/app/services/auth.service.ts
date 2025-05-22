@@ -102,6 +102,7 @@ export class AuthService {
           const session = await fetchAuthSession();
           this.jwtToken = session.credentials.sessionToken;
           await this.setRefresh();
+          this.router.navigate(['/']);
           break;
         }
         case 'signedOut': {
@@ -178,6 +179,7 @@ export class AuthService {
     this.updateUser(null); 
     this.session.set(null);
     console.log('User logged out', this.user);
+    this.router.navigate(['/']);
   }
   
   updateUser(user: any) {

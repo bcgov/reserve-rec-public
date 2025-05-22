@@ -18,4 +18,12 @@ export class AccountDetailsComponent {
   logout() {
     this.authService.logout(); // Call the sign-out logic
   }
+
+  edit() {
+    console.log('IMPLEMENT EDIT LATER');
+  }
+
+  scrollToElement(element: HTMLElement): void {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+  }
 }

@@ -1,7 +1,127 @@
 <div class="container mt-5">
   <div class="row mb-4">
-    <div class="col text-center">
+    <div class="col text-left">
       <h1 class="display-4">Account Details</h1>
+    </div>
+  </div>
+  <div class="container mt-5">
+    <div class="row">
+      <!-- Left Column: Quick Links -->
+      <div class="col-md-3">
+        <div class="list-group">
+          <a #personalDetails (click)="scrollToElement(personalDetails)" class="list-group-item list-group-item-action">Personal Details</a>
+          <a #vehicleDetails (click)="scrollToElement(vehicleDetails)" class="list-group-item list-group-item-action">Vehicle Details</a>
+          <a #accountManagement (click)="scrollToElement(accountManagement)" class="list-group-item list-group-item-action">Account Management</a>
+        </div>
+      </div>
+
+      <!-- Right Column: Content Sections -->
+      <div class="col-md-9">
+        <h2 id="personal-details" class="mb-4">Personal Details</h2>
+
+        <!-- Name Section -->
+        <hr>
+        <div class="details-section">
+          <div class="row mb-3">
+            <div class="col-md-4 font-weight-bold"><b>Name</b></div>
+            <div class="col-md-6">{{ (user.given_name + ' ' + user.family_name) }}</div>
+            <div class="col-md-2 text-end">
+              <button class="btn btn-sm btn-edit" (click)="edit()">Edit</button>
+            </div>
+          </div>
+        
+
+        <!-- Email Section -->
+        <hr>
+        <div class="row mb-3">
+          <div class="col-md-4 font-weight-bold"><b>Email address</b></div>
+          <div class="col-md-6">{{ user.email }}</div>
+          <div class="col-md-2 text-end">
+            <button class="btn btn-sm btn-edit" (click)="edit()">Edit</button>
+          </div>
+        </div>
+
+        <!-- Phone Number Section -->
+        <hr>
+        <div class="row mb-3">
+          <div class="col-md-4 font-weight-bold"><b>Phone numbers</b></div>
+          <div class="col-md-6">
+            <div class="row">
+              <div class="col-2 phoneText">Mobile:</div>
+              <div class="col-6 text-start">{{ user['custom:mobilePhone'] }}</div>
+            </div>
+            <div class="row">
+              <div class="col-2 phoneText">Home:</div>
+              <div class="col-6 text-start">{{ user['custom:secondaryNumber'] }}</div>
+            </div>
+          </div>
+          <div class="col-md-2 text-end">
+            <button class="btn btn-sm btn-edit" (click)="edit()">Edit</button>
+          </div>
+        </div>
+
+        <!-- Address Section -->
+        <hr>
+        <div class="row mb-3">
+          <div class="col-md-4 font-weight-bold"> <b>Home address</b></div>
+          <div class="col-md-6">
+            <div class="row">
+              <div class="col-12">{{ user['custom:homeAddress'] }}</div>
+            </div>
+            <div class="row">
+              <div class="col-8 text-start">{{ user['custom:postalCode'] }}</div>
+            </div>
+            <div class="row">
+              <div class="col-8 text-start">{{ user['custom:city'] }}, {{ user['custom:province'] }}</div>
+            </div>
+            <div class="row">
+              <div class="col-8 text-start">{{ user['custom:country'] }}</div>
+            </div>
+          </div>
+          <div class="col-md-2 text-end">
+            <button class="btn btn-sm btn-edit" (click)="edit()">Edit</button>
+          </div>
+        </div>
+        <hr>
+      </div>
+
+        <!-- Vehicle Details Section -->
+        
+          <div class="details-section">
+            <h2 id="vehicle-details" class="mb-4">Vehicle Details</h2>
+            <hr>
+            <div class="row mb-3">
+              <div class="col-md-4 font-weight-bold"><b>License Plate</b></div>
+              <div class="col-md-6">
+                <div class="row">
+                  <div class="col-12">{{ user['custom:licensePlate'] }}</div>
+                </div>
+                <div class="row">
+                  <div class="col-12">{{ user['custom:vehicleRegLocale'] }}</div>
+                </div>
+              </div>
+              <div class="col-md-2 text-end">
+                <button class="btn btn-sm btn-edit" (click)="edit()">Edit</button>
+              </div>
+            </div>
+            <hr>
+          </div>  
+
+        <!-- Account Management Section -->
+       
+        <div class="details-section">
+          <h2 id="account-management" class="mb-4">Account Management</h2>
+          <hr>
+          <div class="row mb-3">
+            <div class="col-md-4 font-weight-bold"><b>Password</b></div>
+            <div class="col-md-6"><i>Last updated {{ user['custom:pwUpdate'] }}</i></div>
+            <div class="col-md-2 text-end">
+              <button class="btn btn-sm btn-edit" (click)="edit()">Change</button>
+            </div>
+          </div>
+          <hr>
+        </div>
+      </div>
     </div>
   </div>
 </div>

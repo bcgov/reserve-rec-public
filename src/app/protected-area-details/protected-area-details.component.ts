@@ -1,4 +1,4 @@
-import { Component, effect, OnInit, Signal, signal } from '@angular/core';
+import { Component, effect, OnInit, Signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProtectedAreaService } from '../services/protected-area.service';
 import { DataService } from '../services/data.service';

@@ -1,7 +1,5 @@
-import { AfterViewInit, Component, computed, effect, ElementRef, Input, input, OnDestroy, Signal, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, effect, ElementRef, Input, OnDestroy, Signal, signal, ViewChild } from '@angular/core';
 import maplibregl from 'maplibre-gl';
-import { Constants } from '../constants';
-import { DataService } from '../services/data.service';
 import { Map } from 'maplibre-gl';
 
 @Component({
@@ -21,7 +19,6 @@ export class SearchMapComponent implements AfterViewInit, OnDestroy {
   public data;
 
   constructor(
-    private dataService: DataService,
   ) {
     effect(() => {
       this.data = this._dataSignal();
@@ -43,7 +40,7 @@ export class SearchMapComponent implements AfterViewInit, OnDestroy {
 
     this.markerArray.forEach(marker => marker.remove());
 
-    let bounds = new maplibregl.LngLatBounds();
+    const bounds = new maplibregl.LngLatBounds();
 
     this.data?.forEach(item => {
       if (item._source) {

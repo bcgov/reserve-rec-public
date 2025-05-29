@@ -19,7 +19,7 @@ export class FacilityService {
   ) { }
 
   async getFacility(fcCollectionId: string, facilityType?: string, facilityId?: string) {
-    let queryParams = null;
+    const queryParams = null;
     if (facilityType) {
       queryParams['facilityType'] = facilityType;
     }

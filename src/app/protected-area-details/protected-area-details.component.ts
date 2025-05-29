@@ -1,5 +1,5 @@
 import { Component, effect, OnInit, Signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { ProtectedAreaService } from '../services/protected-area.service';
 import { DataService } from '../services/data.service';
 import { Constants } from '../constants';
@@ -10,6 +10,7 @@ import { SearchMapComponent } from '../search-map/search-map.component';
 
 @Component({
   selector: 'app-protected-area-details',
+  host: { class: 'results-container' },
   imports: [CommonModule, SearchResultSectionComponent, SearchResultItemComponent, SearchMapComponent],
   templateUrl: './protected-area-details.component.html',
   styleUrl: './protected-area-details.component.scss'
@@ -24,7 +25,6 @@ export class ProtectedAreaDetailsComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router,
     private protectedAreaService: ProtectedAreaService,
     private dataService: DataService
   ) {
@@ -33,7 +33,16 @@ export class ProtectedAreaDetailsComponent implements OnInit {
     effect(() => {
       this.data = this._data();
       this.facilities = this._facilities();
+      this.formatFacilities();
     });
+  }
+
+  formatFacilities() {
+    if (this.facilities?.items) {
+      for (const facility of this.facilities.items) {
+        facility['navigation'] = "/facility/" + facility.fcCollectionId + "/" + facility.facilityType + "/" + facility.identifier;
+      }
+    }
   }
 
   ngOnInit(): void {

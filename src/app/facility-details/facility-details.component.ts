@@ -1,27 +1,40 @@
-import { Component, effect, OnInit } from '@angular/core';
+import { Component, effect, OnInit, signal, Signal, WritableSignal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Constants } from '../constants';
 import { DataService } from '../services/data.service';
 import { FacilityService } from '../services/facility.service';
-import { FacilityMapComponent } from '../facility-map/facility-map.component';
 import { CommonModule } from '@angular/common';
+import { SearchResultSectionComponent } from '../search-results/search-results-section/search-result-section.component';
+import { SearchResultItemComponent } from '../search-results/search-results-section/search-result-item/search-result-item.component';
+import { SearchMapComponent } from '../search-map/search-map.component';
 
 @Component({
-    selector: 'app-permit-details',
-    imports: [FacilityMapComponent, CommonModule],
-    templateUrl: './facility-details.component.html',
-    styleUrl: './facility-details.component.scss'
+  selector: 'app-facility-details',
+  host: { class: 'h-100' },
+  imports: [CommonModule, SearchResultSectionComponent, SearchResultItemComponent, SearchMapComponent],
+  templateUrl: './facility-details.component.html',
+  styleUrl: './facility-details.component.scss'
 })
 export class FacilityDetailsComponent implements OnInit {
+
+  public _dataSignal: Signal<any[]> = signal([]);
+  public _activitiesSignal: WritableSignal<any[]> = signal([]);
+
   public fcCollectionId;
   public facilityType;
   public identifier;
-  public data = null;
+  public data;
+  public activities;
 
   constructor(private route: ActivatedRoute, private router: Router, private facilityService: FacilityService, private dataService: DataService) {
+    this._dataSignal = this.dataService.watchItem(Constants.dataIds.FACILITY_DETAILS_RESULT);
     effect(() => {
-      this.data = this.dataService.watchItem(Constants.dataIds.FACILITY_DETAILS_RESULT)();
-      console.log(this.data)
+      this.data = this._dataSignal();
+      if (this.data?.activities?.length > 0) {
+        this._activitiesSignal.set(this.data.activities);
+        this.activities = this._activitiesSignal();
+        this.formatActivities();
+      }
     });
   }
 
@@ -31,10 +44,24 @@ export class FacilityDetailsComponent implements OnInit {
     this.facilityType = params.get('facilityType');
     this.identifier = params.get('identifier');
 
-    this.facilityService.getFacility(this.fcCollectionId, this.facilityType, this.identifier);
+    this.facilityService.getFacility(this.fcCollectionId, this.facilityType, this.identifier, true);
   }
 
-  navigate(orcs, activityType, identifier) {
-    this.router.navigate(['/activity', orcs, activityType, identifier]);
+  formatActivities() {
+    for (const activity of this.activities) {
+      activity['navigation'] = "/activity/" + activity.acCollectionId + "/" + activity.activityType + "/" + activity.identifier;
+    }
+  }
+
+  navigate(acCollectionId, activityType, identifier) {
+    this.router.navigate(['/activity', acCollectionId, activityType, identifier]);
+  }
+
+  navToProtectedArea() {
+    if (this.data?.orcs) {
+      this.router.navigate(['/protected-area', this.data.orcs]);
+    } else {
+      console.warn('Protected Area ORCS not found in facility data.');
+    }
   }
 }

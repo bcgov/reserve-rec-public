@@ -24,6 +24,8 @@ export class SearchMapComponent implements AfterViewInit, OnDestroy {
       this.data = this._dataSignal();
       if (this.data?.items) {
         this.data = this.data.items;
+      } else if (!this.data?.length) {
+        this.data = [this.data];
       }
       if (this.mapLoaded()) {
         this.updateMap();
@@ -43,7 +45,7 @@ export class SearchMapComponent implements AfterViewInit, OnDestroy {
     const bounds = new maplibregl.LngLatBounds();
 
     this.data?.forEach(item => {
-      if (item._source) {
+      if (item?._source) {
         // flatten the _source object to make it easier to access properties
         item = {
           ...item,
@@ -98,7 +100,8 @@ export class SearchMapComponent implements AfterViewInit, OnDestroy {
     // fly to location
     if (this.flyToLocation && !bounds.isEmpty()) {
       this.map.fitBounds(bounds, {
-        padding: 75
+        padding: 75,
+        maxZoom: 13,
       });
     }
   }

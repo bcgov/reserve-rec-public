@@ -18,12 +18,8 @@ export class ActivityService {
     private loadingService: LoadingService
   ) { }
 
-  async getActivity(orcs: string, activityType: string, activityId: string, fetchFacilities = false, fetchProducts = true) {
-    const queryParams = {
-      orcs: orcs,
-      activityType: activityType,
-      activityId: activityId,
-    };
+  async getActivity(acCollectionId: string, activityType: string, activityId: string, fetchFacilities = false, fetchProducts = true) {
+    const queryParams = {};
 
     if (fetchFacilities) {
       queryParams['fetchFacilities'] = true;

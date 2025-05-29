@@ -25,10 +25,10 @@ export class ProtectedAreaService {
       this.loadingService.addToFetchList('protectedAreaDetails');
       const res = (await lastValueFrom(this.apiService.get(`protected-areas/${orcs}`)))['data'];
       this.dataService.setItemValue('protectedAreaDetails', res);
-      this.loadingService.removeFromFetchList('protectedAreaDetails');
       if (getFacilities) {
         this.facilityService.getFacility(`bcparks_${orcs}`);
       }
+      this.loadingService.removeFromFetchList('protectedAreaDetails');
     } catch (error) {
       this.loggerService.error(error);
     }

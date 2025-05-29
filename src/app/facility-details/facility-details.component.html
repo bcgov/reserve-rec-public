@@ -1,31 +1,39 @@
-<app-facility-map class="facility-map"></app-facility-map>
+<div class="container-fluid p-0 ">
+    <div class="d-flex flex-column-reverse flex-md-row">
+        <!-- Left Column: Search Results -->
+        <div class="search-results-container col-lg-4 p-0 d-flex flex-column">
+            <div class="p-4">
+                <h2
+                  id="search-results"
+                  tabindex="-1"
+                >{{data?.displayName}}</h2>
+                <hr class="my-3">
+                <div class="col">
+                    <button class="btn btn-link mb-3 border-0 bg-transparent" (click)="navToProtectedArea()">
+                        <h4>
+                            < Facilities</h4>
+                    </button>
+                </div>
+                <h3>
+                    Select an activity
+                </h3>
+                <!-- Scrollable Content Area -->
+                <div class="activity-results h-100 flex-grow-1 overflow-auto px-4 pb-4 mb-3">
+                    <!-- Search Results -->
 
-<div class="container mb-5">
-    <section class="mt-5">
-        <h1>{{data?.displayName || '-'}}</h1>
-        <div class="row">
-            <div class="col">
-                <img [src]="data?.imageUrl || ''" alt="Facility Image" class="img-fluid">
-            </div>
-            <div class="col">
-                <p>{{data?.description || '-'}}</p>
+                    <app-search-result-section [title]="''">
+                        <app-search-result-item
+                          *ngFor="let activity of activities"
+                          [title]="activity?.displayName"
+                          [navigation]="''"
+                        >{{activity}}</app-search-result-item>
+                    </app-search-result-section>
+                </div>
             </div>
         </div>
-    </section>
-
-    <section class="mt-5">
-        <h2>Activities</h2>
-        <div *ngFor="let activity of data?.activities">
-            <div class="row">
-                <div class="col-11">
-                    <h3>{{activity.displayName}}</h3>
-                    <p>{{activity.description}}</p>
-                </div>
-                <div class="col-1">
-                    <button class="btn btn-primary" (click)="navigate(activity.orcs, activity.activityType
-, activity.identifier)">Book Now</button>
-                </div>
-            </div>
+        <!-- Right Column: Map -->
+        <div class="search-map w-100 p-0">
+            <app-search-map [_dataSignal]="_dataSignal"></app-search-map>
         </div>
-    </section>
+    </div>
 </div>

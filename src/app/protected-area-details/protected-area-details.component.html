@@ -1,0 +1,41 @@
+<div class="container-fluid p-0">
+  <div class="d-flex flex-column-reverse flex-md-row">
+    <!-- Left Column: Search Results -->
+    <div class="search-results-container col-lg-4 m-5 d-flex flex-column">
+      <h2
+        id="search-results"
+        tabindex="-1"
+      >{{data?.displayName}}</h2>
+      <hr class="my-3">
+      {{ data?.description }}
+      <div class="col">
+        <button class="btn btn-link mb-3">
+          <h4>
+            <
+              Park
+              page</h4
+            >
+        </button>
+      </div>
+      <h3>
+        Select a facility
+      </h3>
+      <!-- Scrollable Content Area -->
+      <div class="facility-results lex-grow-1 overflow-auto px-4 pb-4 mb-3">
+        <!-- Search Results -->
+
+        <app-search-result-section [title]="''">
+          <app-search-result-item
+            *ngFor="let facility of facilities?.items"
+            [title]="facility.displayName"
+            [navigation]="''"
+          >{{facility}}</app-search-result-item>
+        </app-search-result-section>
+      </div>
+    </div>
+    <!-- Right Column: Map -->
+    <div class="search-map w-100 p-0">
+      <app-search-map [_dataSignal]="_facilities"></app-search-map>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,21 @@
+.card {
+  border-radius: 0;
+}
+.card-body {
+  height: 72px;
+  background: #c7c7c7;
+  border: 1px solid #656565;
+  overflow: hidden;
+  cursor: pointer;
+
+  // Keep items uniform in size, wrap text with ellipsis...
+  p {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    max-height: 2.4em;
+  }
+}

@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
     styleUrl: './facility-details.component.scss'
 })
 export class FacilityDetailsComponent implements OnInit {
-  public orcs;
+  public fcCollectionId;
   public facilityType;
   public identifier;
   public data = null;
@@ -27,11 +27,11 @@ export class FacilityDetailsComponent implements OnInit {
 
   ngOnInit(): void {
     const params = this.route.snapshot.paramMap;
-    this.orcs = params.get('orcs');
+    this.fcCollectionId = params.get('fcCollectionId');
     this.facilityType = params.get('facilityType');
     this.identifier = params.get('identifier');
 
-    this.facilityService.getFacility(this.orcs, this.facilityType, this.identifier);
+    this.facilityService.getFacility(this.fcCollectionId, this.facilityType, this.identifier);
   }
 
   navigate(orcs, activityType, identifier) {

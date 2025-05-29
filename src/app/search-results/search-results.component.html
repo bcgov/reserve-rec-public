@@ -13,26 +13,46 @@
                     <i class="fa-solid fa-xmark"></i>
                 </div>
 
-                <h2 id="search-results" tabindex="-1">Search Results</h2>
+                <h2
+                  id="search-results"
+                  tabindex="-1"
+                >Search Results</h2>
                 <hr class="my-3">
-                
+
                 <!-- Jump to section -->
-                <div *ngIf="!isEmpty; else loading_search" class="mb-3">
+                <div
+                  *ngIf="!isEmpty; else loading_search"
+                  class="mb-3"
+                >
                     <p class="text-muted">Jump to section</p>
-                    <div class="btn-group" role="group">
+                    <div
+                      class="btn-group"
+                      role="group"
+                    >
                         <ng-container *ngFor="let category of categories">
-                            <button *ngIf="(categorizedData[category.id]?.length ?? 0) > 0" class="btn me-2"
-                                (click)="scrollToAnchor(category.id)" [attr.aria-label]="'Jump to ' + category.title">
+                            <button
+                              *ngIf="(categorizedData[category.id]?.length ?? 0) > 0"
+                              class="btn me-2"
+                              (click)="scrollToAnchor(category.id)"
+                              [attr.aria-label]="'Jump to ' + category.title"
+                            >
                                 {{ category.title }}
                             </button>
                         </ng-container>
                     </div>
                 </div>
-                
+
                 <!-- Loading -->
                 <ng-template #loading_search>
-                    <div *ngIf="loading; else no_matches" class="d-flex align-items-center justify-content-center" aria-live="polite">
-                        <div class="spinner-border" role="status">
+                    <div
+                      *ngIf="loading; else no_matches"
+                      class="d-flex align-items-center justify-content-center"
+                      aria-live="polite"
+                    >
+                        <div
+                          class="spinner-border"
+                          role="status"
+                        >
                             <span class="visually-hidden">Loading...</span>
                         </div>
                     </div>
@@ -47,19 +67,25 @@
             <div class="search-body flex-grow-1 overflow-auto px-4 pb-4 mb-3">
                 <!-- Search Results -->
                 <ng-container *ngFor="let category of categories">
-                    <app-search-result-section [id]="category.id" [title]="category.title"
-                        [navigation]="category.navigation" [items]="categorizedData[category.id] || []"
-                        *ngIf="(categorizedData[category.id]?.length ?? 0) > 0">
+                    <app-search-result-section
+                      [id]="category?.id"
+                      [title]="category?.title"
+                      *ngIf="(categorizedData[category?.id]?.length ?? 0) > 0"
+                    >
+                        <app-search-result-item
+                          *ngFor="let item of categorizedData[category.id]"
+                          [title]="item?._source?.displayName"
+                          [navigation]="item?._source?.navigation"
+                          [id]="item?.id"
+                        > </app-search-result-item>
                     </app-search-result-section>
                 </ng-container>
             </div>
         </div>
 
-
-
         <!-- Right Column: Map -->
-        <div class="search-map p-0">
-            <app-search-map></app-search-map>
+        <div class="search-map w-100 p-0">
+            <app-search-map [_dataSignal]="_dataSignal"></app-search-map>
         </div>
     </div>
 </div>

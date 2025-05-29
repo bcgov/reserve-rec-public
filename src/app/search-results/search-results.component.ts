@@ -1,4 +1,4 @@
-import { Component, effect, inject, OnInit } from '@angular/core';
+import { Component, effect, inject, OnInit, Signal, signal } from '@angular/core';
 import { DataService } from '../services/data.service';
 import { Constants } from '../constants';
 import { CommonModule } from '@angular/common';
@@ -8,21 +8,23 @@ import { SearchMapComponent } from "../search-map/search-map.component";
 import { SearchService } from '../services/search.service';
 import { FormsModule } from '@angular/forms';
 import { SearchResultSectionComponent } from './search-results-section/search-result-section.component';
+import { SearchResultItemComponent } from './search-results-section/search-result-item/search-result-item.component';
 
 @Component({
   selector: 'app-search',
   templateUrl: './search-results.component.html',
   styleUrls: ['./search-results.component.scss'],
-  imports: [CommonModule, FormsModule, SearchMapComponent, SearchResultSectionComponent],
+  imports: [CommonModule, FormsModule, SearchMapComponent, SearchResultSectionComponent, SearchResultItemComponent],
 })
 export class SearchResultsComponent implements OnInit {
+  public _dataSignal: Signal<any[]> = signal([]);
   private searchService = inject(SearchService);
   public searchTerm = '';
   public data = null;
   public loading = false;
   public searchBox = '';
   public categories = [
-    { id: 'Parks', title: 'Parks', schema: 'protectedArea', navigation: '/park' },
+    { id: 'Parks', title: 'Parks', schema: 'protectedArea', navigation: '/protected-area' },
     { id: 'Facility', title: 'Facility', schema: 'facility', navigation: '/facility' },
     { id: 'Activity', title: 'Activity', schema: 'activity', navigation: '/activity' }
   ];
@@ -34,8 +36,9 @@ export class SearchResultsComponent implements OnInit {
     private route: ActivatedRoute
 
   ) {
+    this._dataSignal = this.dataService.watchItem(Constants.dataIds.SEARCH_RESULTS);
     effect(() => {
-      this.data = this.dataService.watchItem(Constants.dataIds.SEARCH_RESULTS)();
+      this.data = this._dataSignal();
       // Categorize data as soon as it comes back from OpenSearch
       this.categorizeData();
     });
@@ -69,6 +72,22 @@ export class SearchResultsComponent implements OnInit {
       return;
     }
     const result = {};
+    this.data.map(item => {
+      switch(item._source?.schema) {
+        case 'protectedArea':
+          item._source.navigation = `/protected-area/${item._source.orcs}`;
+          break;
+        case 'facility':
+          item._source.navigation = `/facility/${item._source.fcCollectionId}/${item._source.facilityType}/${item._source.facilityId}`;
+          break;
+        case 'activity':
+          item._source.navigation = `/activity/${item._source.acCollectionId}/${item._source.activityType}/${item._source.activityId}`;
+          break;
+        default:
+          item._source.navigation = `/search/text=${item._source.displayName}`;
+          break;
+      }
+    })
     for (const category of this.categories) {
       result[category.id] = this.data.filter(item => item._source?.schema === category.schema);
     }

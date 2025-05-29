@@ -18,21 +18,18 @@ export class FacilityService {
     private loadingService: LoadingService
   ) { }
 
-  async getFacility(orcs: string, facilityType: string, facilityId: string, fetchActivities = true) {
-    const queryParams = {
-      orcs: orcs,
-      facilityType: facilityType,
-      facilityId: facilityId,
-    };
-
-    if (fetchActivities) {
-      queryParams['fetchActivities'] = true;
+  async getFacility(fcCollectionId: string, facilityType?: string, facilityId?: string) {
+    let queryParams = null;
+    if (facilityType) {
+      queryParams['facilityType'] = facilityType;
+    }
+    if (facilityId) {
+      queryParams['facilityId'] = facilityId;
     }
 
     try {
       this.loadingService.addToFetchList(Constants.dataIds.FACILITY_DETAILS_RESULT);
-      const res = (await lastValueFrom(this.apiService.get(`facilities`, queryParams)))['data'];
-      console.log(res);
+      const res = (await lastValueFrom(this.apiService.get(`facilities/${fcCollectionId}`, queryParams)))['data'];
       this.dataService.setItemValue(Constants.dataIds.FACILITY_DETAILS_RESULT, res);
       this.loadingService.removeFromFetchList(Constants.dataIds.FACILITY_DETAILS_RESULT);
     } catch (error) {

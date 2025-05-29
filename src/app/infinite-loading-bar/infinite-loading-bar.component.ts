@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, effect } from '@angular/core';
+import { Component, effect, signal } from '@angular/core';
 import { LoadingService } from '../services/loading.service';
 
 @Component({
@@ -9,11 +9,11 @@ import { LoadingService } from '../services/loading.service';
     styleUrl: './infinite-loading-bar.component.scss'
 })
 export class InfiniteLoadingBarComponent {
-  public loading = false;
+  public loading = signal(false);
 
   constructor(protected loadingService: LoadingService) {
     effect(() => {
-      this.loading = this.loadingService.getLoadingStatus();
+      this.loading.set(this.loadingService.getLoadingStatus());
     });
   }
 }

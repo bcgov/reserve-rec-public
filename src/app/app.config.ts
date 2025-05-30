@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideZoneChangeDetection, inject, provideAppInitializer } from '@angular/core';
+import { ApplicationConfig, provideZoneChangeDetection, inject, provideAppInitializer, importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
@@ -28,6 +28,6 @@ export const appConfig: ApplicationConfig = {
     }),
     provideAnimations(),
     provideToastr(), // Toastr providers
-    ConfigService
+    ConfigService,
   ]
 };

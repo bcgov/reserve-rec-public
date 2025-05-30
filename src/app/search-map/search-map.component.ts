@@ -10,11 +10,13 @@ import { Map } from 'maplibre-gl';
 })
 export class SearchMapComponent implements AfterViewInit, OnDestroy {
   @Input() _dataSignal: Signal<any[]> = signal([]);
+  @Input() displayGeozones = false; // Whether to display geozones on the map
   @ViewChild('searchMap') mapContainer!: ElementRef<HTMLElement>;
   private map: Map | undefined;
   private markerArray = [];
   private mapLoaded = signal(false);
   private flyToLocation = true;
+
 
   public data;
 
@@ -55,7 +57,6 @@ export class SearchMapComponent implements AfterViewInit, OnDestroy {
       }
       if (item?.location && item?.location?.coordinates) {
         if (item?.boundary?.type === 'MultiPolygon') {
-          console.log(JSON.stringify(item?.boundary.coordinates[0]));
           this.map.addSource(`source-${item._id}`, {
             type: 'geojson',
             data: {
@@ -96,6 +97,38 @@ export class SearchMapComponent implements AfterViewInit, OnDestroy {
 
         bounds.extend(item.location.coordinates);
       }
+      if (item?.envelope && item?.envelope?.coordinates && this.displayGeozones) {
+        bounds.extend(item.envelope.coordinates);
+        const polygon = this.makeBoxFromEnvelope(item.envelope);
+          this.map.addSource(`source-${item._id}`, {
+            type: 'geojson',
+            data: {
+              type: 'Feature',
+              geometry: {
+                type: 'Polygon',
+                coordinates: [polygon]
+              },
+              properties: item
+            }
+          });
+          this.map.addLayer({
+            'id': `source-${item._id}`,
+            'type': 'fill',
+            'source': `source-${item._id}`,
+            'layout': {},
+            'paint': {
+              'fill-color': '#088',
+              'fill-opacity': 0.2
+            }
+          });
+          const content = `<strong>${item?.displayName}</strong><p><img src='${item?.imageUrl}' style='max-width: 225px; max-height: 225px; cursor: pointer;' onclick="window.open('${item?.imageUrl}', '_blank')"/></p><p>ID: ${JSON.stringify(item, null, 2)}</p>`;
+          this.map.on('click', `source-${item._id}`, (e) => {
+            new maplibregl.Popup()
+              .setLngLat(e.lngLat)
+              .setHTML(content)
+              .addTo(this.map);
+          });
+        }
     });
     // fly to location
     if (this.flyToLocation && !bounds.isEmpty()) {
@@ -126,6 +159,21 @@ export class SearchMapComponent implements AfterViewInit, OnDestroy {
       this.map.addControl(new maplibregl.NavigationControl());
     }
     this.mapLoaded.set(true);
+  }
+
+
+  // Must be closed
+  makeBoxFromEnvelope(envelope) {
+    if (!envelope || !envelope.coordinates || envelope.coordinates.length < 1) {
+      return null;
+    }
+    return [
+      [envelope.coordinates[0][0], envelope.coordinates[0][1]],
+      [envelope.coordinates[0][0], envelope.coordinates[1][1]],
+      [envelope.coordinates[1][0], envelope.coordinates[1][1]],
+      [envelope.coordinates[1][0], envelope.coordinates[0][1]],
+      [envelope.coordinates[0][0], envelope.coordinates[0][1]],
+    ];
   }
 
   ngOnDestroy() {

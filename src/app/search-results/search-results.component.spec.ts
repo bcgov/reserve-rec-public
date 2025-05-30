@@ -13,7 +13,7 @@ describe('SearchResultsComponent', () => {
 
   const mockQueryParams = of({ search: 'camping' });
   const mockSearchService = { searchByQuery: jasmine.createSpy('searchByQuery') };
-  
+
   const mockLoadingService = {
     isLoading: jasmine.createSpy('isLoading').and.returnValue(false)
   };
@@ -23,7 +23,9 @@ describe('SearchResultsComponent', () => {
     { _source: { schema: 'activity' } }
   ]);
   const mockDataService = {
-    watchItem: () => () => mockData.value
+    watchItem: () => () => mockData.value,
+    // Can't even have an empty arrow function in TS anymore, what is this world coming to?
+    setItemValue: () => null
   };
 
 

@@ -52,6 +52,7 @@ export class SearchResultsComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       const query = params['search'];
       if (query) {
+        this.dataService.setItemValue('search-query', query);
         this.searchTerm = query;
         this.searchBox = query;
 

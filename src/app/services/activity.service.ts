@@ -18,20 +18,21 @@ export class ActivityService {
     private loadingService: LoadingService
   ) { }
 
-  async getActivity(acCollectionId: string, activityType: string, activityId: string, fetchFacilities = false, fetchProducts = true) {
+  async getActivity(acCollectionId: string, activityType: string, activityId: string, fetchGeozone = false) {
     const queryParams = {};
-
-    if (fetchFacilities) {
-      queryParams['fetchFacilities'] = true;
+    if (activityType) {
+      queryParams['activityType'] = activityType;
     }
-    if (fetchProducts) {
-      queryParams['fetchProducts'] = true;
+    if (activityId) {
+      queryParams['activityId'] = activityId;
+    }
+    if (fetchGeozone) {
+      queryParams['fetchGeozone'] = true;
     }
 
     try {
       this.loadingService.addToFetchList(Constants.dataIds.ACTIVITY_DETAILS_RESULT);
-      const res = (await lastValueFrom(this.apiService.get(`activities`, queryParams)))['data'];
-      console.log(res);
+      const res = (await lastValueFrom(this.apiService.get(`activities/${acCollectionId}`, queryParams)))['data'];
       this.dataService.setItemValue(Constants.dataIds.ACTIVITY_DETAILS_RESULT, res);
       this.loadingService.removeFromFetchList(Constants.dataIds.ACTIVITY_DETAILS_RESULT);
     } catch (error) {

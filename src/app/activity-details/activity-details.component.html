@@ -1,29 +1,197 @@
-<div class="container mb-5">
-    <section class="mt-5">
-        <h1>{{data?.displayName || '-'}}</h1>
-        <div class="row">
-            <div class="col">
-                <img [src]="data?.imageUrl || ''" alt="Facility Image" class="img-fluid">
-            </div>
-            <div class="col">
-                <p>{{data?.description || '-'}}</p>
+<div class="container-fluid p-0 ">
+    <div class="d-flex flex-column-reverse flex-md-row">
+        <!-- Left Column: Search Results -->
+        <div class="search-results-container col-lg-4 p-0 d-flex flex-column">
+            <div class="p-4">
+                <div class="border d-flex align-items-center px-3 py-2 mb-3 bg-white">
+                    <i class="fa-regular fa-location-dot me-2"></i>
+                    <span class="flex-grow-1">{{searchTerm}}</span>
+                    <i class="fa-solid fa-xmark"></i>
+                </div>
+                <h2
+                  id="search-results"
+                  tabindex="-1"
+                >{{data?.displayName}}</h2>
+                <hr class="my-3">
+                <div class="col">
+                    <button
+                      class="btn btn-link mb-3 border-0 bg-transparent"
+                      (click)="navBack()"
+                    >
+                        <h4>
+                            < Back</h4>
+                    </button>
+                </div>
+                <hr>
+                <div class="mb-4">
+                    <ngds-date-input
+                      [label]="'When'"
+                      [dateRange]="true"
+                      [control]="form?.controls?.['dateRange']"
+                      [placeholder]="'Arrival -> Departure'"
+                      [hideOnSelect]="false"
+                      [maxRange]="14"
+                      [rangeSeparator]="'->'"
+                      [hideInvalidState]="true"
+                    >
+                        <i
+                          ngdsInputPrepend
+                          class="mx-2 align-items-center bi bi-calendar"
+                        ></i>
+                        ></ngds-date-input>
+                </div>
+                <h6>Party details</h6>
+                <p class="text-muted">
+                    Changing the party details will reflect changes in the price. You may have maximum 10 people in your
+                    party.
+                </p>
+                <!-- Party Details Form -->
+                <div class="row mb-5">
+                    <div class="col-6">
+                        <div class="row align-items-end p-2">
+                            <div class="col-auto p-0 ">
+                                <button
+                                  class="btn btn-light border border-1"
+                                  (click)="increment('totalAdult', -1)"
+                                  [disabled]="form?.get('occupants.totalAdult')?.value <= 0"
+                                >
+                                    &ndash;
+                                </button>
+                            </div>
+                            <div class="col px-1">
+                                <ngds-number-input
+                                  [control]="form?.get('occupants.totalAdult')"
+                                  [label]="'Adult (16-64)'"
+                                  [mouseScrollIncrement]="false"
+                                  [allowNegative]="false"
+                                  [placeholder]="'0'"
+                                >
+                                </ngds-number-input>
+                            </div>
+                            <div class="col-auto p-0">
+                                <button
+                                  class="btn btn-light border border-1"
+                                  (click)="increment('totalAdult', 1)"
+                                  [disabled]="getTotalOccupants() >= 10"
+                                >
+                                    +
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="row align-items-end p-2">
+                            <div class="col-auto p-0 ">
+                                <button
+                                  class="btn btn-light border border-1"
+                                  (click)="increment('totalSenior', -1)"
+                                  [disabled]="form?.get('occupants.totalSenior')?.value <= 0"
+                                >
+                                    &ndash;
+                                </button>
+                            </div>
+                            <div class="col px-1">
+                                <ngds-number-input
+                                  [control]="form?.get('occupants.totalSenior')"
+                                  [label]="'Senior (65+)'"
+                                  [mouseScrollIncrement]="false"
+                                  [allowNegative]="false"
+                                  [placeholder]="'0'"
+                                >
+                                </ngds-number-input>
+                            </div>
+                            <div class="col-auto p-0">
+                                <button
+                                  class="btn btn-light border border-1"
+                                  (click)="increment('totalSenior', 1)"
+                                  [disabled]="getTotalOccupants() >= 10"
+                                >
+                                    +
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="row align-items-end p-2">
+                            <div class="col-auto p-0 ">
+                                <button
+                                  class="btn btn-light border border-1"
+                                  (click)="increment('totalYouth', -1)"
+                                  [disabled]="form?.get('occupants.totalYouth')?.value <= 0"
+                                >
+                                    &ndash;
+                                </button>
+                            </div>
+                            <div class="col px-1">
+                                <ngds-number-input
+                                  [control]="form?.get('occupants.totalYouth')"
+                                  [label]="'Youth (6-15)'"
+                                  [mouseScrollIncrement]="false"
+                                  [allowNegative]="false"
+                                  [placeholder]="'0'"
+                                >
+                                </ngds-number-input>
+                            </div>
+                            <div class="col-auto p-0">
+                                <button
+                                  class="btn btn-light border border-1"
+                                  (click)="increment('totalYouth', 1)"
+                                  [disabled]="getTotalOccupants() >= 10"
+                                >
+                                    +
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="row align-items-end p-2">
+                            <div class="col-auto p-0 ">
+                                <button
+                                  class="btn btn-light border border-1"
+                                  (click)="increment('totalChild', -1)"
+                                  [disabled]="form?.get('occupants.totalChild')?.value <= 0"
+                                >
+                                    &ndash;
+                                </button>
+                            </div>
+                            <div class="col px-1">
+                                <ngds-number-input
+                                  [control]="form?.get('occupants.totalChild')"
+                                  [label]="'Child (0-5)'"
+                                  [mouseScrollIncrement]="false"
+                                  [allowNegative]="false"
+                                  [placeholder]="'0'"
+                                >
+                                </ngds-number-input>
+                            </div>
+                            <div class="col-auto p-0">
+                                <button
+                                  class="btn btn-light border border-1"
+                                  (click)="increment('totalChild', 1)"
+                                  [disabled]="getTotalOccupants() >= 10"
+                                >
+                                    +
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-grid gap-2">
+                    <button
+                      class="btn btn-primary"
+                      type="button"
+                      [disabled]="isSubmitDisabled()"
+                      (click)="submit()"
+                    >Add booking to cart</button>
+                </div>
             </div>
         </div>
-    </section>
-
-    <section class="mt-5">
-        <h2>Products</h2>
-        <div *ngFor="let product of data?.products">
-            <div class="row">
-                <div class="col-11">
-                    <h3>{{product.displayName}}</h3>
-                    <p>{{product.description}}</p>
-                </div>
-                <div class="col-1">
-                    <!-- <button class="btn btn-primary" (click)="navigate(product.orcs, product.productType
-, product.identifier)">Book Now</button> -->
-                </div>
-            </div>
+        <!-- Right Column: Map -->
+        <div class="search-map w-100 p-0">
+            <app-search-map
+              [_dataSignal]="_geozoneSignal"
+              [displayGeozones]="true"
+            ></app-search-map>
         </div>
-    </section>
+    </div>
 </div>

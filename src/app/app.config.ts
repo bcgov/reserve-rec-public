@@ -28,6 +28,6 @@ export const appConfig: ApplicationConfig = {
     }),
     provideAnimations(),
     provideToastr(), // Toastr providers
-    ConfigService
+    ConfigService,
   ]
 };

@@ -25,7 +25,7 @@
                         <app-search-result-item
                           *ngFor="let activity of activities"
                           [title]="activity?.displayName"
-                          [navigation]="''"
+                          [navigation]="activity?.navigation"
                         >{{activity}}</app-search-result-item>
                     </app-search-result-section>
                 </div>

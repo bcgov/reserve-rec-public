@@ -5,6 +5,7 @@ export class Constants {
     PERMIT_DETAILS_RESULT: 'permitDetailsResult',
     FACILITY_DETAILS_RESULT: 'facilityDetailsResult',
     ACTIVITY_DETAILS_RESULT: 'activityDetailsResult',
+    MY_BOOKINGS_RESULT: 'myBookingsResult'
   };
 
   public static readonly timeZoneIANA = 'America/Vancouver';

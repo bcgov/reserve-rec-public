@@ -1,0 +1,50 @@
+<!-- park info container -->
+<div class="container">
+  <div class="row align-items-center bg-body-secondary border border-dark"
+      role="region"
+      [attr.aria-labelledby]="'booking-' + bookingNumber">
+    <div class="border-dark border-bottom mb-2 p-4">
+      <header id="booking-{{bookingNumber}}">
+        <strong>Booking number</strong>: {{bookingNumber}}
+      </header>
+    </div>
+
+    <!-- park details -->
+    <div class="col-12 col-md-6 my-4 px-4" role="group" [attr.aria-label]="'Booking details for' + parkName">
+      <div class="park-name fw-bold py-1">
+        <h4>{{parkName}}</h4>
+      </div>
+      <div class="py-1">{{startDate}} - {{endDate}}</div>
+      <div class="py-1">
+        <span class="pe-2">
+          <i class="fa-regular fa-moon me-1" aria-hidden="true"></i>
+          <span class="visually-hidden">Nights:</span>
+          {{nights}}
+        </span>
+        <span>
+          <i class="fa-regular fa-user-group me-1" aria-hidden="true"></i>
+          <span class="visually-hidden">Guests:</span>
+          {{partyTotal}}
+        </span>
+      </div>
+      <div class="py-1">
+        <i class="fa-regular fa-flag-swallowtail pe-2"></i>{{entryPoint}}
+      </div>
+    </div>
+
+    <!-- map -->
+    <div class="col-12 col-md-6">
+      <div class="search-map p-2 p-lg-3" role="group" [attr.aria-label]="'Map for ' + parkName">
+        <app-booking-map [data]="mapObj"></app-booking-map>
+      </div>
+    </div>
+
+    <!-- view button container -->
+    <div class="border-top border-dark col-12 mb-1 p-3 d-flex justify-content-start">
+      <button class="btn btn-outline-primary rounded-0" (click)="navigate(bookingId, mapObj)">
+        View <span class="visually-hidden">booking at {{parkName}} from {{startDate}} to {{endDate}}</span>
+      </button>
+    </div>
+  </div>
+</div>
+

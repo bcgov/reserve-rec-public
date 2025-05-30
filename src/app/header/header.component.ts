@@ -1,12 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component} from '@angular/core';
-import { ProfileOffcanvasComponent } from '../profile-offcanvas/profile-offcanvas.component';
 import { AuthService } from '../services/auth.service';
 import { RouterModule } from '@angular/router';
 
 @Component({
     selector: 'app-header',
-    imports: [CommonModule, ProfileOffcanvasComponent, RouterModule],
+    imports: [CommonModule, RouterModule],
     templateUrl: './header.component.html',
     styleUrl: './header.component.scss'
 })

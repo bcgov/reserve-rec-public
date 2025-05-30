@@ -1,8 +1,134 @@
-<div class="container mt-5">
-    <!-- Page Heading -->
-    <div class="row mb-4">
-      <div class="col text-center">
-        <h1 class="display-4">My Bookings</h1>
-      </div>
+<div class="container mt-5 px-4">
+  <div class="row mb-4">
+    <div class="col">
+      <h1 class="fw-bold">My bookings</h1>
     </div>
   </div>
+
+  <div class="row">
+    <!-- Sidebar nav -->
+    <nav class="col-md-4 mb-5 ps-md-0" aria-label="Booking categories">
+      <div class="list-group">
+        <button (click)="scrollToAnchor('active')" 
+                [class.active]="activeSection === 'active'"
+                class="list-group-item list-group-item-action">
+          Active
+        </button>
+        <button (click)="scrollToAnchor('upcoming')" 
+                [class.active]="activeSection === 'upcoming'"
+                class="list-group-item list-group-item-action">
+          Upcoming
+        </button>
+        <button (click)="scrollToAnchor('past')" 
+                [class.active]="activeSection === 'past'"
+                class="list-group-item list-group-item-action">
+          Past
+        </button>
+        <button (click)="scrollToAnchor('cancelled')" 
+                [class.active]="activeSection === 'cancelled'"
+                class="list-group-item list-group-item-action">
+          Cancelled
+        </button>
+      </div>
+    </nav>
+
+    <!-- Booking sections -->
+    <div class="col-md-8">
+      
+      <!-- Active bookings -->
+      <section class="mb-5">
+        <h2 id="active" tabindex="-1" class="mb-4 text-primary">Active</h2>
+
+        <!-- Show active bookings loading spinner -->
+        <div *ngIf="loading; else activeCheck" class="d-flex justify-content-center py-4">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+
+        <!-- Check for actual bookings -->
+        <ng-template #activeCheck>
+          <div *ngIf="activeBookings.length > 0; else noActive">
+            <div class="col-12" *ngFor="let booking of activeBookings">
+              <app-bookings-main-card
+                [ariaLabel]="'Booking at ' + booking.parkName + ' from ' + booking.startDate + ' to ' + booking.endDate"
+                [bookingId]="booking.bookingId"
+                [bookingNumber]="booking.bookingNumber"
+                [endDate]="booking.endDate"
+                [entryPoint]="booking.entryPoint"
+                [mapObj]="booking.mapObj"
+                [nights]="booking.nights"
+                [startDate]="booking.startDate"
+                [parkName]="booking.parkName"
+                [partyTotal]="booking.partyTotal">
+              </app-bookings-main-card>
+            </div>
+          </div>
+        </ng-template>
+
+        <!-- No active bookings -->
+        <ng-template #noActive>
+          <div class="bg-info border border-primary no-bookings text-center py-4" role="status" aria-live="polite">
+            No active bookings
+          </div>
+        </ng-template>
+      </section>
+
+      <!-- Upcoming -->
+      <section class="mb-5">
+        <h2 id="upcoming" tabindex="-1" class="mb-4 text-primary">Upcoming</h2>
+
+        <!-- Show upcoming bookings loading spinner -->
+        <div *ngIf="loading; else upcomingCheck" class="d-flex justify-content-center py-4">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+
+        <!-- Check for upcoming bookings -->
+        <ng-template #upcomingCheck>
+          <div *ngIf="upcomingBookings.length > 0; else noUpcoming">
+            <div class="col-12" *ngFor="let booking of upcomingBookings">
+              <app-bookings-main-card
+                [ariaLabel]="'Booking at ' + booking.parkName + ' from ' + booking.startDate + ' to ' + booking.endDate"
+                [bookingId]="booking.bookingId"
+                [bookingNumber]="booking.bookingNumber"
+                [endDate]="booking.endDate"
+                [entryPoint]="booking.entryPoint"
+                [mapObj]="booking.mapObj"
+                [nights]="booking.nights"
+                [startDate]="booking.startDate"
+                [parkName]="booking.parkName"
+                [partyTotal]="booking.partyTotal">
+              </app-bookings-main-card>
+            </div>
+          </div>
+        </ng-template>
+
+        <!-- No upcoming bookings -->
+        <ng-template #noUpcoming>
+          <div class="bg-info border border-primary no-bookings text-center py-4" role="status" aria-live="polite">
+            No upcoming bookings
+          </div>
+        </ng-template>
+      </section>
+
+      <!-- Past section -->
+      <section class="row mb-3" aria-label="Past bookings">
+
+        <h2 id="past" tabindex="-1" class="mb-4 text-primary ps-0">Past</h2>
+        <div class="past-bookings mb-5"></div>
+        
+      </section>
+
+      <!-- Cancelled section -->
+      <section class="row mb-3" aria-label="Cancelled bookings">
+
+        <h2 id="cancelled" tabindex="-1" class="mb-4 text-primary ps-0">Cancelled</h2>
+        <div class="past-bookings mb-5"></div>
+      
+      </section>
+
+    </div>
+  </div>
+</div>

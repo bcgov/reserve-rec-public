@@ -24,7 +24,8 @@ describe('SearchResultsComponent', () => {
   ]);
   const mockDataService = {
     watchItem: () => () => mockData.value,
-    setItemValue: () => () => {}
+    // Can't even have an empty arrow function in TS anymore, what is this world coming to?
+    setItemValue: () => null
   };
 
 

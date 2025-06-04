@@ -66,7 +66,7 @@
           <div class="col-md-4 font-weight-bold"> <b>Home address</b></div>
           <div class="col-md-6">
             <div class="row">
-              <div class="col-12">{{ user['custom:homeAddress'] }}</div>
+              <div class="col-12">{{ user['custom:streetAddress'] }}</div>
             </div>
             <div class="row">
               <div class="col-8 text-start">{{ user['custom:postalCode'] }}</div>
@@ -88,7 +88,8 @@
         <!-- Vehicle Details Section -->
         
           <div class="details-section">
-            <h2 id="vehicle-details" class="mb-4">Vehicle Details</h2>
+            <h2 id="vehicle-details" class="mb-4 pb-0">Vehicle Details</h2>
+            <div class="phoneText">Optional</div>
             <hr>
             <div class="row mb-3">
               <div class="col-md-4 font-weight-bold"><b>License Plate</b></div>

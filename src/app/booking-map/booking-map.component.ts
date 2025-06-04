@@ -21,7 +21,7 @@ export class BookingMapComponent implements AfterViewInit, OnDestroy {
     return this._data;
   }
 
-  @Input() defaultZoom: number = 4;
+  @Input() defaultZoom = 4;
 
   @ViewChild('bookingMap', { static: true })
   private mapContainer!: ElementRef<HTMLElement>;

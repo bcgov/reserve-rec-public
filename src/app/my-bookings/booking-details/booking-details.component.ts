@@ -1,12 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
-import { ApiService } from '../../services/api.service'; // Adjust path as needed
+import { ApiService } from '../../services/api.service';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { BookingMapComponent } from '../../booking-map/booking-map.component';
-import { AuthService } from '../../services/auth.service'; // Adjust path as needed
-import { DateTime } from 'luxon';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-booking-details',
@@ -18,11 +17,11 @@ export class BookingDetailsComponent implements OnInit {
   booking: any = null;
   mapObj: any = null;
   user: any = null;
-  startDate: string = '';
-  endDate: string = '';
-  bookedDate: string = '';
-  viewMap: boolean = true;
-  zoomValue: number = 12;
+  startDate = '';
+  endDate = '';
+  bookedDate = '';
+  viewMap = true;
+  zoomValue = 12;
 
   
 constructor(

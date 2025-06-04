@@ -1,0 +1,138 @@
+<div class="container mt-5 mb-3">
+  <a routerLink="/my-bookings" class="btn btn-link p-0">
+    &lt; Back to My Bookings
+  </a>
+</div>
+
+<div class="container mt-5" *ngIf="booking">
+  <!-- Page Heading -->
+  <div class="row mb-4">
+    <div class="col text-left">
+      <h1 class="display-4">Booking details</h1>
+    </div>
+    <p><b>Booking number: </b>{{ booking.globalId }}</p>
+  </div>
+
+  <h4>Booking details</h4>
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <div class="p-4" style="background-color: #f0f0f0; width: 100%;">
+        <div class="row mt-3">
+          <div class="col">
+            <h5 class="display-4 fw-bold">{{ booking.parkName }}</h5>
+          </div>
+        </div>
+        <div class="row mt-3">
+          <div class="col-6">
+            <span class="text-muted d-block">Entry Point</span>
+            <span class="d-block">
+              <div class="fa fa-map-marker-alt text-muted fa-sm"></div>
+              {{ booking.entryPoint }}
+            </span>
+          </div>
+          <div class="col-6">
+            <span class="text-muted d-block">Exit Point</span>
+            <span class="d-block">
+              <div class="fa fa-map-marker-alt text-muted fa-sm"></div>
+              {{ booking.exitPoint }}
+            </span>
+          </div>
+        </div>
+
+        <hr class="my-4">
+
+        <div class="row">
+          <div class="col-3">
+            <span class="text-muted d-block">Arrival date</span>
+            <span class="d-block">{{ booking.startDate | date: 'EEE, MMM d, y' }}</span>
+          </div>
+          <div class="col-3">
+            <span class="text-muted d-block">Departure date</span>
+            <span class="d-block">{{ booking.endDate | date: 'EEE, MMM d, y' }}</span>
+          </div>
+          <div class="col-3">
+            <span class="text-muted d-block">Number of nights</span>
+            <span class="d-block">
+              <i class="fa-regular fa-moon"></i> {{ booking.nights }}
+            </span>
+          </div>
+          <div class="col-3">
+            <span class="text-muted d-block">Party size</span>
+            <span class="d-block">
+              <i class="fa-regular fa-user-group me-1" aria-hidden="true"></i>
+              {{ booking.totalParty }}
+            </span>
+          </div>
+        </div>
+
+        <div class="row mt-4">
+          <div class="col-12">
+            <div class="search-map p-2 p-lg-3" role="group" [attr.aria-label]="'Map'" *ngIf="viewMap">
+              <app-booking-map [data]="mapObj" [defaultZoom]=zoomValue></app-booking-map>
+            </div>
+            <div *ngIf="!viewMap" class="p-2 p-lg-3">
+              <div class="text-center text-muted">[Where are we getting photos from?]</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-3">
+          <div class="col-12 d-flex justify-content-center">
+            <div class="btn-group w-25" role="group" aria-label="Map or Photos toggle">
+              <button
+                type="button"
+                class="btn btn-outline-primary btn-lg w-50"
+                [class.active]="viewMap"
+                (click)="viewMap = true"
+              >
+                Map
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-primary btn-lg w-50"
+                [class.active]="!viewMap"
+                (click)="viewMap = false"
+              >
+                Photos
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Buttons -->
+    <div class="col-md-4 d-flex flex-column justify-content-start gap-2">
+      <button class="btn btn-outline-primary rounded-0" type="button">
+        Download confirmation letter
+      </button>
+      <button class="btn btn-outline-primary rounded-0" type="button">
+        View receipt
+      </button>
+    </div>
+  </div>
+
+  <hr class="my-4">
+
+  <div class="row">
+    <div class="col-md-3">
+      <h4 class="display-4 fw-bold">Occupant details</h4>
+      <div>
+        <span class="d-block text-muted mt-3">Occupant Name</span>
+        <i class="fa-regular fa-user me-1" aria-hidden="true"></i>
+        <span>{{ booking.name }}</span>
+      </div>
+    </div>
+  </div>
+
+  <hr class="my-4">
+
+  <div class="row">
+    <div class="col-md-3">
+      <h4 class="display-4 fw-bold">Payment</h4>
+      <span class="d-block">{{ booking.bookedAt | date: 'EEE, MMM d, y' }}</span>
+      <hr class="my-4">
+      <div>Can't do until after payment</div>
+    </div>
+  </div>
+</div>

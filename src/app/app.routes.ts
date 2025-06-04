@@ -13,4 +13,6 @@ export const routes: Routes = [
   { path: 'account', loadComponent: () => import('./account/account.component').then(mod => mod.AccountComponent), canActivate: [UserGuard] },
   { path: 'account-details', loadComponent: () => import('./account-details/account-details.component').then(mod => mod.AccountDetailsComponent), canActivate: [UserGuard] },
   { path: 'my-bookings', loadComponent: () => import('./my-bookings/my-bookings.component').then(mod => mod.MyBookingsComponent), canActivate: [UserGuard], resolve: {user: UserResolver} },
+  { path: 'account/bookings/:id', loadComponent: () => import('./my-bookings/booking-details/booking-details.component').then(m => m.BookingDetailsComponent) 
+},
 ];

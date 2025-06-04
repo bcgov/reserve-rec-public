@@ -35,7 +35,7 @@ describe('BookingMainCardComponent', () => {
     component.navigate(bookingId, mapObj);
 
     expect(router.navigate).toHaveBeenCalledWith(
-      ['/booking-details', bookingId],
+      ['/account/bookings', bookingId],
       { state: { mapObj } }
     );
   });

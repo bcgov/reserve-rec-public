@@ -16,12 +16,15 @@ import { LoadingService } from '../services/loading.service';
   styleUrls: ['./my-bookings.component.scss']
 })
 export class MyBookingsComponent implements OnInit {
-  public activeBookings: any[] = [];
+  public currentBookings: any[] = [];
+  public upcomingBookings: any[] = [];
+  public pastBookings: any[] = [];
+  public cancelledBookings: any[] = [];
+
   public activeSection = '';
   public data: any[] = [];
   public loading = true;
   public today: string = this.getPSTDateTime();
-  public upcomingBookings: any[] = [];
   public user: { sub: string };
   
   constructor(
@@ -49,6 +52,14 @@ export class MyBookingsComponent implements OnInit {
 
   hasData(obj: any): boolean {
     return obj && Object.keys(obj).length !== 0;
+  }
+
+  // Check if there are any bookings to show
+  hasAnyBookings(): boolean {
+    return this.currentBookings.length > 0 ||
+           this.upcomingBookings.length > 0 ||
+           this.pastBookings.length > 0 ||
+           this.cancelledBookings.length > 0;
   }
 
   // Format the date e.g. Fri, May 30, 2025
@@ -91,10 +102,10 @@ export class MyBookingsComponent implements OnInit {
     return totalParty;
   }
 
-  // Take all bookings and calculate which are active, upcoming, and TODO: past, and cancelled
+  // Take all bookings and calculate which are current, upcoming, and TODO: past, and cancelled
   processBookings(): void {
     this.upcomingBookings = [];
-    this.activeBookings = [];
+    this.currentBookings = [];
 
     this.data = this.dataService.watchItem(Constants.dataIds.MY_BOOKINGS_RESULT)();
     console.log("booking data: ", this.data)
@@ -119,7 +130,7 @@ export class MyBookingsComponent implements OnInit {
       };
 
       if (isActive) {
-        this.activeBookings.push(booking);
+        this.currentBookings.push(booking);
       } else if (isUpcoming) {
         this.upcomingBookings.push(booking);
       }

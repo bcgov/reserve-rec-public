@@ -116,9 +116,9 @@ describe('MyBookingsComponent', () => {
 
     expect(mockDataService.watchItem).toHaveBeenCalledWith(Constants.dataIds.MY_BOOKINGS_RESULT);
     expect(component.upcomingBookings.length).toBe(1);
-    expect(component.activeBookings.length).toBe(1);
+    expect(component.currentBookings.length).toBe(1);
 
-    const activeBooking = component.activeBookings[0];
+    const activeBooking = component.currentBookings[0];
     expect(activeBooking.bookingId).toBe(123);
     expect(activeBooking.nights).toBe(2);
     expect(activeBooking.partyTotal).toBe(5);

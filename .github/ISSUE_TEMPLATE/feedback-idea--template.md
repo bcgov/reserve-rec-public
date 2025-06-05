@@ -1,5 +1,5 @@
 ---
-name: Idea/discussion template
+name: Feedback/Idea/ template
 about: Describe this issue template's purpose here.
 title: ''
 labels: ''
@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-Idea description:
+Idea/feedback  description:
 
 Date discussed/meeting discussed at:
 eg: November 26 during backlog refinement

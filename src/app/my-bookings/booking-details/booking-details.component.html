@@ -67,7 +67,7 @@
 
         <div class="row mt-4">
           <div class="col-12">
-            <div class="search-map p-2 p-lg-3" role="group" [attr.aria-label]="'Map'" *ngIf="viewMap">
+            <div class="search-map p-2 p-lg-3" role="group" [attr.aria-label]="'Map'" *ngIf="mapObj && viewMap">
               <app-booking-map [data]="mapObj" [defaultZoom]=zoomValue></app-booking-map>
             </div>
             <div *ngIf="!viewMap" class="p-2 p-lg-3">

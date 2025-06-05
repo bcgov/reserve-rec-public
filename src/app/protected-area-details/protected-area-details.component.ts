@@ -1,5 +1,5 @@
 import { Component, effect, OnInit, Signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ProtectedAreaService } from '../services/protected-area.service';
 import { DataService } from '../services/data.service';
 import { Constants } from '../constants';
@@ -26,7 +26,8 @@ export class ProtectedAreaDetailsComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private protectedAreaService: ProtectedAreaService,
-    private dataService: DataService
+    private dataService: DataService,
+    private router: Router
   ) {
     this._data = this.dataService.watchItem('protectedAreaDetails');
     this._facilities = this.dataService.watchItem(Constants.dataIds.FACILITY_DETAILS_RESULT);
@@ -42,6 +43,15 @@ export class ProtectedAreaDetailsComponent implements OnInit {
       for (const facility of this.facilities.items) {
         facility['navigation'] = "/facility/" + facility.fcCollectionId + "/" + facility.facilityType + "/" + facility.identifier;
       }
+    }
+  }
+
+  navBack() {
+    const searchQuery = this.dataService.getItemValue('search-query');
+    if (searchQuery) {
+      this.router.navigate(['/results'], { queryParams: { search: searchQuery } });
+    } else {
+      this.router.navigate(['/search']);
     }
   }
 

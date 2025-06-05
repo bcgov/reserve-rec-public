@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, Output } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
-import {  NgdsFormsModule } from '@digitalspace/ngds-forms';
+import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 
 @Component({
   selector: 'app-party-details',
@@ -8,7 +8,7 @@ import {  NgdsFormsModule } from '@digitalspace/ngds-forms';
   templateUrl: './party-details.component.html',
   styleUrl: './party-details.component.scss'
 })
-export class PartyDetailsComponent implements AfterViewInit{
+export class PartyDetailsComponent implements AfterViewInit {
   @Input() occupantsForm;
   @Output() occupantsFormChange: EventEmitter<UntypedFormGroup> = new EventEmitter<UntypedFormGroup>();
 
@@ -23,7 +23,7 @@ export class PartyDetailsComponent implements AfterViewInit{
 
   ngAfterViewInit(): void {
     // Ensure the change detection runs after the view is initialized
-    this.occupantsForm.setValue(this.occupantsForm.value)
+    this.occupantsForm.setValue(this.occupantsForm.value);
     this.changeDetectorRef.detectChanges();
   }
 
@@ -40,7 +40,12 @@ export class PartyDetailsComponent implements AfterViewInit{
   increment(field, value) {
     const currentValue = this.occupantsForm.get(field)?.value;
     const totalOccupants = this.getTotalOccupants();
-    if (currentValue + value >= 0 && totalOccupants + value <= 10) {
+    if (value < 0 && totalOccupants + value >= 0) {
+      // Prevent decrementing below zero
+      this.occupantsForm?.get(field)?.setValue(currentValue + value);
+    }
+    if (value > 0 && totalOccupants + value <= 10) {
+      // Prevent incrementing above 10
       this.occupantsForm?.get(field)?.setValue(currentValue + value);
     }
   }

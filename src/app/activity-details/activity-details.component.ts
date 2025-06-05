@@ -5,9 +5,10 @@ import { DataService } from '../services/data.service';
 import { ActivityService } from '../services/activity.service';
 import { CommonModule } from '@angular/common';
 import { SearchMapComponent } from '../search-map/search-map.component';
-import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 import { PartyDetailsComponent } from '../party-details/party-details.component';
+import { DateTime } from 'luxon';
 
 @Component({
   selector: 'app-activity-details',
@@ -26,14 +27,15 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
   public activityId;
   public data = null;
   public searchTerm = '';
+  public today = DateTime.now().setZone('America/Vancouver');
 
   public form = new UntypedFormGroup({
     dateRange: new UntypedFormControl(null),
     occupants: new UntypedFormGroup({
-      totalAdult: new UntypedFormControl(0, { nonNullable: true }),
-      totalSenior: new UntypedFormControl(0, { nonNullable: true }),
-      totalYouth: new UntypedFormControl(0, { nonNullable: true }),
-      totalChild: new UntypedFormControl(0, { nonNullable: true }),
+      totalAdult: new UntypedFormControl(0, { nonNullable: true, validators: [Validators.min(0), Validators.max(10)] }),
+      totalSenior: new UntypedFormControl(0, { nonNullable: true, validators: [Validators.min(0), Validators.max(10)]  }),
+      totalYouth: new UntypedFormControl(0, { nonNullable: true, validators: [Validators.min(0), Validators.max(10)]  }),
+      totalChild: new UntypedFormControl(0, { nonNullable: true, validators: [Validators.min(0), Validators.max(10)]  }),
     })
   });
 

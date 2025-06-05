@@ -83,6 +83,7 @@ export class BookingMapComponent implements AfterViewInit, OnDestroy {
 
     this.map.addControl(new maplibregl.NavigationControl());
     this.map.on('load', () => {
+      this.map?.resize();
       if (this._data) {
         this.updateMap();
       }

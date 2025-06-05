@@ -1,0 +1,55 @@
+.bg-container {
+  height: calc(100vh - 118.78px);
+  min-width: 375px;
+  overflow-y: auto;
+}
+
+.bg-grey {
+  background-color: #f2f2f2;
+}
+
+.bg-light-blue {
+  background-color: #C7E3FD;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+}
+
+.text-small {
+  font-size: 0.8rem;
+}
+
+.policy-acknowledgement {
+  background-color: #ECF6FF;
+}
+
+.occupant-button {
+  cursor: pointer;
+  background-color: white;
+  &:hover {
+    background-color: #C7E3FD;
+  }
+
+  &.checked {
+    background-color: #f2f2f2;
+  }
+}
+
+.border-gray {
+  border-top-color: rgba(0, 0, 0, 0.1);
+  border-top-width: 1px;
+}
+
+.bambora-box {
+  background-color: #C6C6C6;
+  width: 100%;
+  height: 300px;
+}
+
+.accordion-button {
+  background-color: #F2F2F2;
+  &:focus{
+    background-color: #ECF6FF;
+    color: #000;
+  }
+}

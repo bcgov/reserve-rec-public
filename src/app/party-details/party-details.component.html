@@ -1,0 +1,136 @@
+<h4>Party details</h4>
+<p class="text-muted">
+    Changing the party details will reflect changes in the price. You may have maximum 10 people in your
+    party.
+</p>
+<!-- Party Details Form -->
+<div class="row mb-5">
+    <div class="col-12 col-sm-6">
+        <div class="row align-items-end p-2">
+            <div class="col-auto p-0 ">
+                <button
+                  class="btn btn-light border border-1"
+                  (click)="increment('totalAdult', -1)"
+                  [disabled]="occupantsForm?.get('totalAdult')?.value <= 0"
+                >
+                    &ndash;
+                </button>
+            </div>
+            <div class="col px-1">
+                <ngds-number-input
+                  [control]="occupantsForm?.get('totalAdult')"
+                  [label]="'Adult (16-64)'"
+                  [mouseScrollIncrement]="false"
+                  [allowNegative]="false"
+                  [placeholder]="'0'"
+                >
+                </ngds-number-input>
+            </div>
+            <div class="col-auto p-0">
+                <button
+                  class="btn btn-light border border-1"
+                  (click)="increment('totalAdult', 1)"
+                  [disabled]="getTotalOccupants() >= 10"
+                >
+                    +
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6">
+        <div class="row align-items-end p-2">
+            <div class="col-auto p-0 ">
+                <button
+                  class="btn btn-light border border-1"
+                  (click)="increment('totalSenior', -1)"
+                  [disabled]="occupantsForm?.get('totalSenior')?.value <= 0"
+                >
+                    &ndash;
+                </button>
+            </div>
+            <div class="col px-1">
+                <ngds-number-input
+                  [control]="occupantsForm?.get('totalSenior')"
+                  [label]="'Senior (65+)'"
+                  [mouseScrollIncrement]="false"
+                  [allowNegative]="false"
+                  [placeholder]="'0'"
+                >
+                </ngds-number-input>
+            </div>
+            <div class="col-auto p-0">
+                <button
+                  class="btn btn-light border border-1"
+                  (click)="increment('totalSenior', 1)"
+                  [disabled]="getTotalOccupants() >= 10"
+                >
+                    +
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6">
+        <div class="row align-items-end p-2">
+            <div class="col-auto p-0 ">
+                <button
+                  class="btn btn-light border border-1"
+                  (click)="increment('totalYouth', -1)"
+                  [disabled]="occupantsForm?.get('totalYouth')?.value <= 0"
+                >
+                    &ndash;
+                </button>
+            </div>
+            <div class="col px-1">
+                <ngds-number-input
+                  [control]="occupantsForm?.get('totalYouth')"
+                  [label]="'Youth (6-15)'"
+                  [mouseScrollIncrement]="false"
+                  [allowNegative]="false"
+                  [placeholder]="'0'"
+                >
+                </ngds-number-input>
+            </div>
+            <div class="col-auto p-0">
+                <button
+                  class="btn btn-light border border-1"
+                  (click)="increment('totalYouth', 1)"
+                  [disabled]="getTotalOccupants() >= 10"
+                >
+                    +
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6">
+        <div class="row align-items-end p-2">
+            <div class="col-auto p-0 ">
+                <button
+                  class="btn btn-light border border-1"
+                  (click)="increment('totalChild', -1)"
+                  [disabled]="occupantsForm?.get('totalChild')?.value <= 0"
+                >
+                    &ndash;
+                </button>
+            </div>
+            <div class="col px-1">
+                <ngds-number-input
+                  [control]="occupantsForm?.get('totalChild')"
+                  [label]="'Child (0-5)'"
+                  [mouseScrollIncrement]="false"
+                  [allowNegative]="false"
+                  [placeholder]="'0'"
+                >
+                </ngds-number-input>
+            </div>
+            <div class="col-auto p-0">
+                <button
+                  class="btn btn-light border border-1"
+                  (click)="increment('totalChild', 1)"
+                  [disabled]="getTotalOccupants() >= 10"
+                >
+                    +
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

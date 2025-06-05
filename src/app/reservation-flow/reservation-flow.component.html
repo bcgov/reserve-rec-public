@@ -1,0 +1,699 @@
+<div class="bg-container bg-grey">
+  <div class="container">
+    <!-- Breadcrumbs -->
+    <div class="d-flex my-2 align-items-center">
+      <a
+        class="btn btn-link text-decoration-none "
+        (click)="navigate()"
+      >Home</a>
+      <i class="fa-regular fa-chevron-right mx-1 my-2"></i>
+      <a class="btn btn-link text-decoration-none ">Cart</a>
+      <i class="fa-regular fa-chevron-right mx-1 my-2"></i>
+      <div class="mx-2 my-2">Checkout</div>
+    </div>
+    <h1 class="text-primary my-4">Checkout</h1>
+    <div class="container-fluid border border-2 bg-white p-4">
+      <!-- Details -->
+      <section class="mb-5">
+        <h3 class="mb-4">Details</h3>
+        <div class="border border-1 bg-grey p-3">
+          <div class="row mb-3">
+            <div class="col-auto d-flex justify-content-center align-items-center h-100 ">
+              <div class="bg-light-blue text-center">
+                <h5 class="m-0 p-1">1</h5>
+              </div>
+            </div>
+            <div class="col">
+              <h3>{{activityData?.displayName}}</h3>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12 col-sm-6">
+              <ngds-picklist-input
+                [label]="'Entry point'"
+                [control]="form?.controls?.['entryPoint']"
+                [selectionListItems]="accessPointsSelectionList"
+                [loadWhile]="accessPointsSelectionList?.length === 0"
+              >
+                <div ngdsInputPrepend>
+                  <i class="fa-regular fa-flag-swallowtail ms-3"></i>
+                </div>
+              </ngds-picklist-input>
+            </div>
+            <div class="col-12 col-sm-6">
+              <ngds-picklist-input
+                [label]="'Entry point'"
+                [control]="form?.controls?.['exitPoint']"
+                [selectionListItems]="accessPointsSelectionList"
+                [loadWhile]="accessPointsSelectionList?.length === 0"
+              >
+                <div ngdsInputPrepend>
+                  <i class="fa-regular fa-flag-swallowtail ms-3"></i>
+                </div>
+              </ngds-picklist-input>
+            </div>
+          </div>
+          <hr class="mb-3">
+          <div class="row">
+            <div class="col-12 col-sm-3 mb-3">
+              <div class="text-small text-muted">
+                Arrival date
+              </div>
+              <div>
+                {{startDate | date: 'EEE, MMM d, yyyy'}}
+              </div>
+            </div>
+            <div class="col-12 col-sm-3 mb-3">
+              <div class="text-small text-muted">
+                Departure date
+              </div>
+              <div>
+                {{endDate | date: 'EEE, MMM d, yyyy'}}
+              </div>
+            </div>
+            <div class="col-12 col-sm-3 mb-3">
+              <div class="text-small text-muted">
+                Number of nights
+              </div>
+              <div class="row">
+                <div class="col-auto">
+                  <i
+                    class="fa-regular fa-moon me-1"
+                    aria-hidden="true"
+                  ></i>
+                </div>
+                <div class="col">
+                  {{calculateTotalNights()}}
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-sm-3 mb-3">
+              <div class="text-small text-muted">
+                Party size
+              </div>
+              <div class="row">
+                <div class="col-auto">
+                  <i
+                    class="fa-regular fa-user-group me-1"
+                    aria-hidden="true"
+                  ></i>
+                </div>
+                <div class="col">
+                  {{calculateTotalOccupants()}}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <hr class="my-4">
+      <!-- Policies -->
+      <section class="py-3">
+        <h3 class="mb-4">Policies</h3>
+        <div
+          class="accordion mb-3"
+          id="tentPolicyAccordion"
+        >
+          <div class="accordion-item">
+            <h2
+              class="accordion-header"
+              id="headingTentPolicy"
+            >
+              <button
+                class="accordion-button"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapseTentPolicy"
+                aria-expanded="false"
+                aria-controls="collapseTentPolicy"
+              >
+                Tent pads are not guaranteed
+              </button>
+            </h2>
+            <div
+              id="collapseTentPolicy"
+              class="accordion-collapse collapse show"
+              aria-labelledby="headingTentPolicy"
+              data-bs-parent="#tentPolicyAccordion"
+            >
+              <div class="accordion-body">
+                <ul>
+                  <li>lorem ipsum dolor sit amet</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="accordion mb-4"
+          id="otherPolicyAccordions"
+        >
+          <div class="accordion-item">
+            <h2
+              class="accordion-header"
+              id="headingActivityPolicy"
+            >
+              <button
+                class="accordion-button"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapseActivityPolicy"
+                aria-expanded="false"
+                aria-controls="collapseActivityPolicy"
+              >
+                {{activityData?.displayName}} policy
+              </button>
+            </h2>
+            <div
+              id="collapseActivityPolicy"
+              class="accordion-collapse collapse"
+              aria-labelledby="headingActivityPolicy"
+              data-bs-parent="#otherPolicyAccordions"
+            >
+              <div class="accordion-body">
+                <ul>
+                  <li>lorem ipsum dolor sit amet</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2
+              class="accordion-header"
+              id="headingRegistrationPolicy"
+            >
+              <button
+                class="accordion-button"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapseRegistrationPolicy"
+                aria-expanded="false"
+                aria-controls="collapseRegistrationPolicy"
+              >
+                Backcountry registration policies
+              </button>
+            </h2>
+            <div
+              id="collapseRegistrationPolicy"
+              class="accordion-collapse collapse"
+              aria-labelledby="headingRegistrationPolicy"
+              data-bs-parent="#otherPolicyAccordions"
+            >
+              <div class="accordion-body">
+                <ul>
+                  <li>lorem ipsum dolor sit amet</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2
+              class="accordion-header"
+              id="headingExlusionOfLiability"
+            >
+              <button
+                class="accordion-button"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapseExclusionOfLiability"
+                aria-expanded="false"
+                aria-controls="collapseExclusionOfLiability"
+              >
+                Exclusion of liability notice
+              </button>
+            </h2>
+            <div
+              id="collapseExclusionOfLiability"
+              class="accordion-collapse collapse"
+              aria-labelledby="headingExlusionOfLiability"
+              data-bs-parent="#otherPolicyAccordions"
+            >
+              <div class="accordion-body">
+                <ul>
+                  <li>lorem ipsum dolor sit amet</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2
+              class="accordion-header"
+              id="headingCancellationPolicy"
+            >
+              <button
+                class="accordion-button"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapseCancellationPolicy"
+                aria-expanded="true"
+                aria-controls="collapseCancellationPolicy"
+              >
+                Cancellations, refunds, and no show policy
+              </button>
+            </h2>
+            <div
+              id="collapseCancellationPolicy"
+              class="accordion-collapse collapse"
+              aria-labelledby="headingCancellationPolicy"
+              data-bs-parent="#otherPolicyAccordions"
+            >
+              <div class="accordion-body">
+                <ul>
+                  <li>lorem ipsum dolor sit amet</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="border border-1 rounded policy-acknowledgement p-3">
+          <div class="d-flex text-muted">
+            <ngds-toggle-input
+              [label]="'All occupants agree to the following policies '"
+              [control]="form?.controls?.['acknowledgePolicies']"
+              [hideInvalidState]="true"
+              [clickableAppend]="true"
+            >
+              <div ngdsInputAppend>
+                <div class="text-small ms-1 mt-1 align-middle text-dark"> (required)</div>
+              </div>
+            </ngds-toggle-input>
+          </div>
+        </div>
+      </section>
+      <hr class="my-5">
+      <!-- Camping party -->
+      <section>
+        <h3 class="mb-4">Camping party</h3>
+        <app-party-details
+          *ngIf="form?.get('occupants')"
+          [occupantsForm]="form?.get('occupants')"
+        ></app-party-details>
+      </section>
+      <hr class="my-4">
+      <!-- Occupant details  -->
+      <section class="mb-5">
+        <div class="mb-5">
+          <h4 class="mb-4">Occupant details</h4>
+          <button
+            class="row border border-1 p-3 mx-1 rounded occupant-button mb-3  w-100"
+            [class.checked]="form?.get('userIsPrimaryOccupant')?.value === true"
+            [class.enabled]="user"
+            (click)="setUserAsPrimaryOccupant(true)"
+            [disabled]="!user"
+          >
+            <div class="d-flex ">
+              <div class="col-auto ">
+
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="occupantType"
+                  id="occupantType1"
+                  [checked]="form?.get('userIsPrimaryOccupant')?.value === true"
+                >
+                <label
+                  class="form-check-label"
+                  for="occupantType1"
+                  hidden="true"
+                >
+                  <h5>I will be the occupant</h5>
+                </label>
+              </div>
+              <div class="col px-3 text-start">
+                <h5>I will be the occupant</h5>
+                <div>Information will be pulled from your account details.</div>
+              </div>
+            </div>
+          </button>
+          <button
+            class="row border border-1 p-3 mx-1 rounded occupant-button w-100 text-left"
+            [class.checked]="form?.get('userIsPrimaryOccupant')?.value === false"
+            (click)="setUserAsPrimaryOccupant(false)"
+          >
+            <div class="d-flex">
+              <div class="col-auto">
+
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="occupantType"
+                  id="occupantType2"
+                  [checked]="form?.get('userIsPrimaryOccupant')?.value === false"
+                >
+                <label
+                  class="form-check-label"
+                  for="occupantType2"
+                  hidden="true"
+                >
+                  <h5>Someone else will be the occupant</h5>
+                </label>
+              </div>
+              <div class="col px-3 text-start">
+                <h5 class="m-0">Someone else will be the occupant</h5>
+              </div>
+            </div>
+          </button>
+        </div>
+        <!-- Nested named occupant form -->
+        <div *ngIf="form?.get('userIsPrimaryOccupant')?.value === false">
+          <!-- Contact information for the primary occupant -->
+          <div class="mb-5">
+            <h5 class="mb-3">Contact information</h5>
+            <div class="row">
+              <div class="col-12 col-sm-6">
+                <ngds-text-input
+                  [label]="'First name'"
+                  [control]="form?.get('contactInfo.firstName')"
+                  [hideInvalidState]="true"
+                >
+                </ngds-text-input>
+              </div>
+              <div class="col-12 col-sm-6">
+                <ngds-text-input
+                  [label]="'Last name'"
+                  [control]="form?.get('contactInfo.lastName')"
+                  [hideInvalidState]="true"
+                >
+                </ngds-text-input>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-12 col-sm-6">
+                <ngds-text-input
+                  [label]="'Mobile phone'"
+                  [control]="form?.get('contactInfo.mobilePhone')"
+                  [hideInvalidState]="true"
+                >
+                </ngds-text-input>
+              </div>
+              <div class="col-12 col-sm-6">
+                <ngds-text-input
+                  [label]="'Email (optional)'"
+                  [control]="form?.get('contactInfo.email')"
+                  [hideInvalidState]="true"
+                >
+                </ngds-text-input>
+              </div>
+              <div class="row">
+                <div class="col-12 col-sm-6">
+                  <ngds-text-input
+                    [label]="'Home phone (optional)'"
+                    [control]="form?.get('contactInfo.homePhone')"
+                    [hideInvalidState]="true"
+                  >
+                  </ngds-text-input>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Address information for the primary occupant -->
+          <div class="mb-5">
+            <h5 class="mb-3">Address</h5>
+            <div class="row">
+              <div class="col-12 col-sm-6">
+                <ngds-text-input
+                  [label]="'Street address'"
+                  [control]="form?.get('addressInfo.streetAddress')"
+                  [hideInvalidState]="true"
+                >
+                </ngds-text-input>
+              </div>
+              <div class="col-12 col-sm-6">
+                <ngds-text-input
+                  [label]="'Suite, Apartment or Unit'"
+                  [control]="form?.get('addressInfo.unitNumber')"
+                  [hideInvalidState]="true"
+                >
+                </ngds-text-input>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-12 col-sm-6">
+                <ngds-text-input
+                  [label]="'Postal or Zip code'"
+                  [control]="form?.get('addressInfo.postalCode')"
+                  [hideInvalidState]="true"
+                >
+                </ngds-text-input>
+              </div>
+              <div class="col-12 col-sm-6">
+                <ngds-text-input
+                  [label]="'City'"
+                  [control]="form?.get('addressInfo.city')"
+                  [hideInvalidState]="true"
+                >
+                </ngds-text-input>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-12 col-sm-6">
+                <ngds-picklist-input
+                  [label]="'Province or State'"
+                  [control]="form?.get('addressInfo.province')"
+                  [selectionListItems]="provinceStateSelectionList"
+                  [placeholder]="'Select an option'"
+                >
+                </ngds-picklist-input>
+              </div>
+              <div class="col-12 col-sm-6">
+                <ngds-picklist-input
+                  [label]="'Country'"
+                  [control]="form?.get('addressInfo.country')"
+                  [selectionListItems]="countrySelectionList"
+                  [placeholder]="'Select an option'"
+                >
+                </ngds-picklist-input>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <hr class="mb-5">
+      <!-- Equipment -->
+      <section class="mb-5">
+        <div class="mb-5">
+          <h3 class="mb-5">Equipment</h3>
+          <div class="mb-5">
+            <h4>Vehicle information</h4>
+            <div>Limits apply. Parking availability and accessibility my vary depending on season.</div>
+          </div>
+          <div *ngFor="let vehicle of form?.get('equipmentInfo')?.controls">
+            <div class="row mb-3">
+              <h6>Vehicle {{form?.get('equipmentInfo')?.controls.indexOf(vehicle) + 1}}</h6>
+              <div class="col-12 col-sm-3">
+                <ngds-text-input
+                  [label]="'License plate'"
+                  [control]="vehicle.get('licensePlate')"
+                >
+                </ngds-text-input>
+              </div>
+              <div class="col-12 col-sm-3">
+                <ngds-picklist-input
+                  [label]="'Province/territory/state'"
+                  [control]="vehicle.get('registeredProvince')"
+                  [placeholder]="'Select an option'"
+                  [selectionListItems]="registrationProvinceStateSelectionList"
+                >
+                </ngds-picklist-input>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="form?.get('equipmentInfo')?.length < maxVehicles">
+            <button
+              class="btn btn-link"
+              type="button"
+              (click)="updateVehicleCount(1, true)"
+            >+ Add additional vehicle</button>
+          </div>
+        </div>
+        <hr>
+        <!-- Additional equipment information -->
+        <div class="mb-3">
+          <h4 class="mb-3">Equipment (optional)</h4>
+          <div>This information helps search and rescue teams locate you in an emergency.</div>
+        </div>
+        <div class="row">
+          <div class="col-12 col-sm-6">
+            <ngds-text-input
+              [control]="form?.get('additionalEquipment')"
+              [placeholder]="'eg. I will be bringing a orange tent, blue sleeping bag'"
+              [multiline]="true"
+            ></ngds-text-input>
+          </div>
+        </div>
+      </section>
+      <hr class="mb-5">
+      <!-- Payment -->
+      <section class="mb-3">
+        <h3 class="mb-5">Payment</h3>
+        <h4 class="mb-3">Total booking costs</h4>
+        <div class="border border-1 bg-grey p-3">
+          <div class="row mb-3">
+            <div class="col-auto d-flex justify-content-center align-items-center h-100 ">
+              <div class="bg-light-blue text-center">
+                <h5 class="m-0 p-1">1</h5>
+              </div>
+            </div>
+            <div class="col">
+              <h4>{{activityData?.displayName}}</h4>
+              <div class="text-muted">
+                {{startDate | date: 'EEE, MMM L, yyyy'}} - {{endDate | date: 'EEE, MMM L, yyyy'}}
+              </div>
+            </div>
+          </div>
+          <hr>
+          <div>
+            <table class="w-100">
+              <thead>
+                <tr>
+                  <th
+                    scope="col"
+                    class="text-small text-muted fw-normal"
+                  >Line item</th>
+                  <th
+                    scope="col"
+                    class="text-small text-muted fw-normal text-end"
+                  >Tax included</th>
+                  <th
+                    scope="col"
+                    class="text-small text-muted fw-normal text-end"
+                  >Base cost</th>
+                  <th
+                    scope="col"
+                    class="text-small text-muted fw-normal text-end"
+                  >Quantity</th>
+                  <th
+                    scope="col"
+                    class="text-small text-muted fw-normal text-end"
+                  >Total cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="mb-2">
+                      Nightly camping fee
+                    </div>
+                    <div class="text-muted ms-3">
+                      <div
+                        *ngIf="getAdultOccupants() > 0"
+                        class="mb-2"
+                      >
+                        {{getAdultOccupants()}} x Adult/Senior nightly rate ({{adultRate | currency: 'CAD' :
+                        'symbol-narrow'}}/night)
+                      </div>
+                      <div
+                        *ngIf="getYouthOccupants() > 0"
+                        class="mb-2"
+                      >
+                        {{getYouthOccupants()}} x Youth nightly rate ({{youthRate | currency: 'CAD' :
+                        'symbol-narrow'}}/night)
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-muted text-end">
+                    <i class="fa-solid fa-check"></i>
+                  </td>
+                  <td class="text-end">
+                    {{getNightlyAdultCost() + getNightlyYouthCost() | currency: 'CAD' : 'symbol-narrow'}}
+                  </td>
+                  <td class="text-end">
+                    {{calculateTotalNights()}}
+                  </td>
+                  <td class="text-end">
+                    {{getTotalCost() | currency: 'CAD' : 'symbol-narrow'}}
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot class="table-group-divider border-gray">
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td class="text-small text-end">
+                    <div class="mt-3 mb-1">
+                      Subtotal
+                    </div>
+                  </td>
+                  <td class="text-small text-end">{{getTotalCost() | currency: 'CAD' : 'symbol-narrow'}}</td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td class="text-small text-end">
+                    <div class="mb-1">
+                      GST
+                    </div>
+                  <td class="text-small text-end">n/a</td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td class="text-secondary fw-bold text-end">
+                    <div class="mb-1">
+                      Total
+                    </div>
+                  </td>
+                  <td class="text-secondary fw-bold text-end">{{getTotalCost() | currency: 'CAD' : 'symbol-narrow'}}
+                  </td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td class="text-small text-end">
+                    <div class="mb-1">
+                      <em>(Inclusive GST)</em>
+                    </div>
+                  </td>
+                  <td class="text-small text-end"><em>({{calculateInclusiveGST() | currency: 'CAD' :
+                      'symbol-narrow'}})</em></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </section>
+      <!-- Bambora -->
+      <section>
+        <div class="bambora-box d-flex mb-5">
+          <div class="m-auto display-4"><strong>BAMBORA</strong></div>
+        </div>
+      </section>
+      <hr>
+      <!-- Buttons -->
+      <section>
+        <div class="row justify-content-between">
+          <div class="col-auto">
+            <button class="btn btn-link text-decoration-none ">
+              <div class="d-flex align-items-center">
+                <i class="fa-solid fa-circle-chevron-left me-2 "></i>
+                <span><strong>Back</strong></span>
+              </div>
+            </button>
+          </div>
+          <div class="col-auto">
+            <div class="d-flex align-items-center">
+              <div class="text-muted">
+                <i class="fa-solid fa-lock me-2"></i>
+                <span><strong>Secure Payment</strong></span>
+              </div>
+              <button
+                class="btn btn-primary ms-3"
+                (click)="showFormValue()"
+                [disabled]="isFormInvalid()"
+              >
+                <div class="d-flex align-items-center">
+                  <i class="fa-regular fa-circle-check me-2"></i>
+                  <span>Finish and pay</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

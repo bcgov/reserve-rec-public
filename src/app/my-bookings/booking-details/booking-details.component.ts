@@ -22,6 +22,7 @@ export class BookingDetailsComponent implements OnInit {
   bookedDate = '';
   viewMap = true;
   zoomValue = 12;
+  loading = true;
 
   
 constructor(
@@ -45,7 +46,7 @@ constructor(
         this.router.navigate(['/']); 
         return;
       }
-
+      this.loading = false;
     } catch (error) {
       console.error('Failed to fetch booking details:', error);
     }

@@ -1,5 +1,5 @@
 import { AfterContentChecked, ChangeDetectorRef, Component, effect, OnDestroy, OnInit, signal, Signal, WritableSignal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Constants } from '../constants';
 import { DataService } from '../services/data.service';
 import { ActivityService } from '../services/activity.service';
@@ -7,10 +7,11 @@ import { CommonModule } from '@angular/common';
 import { SearchMapComponent } from '../search-map/search-map.component';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
+import { PartyDetailsComponent } from '../party-details/party-details.component';
 
 @Component({
   selector: 'app-activity-details',
-  imports: [CommonModule, SearchMapComponent, NgdsFormsModule],
+  imports: [CommonModule, SearchMapComponent, NgdsFormsModule, PartyDetailsComponent],
   templateUrl: './activity-details.component.html',
   styleUrl: './activity-details.component.scss'
 })
@@ -22,7 +23,7 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
 
   public acCollectionId;
   public activityType;
-  public identifier;
+  public activityId;
   public data = null;
   public searchTerm = '';
 
@@ -36,7 +37,7 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
     })
   });
 
-  constructor(private route: ActivatedRoute, private activityService: ActivityService, private dataService: DataService, private changeDetectorRef: ChangeDetectorRef) {
+  constructor(private route: ActivatedRoute, private activityService: ActivityService, private dataService: DataService, private changeDetectorRef: ChangeDetectorRef, private router: Router) {
     this._dataSignal = this.dataService.watchItem(Constants.dataIds.ACTIVITY_DETAILS_RESULT);
     this._searchTermSignal = this.dataService.watchItem('search-query');
     effect(() => {
@@ -56,9 +57,9 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
     const params = this.route.snapshot.paramMap;
     this.acCollectionId = params.get('acCollectionId');
     this.activityType = params.get('activityType');
-    this.identifier = params.get('identifier');
+    this.activityId = params.get('identifier');
 
-    this.activityService.getActivity(this.acCollectionId, this.activityType, this.identifier, true);
+    this.activityService.getActivity(this.acCollectionId, this.activityType, this.activityId, true);
   }
 
   navBack() {
@@ -70,11 +71,35 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
     if (!this.form?.controls?.['dateRange']?.value || total === 0 || total > 10) {
       return true;
     }
+    if (this.form?.controls?.['dateRange']?.[0]?.value >= this.form?.controls?.['dateRange']?.[1]?.value) {
+      return true;
+    }
     return false;
   }
 
   submit() {
     console.log('this.form.value:', this.form.value);
+    this.router.navigate(['/checkout'], {
+      queryParams: {
+        acCollectionId: this.acCollectionId,
+        activityType: this.activityType,
+        activityId: this.activityId,
+        startDate: this.getStartDate(),
+        endDate: this.getEndDate(),
+        totalAdult: this.form.get('occupants')?.get('totalAdult')?.value,
+        totalSenior: this.form.get('occupants')?.get('totalSenior')?.value,
+        totalYouth: this.form.get('occupants')?.get('totalYouth')?.value,
+        totalChild: this.form.get('occupants')?.get('totalChild')?.value,
+      }
+    });
+  }
+
+  getStartDate() {
+    return this.form.get('dateRange')?.value ? this.form.get('dateRange')?.value[0] : null;
+  }
+
+  getEndDate() {
+    return this.form.get('dateRange')?.value ? this.form.get('dateRange')?.value[1] : null;
   }
 
   getTotalOccupants() {

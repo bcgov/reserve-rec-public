@@ -35,8 +35,29 @@ export class FacilityService {
       const res = (await lastValueFrom(this.apiService.get(`facilities/${fcCollectionId}`, queryParams)))['data'];
       this.dataService.setItemValue(Constants.dataIds.FACILITY_DETAILS_RESULT, res);
       this.loadingService.removeFromFetchList(Constants.dataIds.FACILITY_DETAILS_RESULT);
+      return res;
     } catch (error) {
       this.loggerService.error(error);
+    }
+  }
+
+  async getAccessPoints(fcCollectionId) {
+    const accessPointTypes = ['accessPoint', 'trailhead', 'parkingLot'];
+    try {
+      let accessPoints = [];
+      this.loadingService.addToFetchList(Constants.dataIds.ACTIVITY_ACCESS_POINTS);
+      for (const type of accessPointTypes) {
+        const res = await this.getFacility(fcCollectionId, type);
+        if (res && res.items) {
+          accessPoints = accessPoints.concat(res.items);
+        }
+      }
+      this.dataService.setItemValue(Constants.dataIds.ACTIVITY_ACCESS_POINTS, accessPoints);
+      this.loadingService.removeFromFetchList(Constants.dataIds.ACTIVITY_ACCESS_POINTS);
+      return accessPoints;
+    } catch (error) {
+      this.loggerService.error(error);
+      return [];
     }
   }
 }

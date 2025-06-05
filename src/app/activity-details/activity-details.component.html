@@ -30,7 +30,7 @@
                       [control]="form?.controls?.['dateRange']"
                       [placeholder]="'Arrival -> Departure'"
                       [hideOnSelect]="false"
-                      [maxRange]="14"
+                      [maxRange]="15"
                       [rangeSeparator]="'->'"
                       [hideInvalidState]="true"
                     >
@@ -40,142 +40,9 @@
                         ></i>
                         ></ngds-date-input>
                 </div>
-                <h6>Party details</h6>
-                <p class="text-muted">
-                    Changing the party details will reflect changes in the price. You may have maximum 10 people in your
-                    party.
-                </p>
-                <!-- Party Details Form -->
-                <div class="row mb-5">
-                    <div class="col-6">
-                        <div class="row align-items-end p-2">
-                            <div class="col-auto p-0 ">
-                                <button
-                                  class="btn btn-light border border-1"
-                                  (click)="increment('totalAdult', -1)"
-                                  [disabled]="form?.get('occupants.totalAdult')?.value <= 0"
-                                >
-                                    &ndash;
-                                </button>
-                            </div>
-                            <div class="col px-1">
-                                <ngds-number-input
-                                  [control]="form?.get('occupants.totalAdult')"
-                                  [label]="'Adult (16-64)'"
-                                  [mouseScrollIncrement]="false"
-                                  [allowNegative]="false"
-                                  [placeholder]="'0'"
-                                >
-                                </ngds-number-input>
-                            </div>
-                            <div class="col-auto p-0">
-                                <button
-                                  class="btn btn-light border border-1"
-                                  (click)="increment('totalAdult', 1)"
-                                  [disabled]="getTotalOccupants() >= 10"
-                                >
-                                    +
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="row align-items-end p-2">
-                            <div class="col-auto p-0 ">
-                                <button
-                                  class="btn btn-light border border-1"
-                                  (click)="increment('totalSenior', -1)"
-                                  [disabled]="form?.get('occupants.totalSenior')?.value <= 0"
-                                >
-                                    &ndash;
-                                </button>
-                            </div>
-                            <div class="col px-1">
-                                <ngds-number-input
-                                  [control]="form?.get('occupants.totalSenior')"
-                                  [label]="'Senior (65+)'"
-                                  [mouseScrollIncrement]="false"
-                                  [allowNegative]="false"
-                                  [placeholder]="'0'"
-                                >
-                                </ngds-number-input>
-                            </div>
-                            <div class="col-auto p-0">
-                                <button
-                                  class="btn btn-light border border-1"
-                                  (click)="increment('totalSenior', 1)"
-                                  [disabled]="getTotalOccupants() >= 10"
-                                >
-                                    +
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="row align-items-end p-2">
-                            <div class="col-auto p-0 ">
-                                <button
-                                  class="btn btn-light border border-1"
-                                  (click)="increment('totalYouth', -1)"
-                                  [disabled]="form?.get('occupants.totalYouth')?.value <= 0"
-                                >
-                                    &ndash;
-                                </button>
-                            </div>
-                            <div class="col px-1">
-                                <ngds-number-input
-                                  [control]="form?.get('occupants.totalYouth')"
-                                  [label]="'Youth (6-15)'"
-                                  [mouseScrollIncrement]="false"
-                                  [allowNegative]="false"
-                                  [placeholder]="'0'"
-                                >
-                                </ngds-number-input>
-                            </div>
-                            <div class="col-auto p-0">
-                                <button
-                                  class="btn btn-light border border-1"
-                                  (click)="increment('totalYouth', 1)"
-                                  [disabled]="getTotalOccupants() >= 10"
-                                >
-                                    +
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="row align-items-end p-2">
-                            <div class="col-auto p-0 ">
-                                <button
-                                  class="btn btn-light border border-1"
-                                  (click)="increment('totalChild', -1)"
-                                  [disabled]="form?.get('occupants.totalChild')?.value <= 0"
-                                >
-                                    &ndash;
-                                </button>
-                            </div>
-                            <div class="col px-1">
-                                <ngds-number-input
-                                  [control]="form?.get('occupants.totalChild')"
-                                  [label]="'Child (0-5)'"
-                                  [mouseScrollIncrement]="false"
-                                  [allowNegative]="false"
-                                  [placeholder]="'0'"
-                                >
-                                </ngds-number-input>
-                            </div>
-                            <div class="col-auto p-0">
-                                <button
-                                  class="btn btn-light border border-1"
-                                  (click)="increment('totalChild', 1)"
-                                  [disabled]="getTotalOccupants() >= 10"
-                                >
-                                    +
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <app-party-details
+                  [occupantsForm]="form?.get('occupants')"
+                ></app-party-details>
                 <div class="d-grid gap-2">
                     <button
                       class="btn btn-primary"

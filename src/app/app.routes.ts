@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { UserGuard } from './guards/user.guard';
 import { UserResolver } from './resolvers/user.resolver';
+import { ReserveGuard } from './guards/reserve.guard';
 
 export const routes: Routes = [
   { path: '', loadComponent: () => import('./home/home.component').then(mod => mod.HomeComponent) },
@@ -13,6 +14,7 @@ export const routes: Routes = [
   { path: 'account', loadComponent: () => import('./account/account.component').then(mod => mod.AccountComponent), canActivate: [UserGuard] },
   { path: 'account-details', loadComponent: () => import('./account-details/account-details.component').then(mod => mod.AccountDetailsComponent), canActivate: [UserGuard] },
   { path: 'my-bookings', loadComponent: () => import('./my-bookings/my-bookings.component').then(mod => mod.MyBookingsComponent), canActivate: [UserGuard], resolve: {user: UserResolver} },
-  { path: 'account/bookings/:id', loadComponent: () => import('./my-bookings/booking-details/booking-details.component').then(m => m.BookingDetailsComponent) 
+  { path: 'account/bookings/:id', loadComponent: () => import('./my-bookings/booking-details/booking-details.component').then(m => m.BookingDetailsComponent)
 },
+  { path: 'checkout', loadComponent: () => import('./reservation-flow/reservation-flow.component').then(mod => mod.ReservationFlowComponent), canActivate: [ReserveGuard] },
 ];

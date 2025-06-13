@@ -73,7 +73,8 @@ describe('MyBookingsComponent', () => {
   };
 
   const mockDataService = {
-    watchItem: jasmine.createSpy().and.returnValue(() => mockBooking.getValue())
+    watchItem: jasmine.createSpy().and.returnValue(() => mockBooking.getValue()),
+    clearItemValue: jasmine.createSpy().and.returnValue(() => true)
   };
 
 

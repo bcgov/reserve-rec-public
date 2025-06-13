@@ -40,9 +40,20 @@ export class MyBookingsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.clearBookings();
+    this.dataService.clearItemValue(Constants.dataIds.MY_BOOKINGS_RESULT);
+
     this.user = this.route.snapshot.data['user'];
     console.log('the user: ', this.user)
     this.bookingService.getBookings(this.user.sub);
+  }
+
+  clearBookings(): void {
+    this.data = [];
+    this.currentBookings = [];
+    this.upcomingBookings = [];
+    this.pastBookings = [];
+    this.cancelledBookings = [];
   }
 
   // Get today's date e.g. 2025-05-30T16:24:48.872-08:00

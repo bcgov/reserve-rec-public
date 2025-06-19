@@ -1,0 +1,24 @@
+.bg-container {
+  height: calc(100vh - 118.78px);
+  min-width: 375px;
+  overflow-y: auto;
+}
+
+.bg-grey {
+  background-color: #f2f2f2;
+}
+
+.bg-light-blue {
+  background-color: #C7E3FD;
+}
+
+.circle-bg-light-blue {
+  background-color: #C7E3FD;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+}
+
+.text-small {
+  font-size: 0.8rem;
+}

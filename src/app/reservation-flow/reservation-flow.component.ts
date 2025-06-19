@@ -10,10 +10,13 @@ import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { PartyDetailsComponent } from '../party-details/party-details.component';
 import { countries, states, provinces } from './countries';
 import { AuthService } from '../services/auth.service';
+import { BookingService } from '../services/booking.service';
+import { LoadingService } from '../services/loading.service';
+import { PolicyAccordionsComponent } from './policy-accordions/policy-accordions.component';
 
 @Component({
   selector: 'app-reservation-flow',
-  imports: [CommonModule, NgdsFormsModule, DatePipe, CurrencyPipe, PartyDetailsComponent],
+  imports: [CommonModule, NgdsFormsModule, DatePipe, CurrencyPipe, PartyDetailsComponent, PolicyAccordionsComponent],
   templateUrl: './reservation-flow.component.html',
   styleUrl: './reservation-flow.component.scss'
 })
@@ -29,6 +32,7 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
   public endDate;
   public occupants: any = {};
   public activityData;
+  public geozoneData;
   public accessPointsData;
   public accessPointsSelectionList;
   public provinceStateSelectionList;
@@ -50,7 +54,9 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
     private facilityService: FacilityService,
     private changeDetectorRef: ChangeDetectorRef,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private bookingService: BookingService,
+    protected loadingService: LoadingService
   ) {
     this.user = this.authService.getCurrentUser();
     this._activitySignal = this.dataService.watchItem(Constants.dataIds.ACTIVITY_DETAILS_RESULT);
@@ -163,8 +169,96 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
     return totalNights;
   }
 
-  showFormValue() {
-    console.log('this.form.value:', this.form.value);
+  async submit() {
+    const submissionValue = this.formatFormForSubmission();
+    try {
+    const booking = await this.bookingService.createBooking(this.formatFormForSubmission(), this.acCollectionId, this.activityType, this.activityId, submissionValue.startDate);
+    const bookingId = booking?.booking?.[0]?.data?.globalId || null;
+    if (bookingId) {
+      this.router.navigate(['/booking-confirmation', bookingId]);
+    } else {
+      throw new Error('Booking creation failed, no booking ID returned.');
+    }
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      // Handle the error appropriately, e.g., show a notification to the user
+      alert(`There was an error creating your booking. Please try again later.`);
+      this.router.navigate(['/']);
+    }
+  }
+
+  formatFormForSubmission() {
+    const formValue = this.form.value;
+    const bookedAt = new Date().toISOString();
+    const formattedValue = {
+      startDate: formValue.dateRange[0],
+      endDate: formValue.dateRange[1],
+      entryPoint: this.getFormattedAccessPointKey(formValue?.entryPoint),
+      exitPoint: this.getFormattedAccessPointKey(formValue?.exitPoint),
+      displayName: this.activityData?.displayName || '',
+      timezone: 'America/Vancouver', // Todo - update to reflect activity timezone
+      bookedAt: bookedAt,
+      user: this.user?.sub ? this.user.sub : '',
+      partyInformation: {
+        adult: parseInt(formValue.occupants.totalAdult) || 0,
+        senior: parseInt(formValue.occupants.totalSenior) || 0,
+        youth: parseInt(formValue.occupants.totalYouth) || 0,
+        child: parseInt(formValue.occupants.totalChild) || 0,
+      },
+      rateClass: 'standard', // Todo - update to reflect activity rate class
+      namedOccupant: this.getNamedOccupantInformation(),
+      feeInformation: {
+        registrationFees: this.getTotalCost(),
+        transactionFees: 0, // Todo - update to reflect transaction fees
+        tax: this.calculateInclusiveGST(),
+        total: this.getTotalCost()
+      },
+      vehicleInformation: formValue.equipmentInfo?.map((vehicle) => ({
+        licensePlate: vehicle.licensePlate || '',
+        licensePlateRegistrationRegion: vehicle.registeredProvince || ''
+      })),
+      equipmentInformation: formValue?.additionalEquipment || '',
+      bookingStatus: 'confirmed',
+      location: formValue?.entryPoint?.location ? formValue.entryPoint?.location : null
+    };
+
+    if (!formattedValue.user) {
+      delete formattedValue.user; // Remove user if not logged in
+    }
+
+    return formattedValue;
+  }
+
+  getNamedOccupantInformation() {
+    const userIsOccupant = this.form.get('userIsPrimaryOccupant').value;
+    const obj = {
+      firstName: userIsOccupant ? this.user?.given_name || '' : this.form.get('contactInfo.firstName').value,
+      lastName: userIsOccupant ? this.user?.family_name || '' : this.form.get('contactInfo.lastName').value,
+      contactInfo: {
+        email: userIsOccupant ? this.user?.email || '' : this.form.get('contactInfo.email').value,
+        mobilePhone: userIsOccupant ? this.user?.phone_number || '' : this.form.get('contactInfo.mobilePhone').value,
+        homePhone: userIsOccupant ? this.user?.phone_number || '' : this.form.get('contactInfo.homePhone').value,
+        streetAddress: userIsOccupant ? this.user?.address?.streetAddress || '' : this.form.get('addressInfo.streetAddress').value,
+        unitNumber: userIsOccupant ? this.user?.address?.unitNumber || '' : this.form.get('addressInfo.unitNumber').value,
+        postalCode: userIsOccupant ? this.user?.address?.postalCode || '' : this.form.get('addressInfo.postalCode').value,
+        city: userIsOccupant ? this.user?.address?.city || '' : this.form.get('addressInfo.city').value,
+        province: userIsOccupant ? this.user?.address?.province || '' : this.form.get('addressInfo.province').value,
+        country: userIsOccupant ? this.user?.address?.country || '' : this.form.get('addressInfo.country').value,
+      }
+    }
+    for (const key in obj.contactInfo) {
+      if (obj.contactInfo[key] === '') {
+        delete obj.contactInfo[key];
+      }
+    }
+    return obj;
+  }
+
+  getFormattedAccessPointKey(accessPoint){
+    return {
+      pk: accessPoint?.pk || null,
+      sk: accessPoint?.sk || null,
+    }
   }
 
   updateVehicleCount(count: number, increment = false): void {
@@ -224,7 +318,7 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
   calculateInclusiveGST(): number {
     const totalCost = this.getTotalCost();
     const gstAmount = totalCost * (1 - 1 / (1 + this.gstRate));
-    return gstAmount;
+    return parseFloat(gstAmount.toFixed(2));
   }
 
   navigate() {

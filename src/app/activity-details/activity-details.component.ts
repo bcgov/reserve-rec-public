@@ -19,7 +19,6 @@ import { DateTime } from 'luxon';
 export class ActivityDetailsComponent implements OnInit, AfterContentChecked, OnDestroy {
 
   public _dataSignal: Signal<any[]> = signal([]);
-  public _searchTermSignal: Signal<string> = signal('');
   public _geozoneSignal: WritableSignal<any> = signal(null);
 
   public acCollectionId;
@@ -41,13 +40,12 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
 
   constructor(private route: ActivatedRoute, private activityService: ActivityService, private dataService: DataService, private changeDetectorRef: ChangeDetectorRef, private router: Router) {
     this._dataSignal = this.dataService.watchItem(Constants.dataIds.ACTIVITY_DETAILS_RESULT);
-    this._searchTermSignal = this.dataService.watchItem('search-query');
+    this.searchTerm= this.dataService.getItemValue('search-query');
     effect(() => {
       this.data = this._dataSignal();
       if (this.data?.geozone?.envelope) {
         this._geozoneSignal.set([this.data.geozone]);
       }
-      this.searchTerm = this._searchTermSignal();
     });
   }
 

@@ -6,11 +6,13 @@ import { CanActivate, Router } from '@angular/router';
 })
 
 // Prevents direct access to the reserve page
-export class ReserveGuard implements CanActivate {
+export class BookingConfirmationGuard implements CanActivate {
   constructor(private router: Router) { }
 
   async canActivate(): Promise<boolean> {
-    if (this.router.url === '/') {
+    // If direct navigation OR the first segment of the URL is not 'checkout' (coming from checkout page), redirect to home
+    const firstSegment = this.router.url.split('/')[1].split('?')[0]; // Split to handle query parameters if present
+    if (this.router.url === '/' || firstSegment !== 'checkout') {
       this.router.navigate(['/']);
       return false;
     }

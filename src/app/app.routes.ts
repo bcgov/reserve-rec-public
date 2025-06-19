@@ -1,7 +1,8 @@
 import { Routes } from '@angular/router';
 import { UserGuard } from './guards/user.guard';
 import { UserResolver } from './resolvers/user.resolver';
-import { ReserveGuard } from './guards/reserve.guard';
+import { CheckoutGuard } from './guards/checkout.guard';
+import { BookingResolver } from './resolvers/booking.resolver';
 
 export const routes: Routes = [
   { path: '', loadComponent: () => import('./home/home.component').then(mod => mod.HomeComponent) },
@@ -16,5 +17,6 @@ export const routes: Routes = [
   { path: 'my-bookings', loadComponent: () => import('./my-bookings/my-bookings.component').then(mod => mod.MyBookingsComponent), canActivate: [UserGuard], resolve: {user: UserResolver} },
   { path: 'account/bookings/:id', loadComponent: () => import('./my-bookings/booking-details/booking-details.component').then(m => m.BookingDetailsComponent)
 },
-  { path: 'checkout', loadComponent: () => import('./reservation-flow/reservation-flow.component').then(mod => mod.ReservationFlowComponent), canActivate: [ReserveGuard] },
+  { path: 'checkout', loadComponent: () => import('./reservation-flow/reservation-flow.component').then(mod => mod.ReservationFlowComponent), canActivate: [CheckoutGuard] },
+  { path: 'booking-confirmation/:bookingId', loadComponent: () => import('./reservation-flow/booking-confirmation/booking-confirmation.component').then(mod => mod.BookingConfirmationComponent),  resolve: {user: UserResolver, booking: BookingResolver} },
 ];

@@ -32,4 +32,41 @@ export class BookingService {
       this.loggerService.error(error);
     }
   }
+
+  async createBooking(bookingData, acCollectionId: string, activityType: string, activityId: string, startDate: string) {
+    const queryParams = {
+      acCollectionId: acCollectionId,
+      activityType: activityType,
+      activityId: activityId,
+      startDate: startDate
+    };
+    try {
+      this.dataService.clearItemValue(Constants.dataIds.CREATE_BOOKING_RESULT);
+      this.loadingService.addToFetchList(Constants.dataIds.CREATE_BOOKING_RESULT);
+      const res = (await lastValueFrom(this.apiService.post(`bookings`, bookingData, queryParams)))['data'];
+      this.dataService.setItemValue(Constants.dataIds.CREATE_BOOKING_RESULT, res);
+      this.loadingService.removeFromFetchList(Constants.dataIds.CREATE_BOOKING_RESULT);
+      return res;
+    } catch (error) {
+      this.loggerService.error(error);
+      throw error; // Re-throw the error for further handling if needed
+    }
+  }
+
+  async getBookingByGlobalId(globalId: string, fetchAccessPoints = false) {
+    const queryParams = {
+      fetchAccessPoints: fetchAccessPoints
+    };
+    try {
+      this.dataService.clearItemValue(Constants.dataIds.BOOKING_DETAILS_RESULT);
+      this.loadingService.addToFetchList(Constants.dataIds.BOOKING_DETAILS_RESULT);
+      const res = await lastValueFrom(this.apiService.get(`bookings/${globalId}`, queryParams));
+      this.dataService.setItemValue(Constants.dataIds.BOOKING_DETAILS_RESULT, res);
+      this.loadingService.removeFromFetchList(Constants.dataIds.BOOKING_DETAILS_RESULT);
+      return res;
+    } catch (error) {
+      this.loggerService.error(error);
+      throw error; // Re-throw the error for further handling if needed
+    }
+  }
 }

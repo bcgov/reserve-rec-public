@@ -50,7 +50,7 @@ export class ApiService implements OnDestroy {
       this.apiPath = window.location.origin + '/api';
     }
 
-    this.headers = new HttpHeaders().set('x-api-key', this.configService.config['API_KEY']).set( 'Authorization', 'None');
+    this.headers = new HttpHeaders().set('x-api-key', this.configService.config['API_KEY']);
     if (!this.headers) {
       console.log('No API key provided.');
     }
@@ -109,7 +109,7 @@ export class ApiService implements OnDestroy {
     if (this.networkStatus) {
       const queryString = this.generateQueryString(queryParamsObject);
       return this.http
-        .post<any>(`${this.apiPath}${pk}?${queryString}`, obj, { headers: this.headers })
+        .post<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: this.headers })
         .pipe(catchError(this.errorHandler));
     } else {
       throw 'Network Offline';

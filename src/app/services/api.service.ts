@@ -96,21 +96,23 @@ export class ApiService implements OnDestroy {
     }
   }
 
-  put(pathArray, obj, queryParamsObject = null as any) {
-    if (this.networkStatus) {
-      const url = this.buildUrl(this.apiPath, pathArray, queryParamsObject);
-      return this.http.put<any>(`${url}`, obj, { headers: this.headers }).pipe(catchError(this.errorHandler));
-    } else {
-      throw 'Network Offline';
-    }
-  }
-
   post(pk, obj, queryParamsObject = null as any) {
     if (this.networkStatus) {
       const queryString = this.generateQueryString(queryParamsObject);
-      return this.http
-        .post<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: this.headers })
-        .pipe(catchError(this.errorHandler));
+      // If logged in, add the JWT token to the headers.
+      let headers;
+      if (this.authService.jwtToken) {
+        headers = new HttpHeaders().set('Authorization', `Bearer ${this.authService.jwtToken}`);
+        return this.http
+          .post<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: headers })
+          .pipe(catchError(this.errorHandler));
+      } else {
+        headers = new HttpHeaders().set('Authorization', `guest`);
+        console.log('calling as guest');
+        return this.http
+          .post<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: headers })
+          .pipe(catchError(this.errorHandler));
+      }
     } else {
       throw 'Network Offline';
     }

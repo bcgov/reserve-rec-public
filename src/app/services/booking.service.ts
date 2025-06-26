@@ -29,6 +29,7 @@ export class BookingService {
       this.dataService.setItemValue(Constants.dataIds.MY_BOOKINGS_RESULT, res);
       this.loadingService.removeFromFetchList(Constants.dataIds.MY_BOOKINGS_RESULT);
     } catch (error) {
+      this.loadingService.removeFromFetchList(Constants.dataIds.MY_BOOKINGS_RESULT);
       this.loggerService.error(error);
     }
   }
@@ -48,6 +49,7 @@ export class BookingService {
       this.loadingService.removeFromFetchList(Constants.dataIds.CREATE_BOOKING_RESULT);
       return res;
     } catch (error) {
+      this.loadingService.removeFromFetchList(Constants.dataIds.CREATE_BOOKING_RESULT);
       this.loggerService.error(error);
       throw error; // Re-throw the error for further handling if needed
     }
@@ -65,6 +67,7 @@ export class BookingService {
       this.loadingService.removeFromFetchList(Constants.dataIds.BOOKING_DETAILS_RESULT);
       return res;
     } catch (error) {
+      this.loadingService.removeFromFetchList(Constants.dataIds.BOOKING_DETAILS_RESULT);
       this.loggerService.error(error);
       throw error; // Re-throw the error for further handling if needed
     }

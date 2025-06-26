@@ -37,6 +37,7 @@ export class FacilityService {
       this.loadingService.removeFromFetchList(Constants.dataIds.FACILITY_DETAILS_RESULT);
       return res;
     } catch (error) {
+      this.loadingService.removeFromFetchList(Constants.dataIds.FACILITY_DETAILS_RESULT);
       this.loggerService.error(error);
     }
   }
@@ -52,10 +53,12 @@ export class FacilityService {
           accessPoints = accessPoints.concat(res.items);
         }
       }
+      console.log('accessPoints:', accessPoints);
       this.dataService.setItemValue(Constants.dataIds.ACTIVITY_ACCESS_POINTS, accessPoints);
       this.loadingService.removeFromFetchList(Constants.dataIds.ACTIVITY_ACCESS_POINTS);
       return accessPoints;
     } catch (error) {
+      this.loadingService.removeFromFetchList(Constants.dataIds.ACTIVITY_ACCESS_POINTS);
       this.loggerService.error(error);
       return [];
     }

@@ -36,6 +36,7 @@ export class ActivityService {
       this.dataService.setItemValue(Constants.dataIds.ACTIVITY_DETAILS_RESULT, res);
       this.loadingService.removeFromFetchList(Constants.dataIds.ACTIVITY_DETAILS_RESULT);
     } catch (error) {
+      this.loadingService.removeFromFetchList(Constants.dataIds.ACTIVITY_DETAILS_RESULT);
       this.loggerService.error(error);
     }
   }

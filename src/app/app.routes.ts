@@ -18,5 +18,6 @@ export const routes: Routes = [
   { path: 'account/bookings/:id', loadComponent: () => import('./my-bookings/booking-details/booking-details.component').then(m => m.BookingDetailsComponent)
 },
   { path: 'checkout', loadComponent: () => import('./reservation-flow/reservation-flow.component').then(mod => mod.ReservationFlowComponent), canActivate: [CheckoutGuard] },
+  { path: 'transaction-status', loadComponent: () => import('./transaction-status/transaction-status.component').then(mod => mod.TransactionStatusComponent)},
   { path: 'booking-confirmation/:bookingId', loadComponent: () => import('./reservation-flow/booking-confirmation/booking-confirmation.component').then(mod => mod.BookingConfirmationComponent),  resolve: {user: UserResolver, booking: BookingResolver} },
 ];

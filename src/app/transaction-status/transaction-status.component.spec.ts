@@ -1,34 +1,28 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { BookingConfirmationComponent } from './booking-confirmation.component';
-import { ConfigService } from '../../services/config.service';
+import { TransactionStatusComponent } from './transaction-status.component';
+import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { ConfigService } from '../services/config.service';
 
-describe('BookingConfirmationComponent', () => {
-  let component: BookingConfirmationComponent;
-  let fixture: ComponentFixture<BookingConfirmationComponent>;
+describe('TransactionStatusComponent', () => {
+  let component: TransactionStatusComponent;
+  let fixture: ComponentFixture<TransactionStatusComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [BookingConfirmationComponent
-      ],
+      imports: [TransactionStatusComponent],
       providers: [
         ConfigService,
-        provideRouter([
-          {
-            path: 'booking-confirmation',
-            component: BookingConfirmationComponent,
-          }
-        ]),
+        provideRouter([{path: 'checkout', component: TransactionStatusComponent}]),
         provideHttpClient(),
         provideHttpClientTesting() // Uncomment if you need to mock HTTP requests in tests
       ]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(BookingConfirmationComponent);
+    fixture = TestBed.createComponent(TransactionStatusComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

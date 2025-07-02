@@ -2,13 +2,13 @@ import { DatePipe } from '@angular/common';
 import { Component, effect, signal, WritableSignal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PolicyAccordionsComponent } from '../policy-accordions/policy-accordions.component';
-
 @Component({
   selector: 'app-booking-confirmation',
   imports: [DatePipe, PolicyAccordionsComponent],
   templateUrl: './booking-confirmation.component.html',
   styleUrl: './booking-confirmation.component.scss'
 })
+
 export class BookingConfirmationComponent {
   public _bookingDataSignal: WritableSignal<any[]> = signal([]);
   public bookingData;

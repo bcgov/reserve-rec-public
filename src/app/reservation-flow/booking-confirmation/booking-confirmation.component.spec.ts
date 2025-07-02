@@ -18,7 +18,7 @@ describe('BookingConfirmationComponent', () => {
         ConfigService,
         provideRouter([
           {
-            path: 'booking-confirmation',
+            path: 'booking-confirmation/:bookingId',
             component: BookingConfirmationComponent,
           }
         ]),

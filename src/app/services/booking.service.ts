@@ -39,7 +39,7 @@ export class BookingService {
       acCollectionId: acCollectionId,
       activityType: activityType,
       activityId: activityId,
-      startDate: startDate
+      startDate: startDate,
     };
     try {
       this.dataService.clearItemValue(Constants.dataIds.CREATE_BOOKING_RESULT);

@@ -9,6 +9,8 @@ export class Constants {
     ACTIVITY_ACCESS_POINTS: 'activityAccessPoints',
     CREATE_BOOKING_RESULT: 'createBookingResult',
     BOOKING_DETAILS_RESULT: 'bookingDetailsResult',
+    TRANSACTION_POST_RESULTS: 'transactionPostResults',
+    TRANSACTION_STATUS_RESULTS: 'transactionStatusResults'
   };
 
   public static readonly timeZoneIANA = 'America/Vancouver';

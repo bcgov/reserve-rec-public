@@ -13,6 +13,8 @@ import { AuthService } from '../services/auth.service';
 import { BookingService } from '../services/booking.service';
 import { LoadingService } from '../services/loading.service';
 import { PolicyAccordionsComponent } from './policy-accordions/policy-accordions.component';
+import { lastValueFrom } from 'rxjs';
+import { ApiService } from '../services/api.service';
 
 @Component({
   selector: 'app-reservation-flow',
@@ -46,6 +48,8 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
   public user;
 
   public form;
+  public transactionUrl;
+  public _transactionUrlSignal = signal(null);
 
   constructor(
     private route: ActivatedRoute,
@@ -56,6 +60,7 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
     private router: Router,
     private authService: AuthService,
     private bookingService: BookingService,
+    private apiService: ApiService,
     protected loadingService: LoadingService
   ) {
     this.user = this.authService.getCurrentUser();
@@ -64,7 +69,12 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
     effect(() => {
       this.activityData = this._activitySignal();
       this.accessPointsData = this._accessPointsSignal();
-      this.buildAccessPointsSelectionList();
+      this.buildAccessPointsSelectionList()
+
+      this.transactionUrl = this._transactionUrlSignal();
+      if (this.transactionUrl) {
+        window.location.href = this.transactionUrl;
+      }
     });
   }
 
@@ -172,13 +182,15 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
   async submit() {
     const submissionValue = this.formatFormForSubmission();
     try {
-    const booking = await this.bookingService.createBooking(this.formatFormForSubmission(), this.acCollectionId, this.activityType, this.activityId, submissionValue.startDate);
-    const bookingId = booking?.booking?.[0]?.data?.globalId || null;
-    if (bookingId) {
-      this.router.navigate(['/booking-confirmation', bookingId]);
-    } else {
-      throw new Error('Booking creation failed, no booking ID returned.');
-    }
+      const booking = await this.bookingService.createBooking(this.formatFormForSubmission(), this.acCollectionId, this.activityType, this.activityId, submissionValue.startDate);
+      const bookingId = booking?.booking?.[0]?.data?.globalId || null;
+      const sessionId = booking?.booking?.[0]?.data?.sessionId || null;
+      if (bookingId && sessionId) {
+        await this.initiateTransaction(bookingId, sessionId);
+      } else {
+        throw new Error('Booking creation failed, no booking ID returned.');
+      }
+
     } catch (error) {
       console.error('Error creating booking:', error);
       // Handle the error appropriately, e.g., show a notification to the user
@@ -367,11 +379,30 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
     return false;
   }
 
+  async initiateTransaction(bookingId: string, sessionId: string) {
+    const totalCost = this.getTotalCost();
+    const body = {
+      trnAmount: totalCost,
+      bookingId: bookingId,
+      sessionId: sessionId
+    };
+
+    try {
+      this.loadingService.addToFetchList(Constants.dataIds.TRANSACTION_POST_RESULTS);
+      const res: any = await lastValueFrom(this.apiService.post(`transactions`, body, {}));
+      this._transactionUrlSignal.set(res?.data?.response?.transaction?.data?.transactionUrl)
+      this.dataService.setItemValue(Constants.dataIds.TRANSACTION_POST_RESULTS, res);
+      this.loadingService.removeFromFetchList(Constants.dataIds.TRANSACTION_POST_RESULTS);
+    } catch (error) {
+      console.error('Failed to create transaction:', error);
+    }
+    
+    // In case there's a slight delay, add a loading overlay on the page
+    this.transactionUrl = true;
+  }
+
   ngOnDestroy(): void {
     this.changeDetectorRef.detectChanges();
     this.changeDetectorRef.detach();
   }
-
-
 }
-

@@ -86,14 +86,15 @@ export class ApiService implements OnDestroy {
       // If logged in, add the JWT token to the headers.
       if (this.authService.jwtToken) {
         this.headers = this.headers.append('Authorization', `Bearer ${this.authService.jwtToken}`);
-        return this.http.get(`${this.apiPath}/${pk}?${queryString}`, { headers: this.headers })
-          .pipe(catchError(this.errorHandler));
       } else {
         this.headers = this.headers.append('Authorization', `guest`);
         console.log('calling as guest');
-        return this.http.get(`${this.apiPath}/${pk}?${queryString}`, { headers: this.headers })
-          .pipe(catchError(this.errorHandler));
       }
+      return this.http.get(`${this.apiPath}/${pk}?${queryString}`, { headers: this.headers, observe: 'response' })
+        .pipe(
+          map(response => response?.body),
+          catchError(this.errorHandler)
+        );
     } else {
       throw 'Network Offline';
     }
@@ -101,19 +102,18 @@ export class ApiService implements OnDestroy {
 
   put(pk, obj, queryParamsObject = null as any) {
     if (this.networkStatus) {
-       const queryString = this.generateQueryString(queryParamsObject);
-      // If logged in, add the JWT token to the headers.
-      let headers;
+      const queryString = this.generateQueryString(queryParamsObject);
+      // If logged in, append the JWT token to the headers.
       if (this.authService.jwtToken) {
-        headers = new HttpHeaders().set('Authorization', `Bearer ${this.authService.jwtToken}`);
-        return this.http.put<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: headers })
-        .pipe(catchError(this.errorHandler));
+        this.headers = this.headers.append('Authorization', `Bearer ${this.authService.jwtToken}`);
       } else {
-        headers = new HttpHeaders().set('Authorization', `guest`);
+        this.headers = this.headers.append('Authorization', `guest`);
         console.log('calling as guest');
-        return this.http.put<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: headers })
-        .pipe(catchError(this.errorHandler));
       }
+      return this.http.put<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: this.headers, observe: 'response' })
+        .pipe(
+          map(response => response?.body),
+          catchError(this.errorHandler));
     } else {
       throw 'Network Offline';
     }
@@ -122,20 +122,19 @@ export class ApiService implements OnDestroy {
   post(pk, obj, queryParamsObject = null as any) {
     if (this.networkStatus) {
       const queryString = this.generateQueryString(queryParamsObject);
-      // If logged in, add the JWT token to the headers.
-      let headers;
+      // If logged in, append the JWT token to the headers.
       if (this.authService.jwtToken) {
-        headers = new HttpHeaders().set('Authorization', `Bearer ${this.authService.jwtToken}`);
-        return this.http
-          .post<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: headers })
-          .pipe(catchError(this.errorHandler));
+        this.headers = this.headers.append('Authorization', `Bearer ${this.authService.jwtToken}`);
       } else {
-        headers = new HttpHeaders().set('Authorization', `guest`);
+        this.headers = this.headers.append('Authorization', `guest`);
         console.log('calling as guest');
-        return this.http
-          .post<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: headers })
-          .pipe(catchError(this.errorHandler));
       }
+      return this.http
+        .post<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: this.headers, observe: 'response' })
+        .pipe(
+          map(response => response?.body),
+          catchError(this.errorHandler)
+        );
     } else {
       throw 'Network Offline';
     }

@@ -15,6 +15,13 @@ concurrency:
   group: lza-deploy-reserve-rec-public
   cancel-in-progress: false
 
+  env:
+    AWS_REGION: ${{ vars.AWS_REGION }}
+    STACK_NAME: ${{ vars.STACK_NAME }}
+    API_STAGE: ${{ vars.API_STAGE }}
+    ENVIRONMENT: ${{ vars.ENVIRONMENT }}
+    S3_BUCKET_PUBLIC: ${{ vars.S3_BUCKET_PUBLIC }}
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -47,13 +54,6 @@ jobs:
 
       ## CDK Deploy
       - name: CDK Deploy
-        env:
-          # Variables
-          STACK_NAME: ${{ vars.STACK_NAME }}
-          API_STAGE: ${{ vars.API_STAGE }}
-          ENVIRONMENT: ${{ vars.ENVIRONMENT }}
-          S3_BUCKET_PUBLIC: ${{ vars.S3_BUCKET_PUBLIC }}
-
         run: |
           echo "Deploying $STACK_NAME"
           cdk deploy $STACK_NAME --require-approval never --rollback

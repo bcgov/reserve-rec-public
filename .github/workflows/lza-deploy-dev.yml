@@ -15,12 +15,12 @@ concurrency:
   group: lza-deploy-reserve-rec-public
   cancel-in-progress: false
 
-  env:
-    AWS_REGION: ${{ vars.AWS_REGION }}
-    STACK_NAME: ${{ vars.STACK_NAME }}
-    API_STAGE: ${{ vars.API_STAGE }}
-    ENVIRONMENT: ${{ vars.ENVIRONMENT }}
-    S3_BUCKET_PUBLIC: ${{ vars.S3_BUCKET_PUBLIC }}
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  STACK_NAME: ${{ vars.STACK_NAME }}
+  API_STAGE: ${{ vars.API_STAGE }}
+  ENVIRONMENT: ${{ vars.ENVIRONMENT }}
+  S3_BUCKET_PUBLIC: ${{ vars.S3_BUCKET_PUBLIC }}
 
 jobs:
   deploy:

@@ -14,5 +14,6 @@ new ReserveRecPublicStack(app, process.env.STACK_NAME, {
     ENVIRONMENT: process.env.ENVIRONMENT || 'dev',
     S3_BUCKET_PUBLIC: process.env.S3_BUCKET_PUBLIC || 'reserve-rec-public-cdk',
     API_STAGE: process.env.API_STAGE || 'api',
+    STACK_NAME: process.env.STACK_NAME || 'ReserveRecPublicStack',
   }
 });

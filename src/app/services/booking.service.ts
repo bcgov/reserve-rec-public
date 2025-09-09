@@ -34,9 +34,9 @@ export class BookingService {
     }
   }
 
-  async createBooking(bookingData, acCollectionId: string, activityType: string, activityId: string, startDate: string) {
+  async createBooking(bookingData, collectionId: string, activityType: string, activityId: string, startDate: string) {
     const queryParams = {
-      acCollectionId: acCollectionId,
+      collectionId: collectionId,
       activityType: activityType,
       activityId: activityId,
       startDate: startDate,

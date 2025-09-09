@@ -27,7 +27,7 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
   public _activitySignal: Signal<any> = signal(null);
   public _accessPointsSignal: Signal<any[]> = signal([]);
 
-  public acCollectionId: string | null = null;
+  public collectionId: string | null = null;
   public activityType: string | null = null;
   public activityId: string | null = null;
   public startDate;
@@ -84,7 +84,7 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
 
   ngOnInit(): void {
     const params = this.route.snapshot.queryParams;
-    this.acCollectionId = params['acCollectionId'] || null;
+    this.collectionId = params['collectionId'] || null;
     this.activityType = params['activityType'] || null;
     this.activityId = params['activityId'] || null;
     this.startDate = params['startDate'] || null;
@@ -144,8 +144,8 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
 
     this.registrationProvinceStateSelectionList = provinces.concat(states).concat(['Other']);
 
-    this.activityService.getActivity(this.acCollectionId, this.activityType, this.activityId, true);
-    this.facilityService.getAccessPoints(this.acCollectionId);
+    this.activityService.getActivity(this.collectionId, this.activityType, this.activityId, true);
+    this.facilityService.getAccessPoints(this.collectionId);
     this.form.updateValueAndValidity();
   }
 
@@ -182,7 +182,7 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
   async submit() {
     const submissionValue = this.formatFormForSubmission();
     try {
-      const booking = await this.bookingService.createBooking(this.formatFormForSubmission(), this.acCollectionId, this.activityType, this.activityId, submissionValue.startDate);
+      const booking = await this.bookingService.createBooking(this.formatFormForSubmission(), this.collectionId, this.activityType, this.activityId, submissionValue.startDate);
       const bookingId = booking?.booking?.[0]?.data?.globalId || null;
       const sessionId = booking?.booking?.[0]?.data?.sessionId || null;
       if (bookingId && sessionId) {

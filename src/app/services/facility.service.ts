@@ -18,7 +18,7 @@ export class FacilityService {
     private loadingService: LoadingService,
   ) { }
 
-  async getFacility(fcCollectionId: string, facilityType?: string, facilityId?: string, getActivities = false) {
+  async getFacility(collectionId: string, facilityType?: string, facilityId?: string, getActivities = false) {
     const queryParams = {};
     if (facilityType) {
       queryParams['facilityType'] = facilityType;
@@ -32,7 +32,7 @@ export class FacilityService {
 
     try {
       this.loadingService.addToFetchList(Constants.dataIds.FACILITY_DETAILS_RESULT);
-      const res = (await lastValueFrom(this.apiService.get(`facilities/${fcCollectionId}`, queryParams)))['data'];
+      const res = (await lastValueFrom(this.apiService.get(`facilities/${collectionId}`, queryParams)))['data'];
       this.dataService.setItemValue(Constants.dataIds.FACILITY_DETAILS_RESULT, res);
       this.loadingService.removeFromFetchList(Constants.dataIds.FACILITY_DETAILS_RESULT);
       return res;
@@ -42,13 +42,13 @@ export class FacilityService {
     }
   }
 
-  async getAccessPoints(fcCollectionId) {
+  async getAccessPoints(collectionId) {
     const accessPointTypes = ['accessPoint', 'trailhead', 'parkingLot'];
     try {
       let accessPoints = [];
       this.loadingService.addToFetchList(Constants.dataIds.ACTIVITY_ACCESS_POINTS);
       for (const type of accessPointTypes) {
-        const res = await this.getFacility(fcCollectionId, type);
+        const res = await this.getFacility(collectionId, type);
         if (res && res.items) {
           accessPoints = accessPoints.concat(res.items);
         }

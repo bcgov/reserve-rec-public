@@ -79,10 +79,10 @@ export class SearchResultsComponent implements OnInit {
           item._source.navigation = `/protected-area/${item._source.orcs}`;
           break;
         case 'facility':
-          item._source.navigation = `/facility/${item._source.fcCollectionId}/${item._source.facilityType}/${item._source.facilityId}`;
+          item._source.navigation = `/facility/${item._source.collectionId}/${item._source.facilityType}/${item._source.facilityId}`;
           break;
         case 'activity':
-          item._source.navigation = `/activity/${item._source.acCollectionId}/${item._source.activityType}/${item._source.activityId}`;
+          item._source.navigation = `/activity/${item._source.collectionId}/${item._source.activityType}/${item._source.activityId}`;
           break;
         default:
           item._source.navigation = `/search/text=${item._source.displayName}`;

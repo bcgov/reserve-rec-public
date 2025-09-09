@@ -20,7 +20,7 @@ export class FacilityDetailsComponent implements OnInit {
   public _dataSignal: Signal<any[]> = signal([]);
   public _activitiesSignal: WritableSignal<any[]> = signal([]);
 
-  public fcCollectionId;
+  public collectionId;
   public facilityType;
   public identifier;
   public data;
@@ -40,21 +40,21 @@ export class FacilityDetailsComponent implements OnInit {
 
   ngOnInit(): void {
     const params = this.route.snapshot.paramMap;
-    this.fcCollectionId = params.get('fcCollectionId');
+    this.collectionId = params.get('collectionId');
     this.facilityType = params.get('facilityType');
     this.identifier = params.get('identifier');
 
-    this.facilityService.getFacility(this.fcCollectionId, this.facilityType, this.identifier, true);
+    this.facilityService.getFacility(this.collectionId, this.facilityType, this.identifier, true);
   }
 
   formatActivities() {
     for (const activity of this.activities) {
-      activity['navigation'] = "/activity/" + activity.acCollectionId + "/" + activity.activityType + "/" + activity.identifier;
+      activity['navigation'] = "/activity/" + activity.collectionId + "/" + activity.activityType + "/" + activity.identifier;
     }
   }
 
-  navigate(acCollectionId, activityType, identifier) {
-    this.router.navigate(['/activity', acCollectionId, activityType, identifier]);
+  navigate(collectionId, activityType, identifier) {
+    this.router.navigate(['/activity', collectionId, activityType, identifier]);
   }
 
   navToProtectedArea() {

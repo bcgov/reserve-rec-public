@@ -41,7 +41,7 @@ export class ProtectedAreaDetailsComponent implements OnInit {
   formatFacilities() {
     if (this.facilities?.items) {
       for (const facility of this.facilities.items) {
-        facility['navigation'] = "/facility/" + facility.fcCollectionId + "/" + facility.facilityType + "/" + facility.identifier;
+        facility['navigation'] = "/facility/" + facility.collectionId + "/" + facility.facilityType + "/" + facility.identifier;
       }
     }
   }

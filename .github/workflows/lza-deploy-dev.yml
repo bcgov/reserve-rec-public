@@ -21,6 +21,8 @@ env:
   API_STAGE: ${{ vars.API_STAGE }}
   ENVIRONMENT: ${{ vars.ENVIRONMENT }}
   S3_BUCKET_PUBLIC: ${{ vars.S3_BUCKET_PUBLIC }}
+  CDK_DEFAULT_ACCOUNT: ${{ vars.CDK_DEFAULT_ACCOUNT }}
+  CDK_DEFAULT_REGION: ${{ vars.CDK_DEFAULT_REGION }}
 
 jobs:
   deploy:

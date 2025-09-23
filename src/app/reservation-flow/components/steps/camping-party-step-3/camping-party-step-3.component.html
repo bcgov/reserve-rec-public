@@ -1,0 +1,165 @@
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-10 col-12">
+      <h2 class="text-dark fw-bold mb-3">{{ cartItem?.geoZoneName }}</h2>
+      <hr class="border-2 mb-4">
+
+      <div class="step-container">
+        <h3 class="step-title">Camping Party</h3>
+        <p class="step-description">Configure your camping party details and occupant information.</p>
+
+        <div class="mb-5">
+          <app-party-details
+            *ngIf="form?.get('occupants')"
+            [occupantsForm]="form?.get('occupants')"
+            [inlineLayout]="true"
+          ></app-party-details>
+        </div>
+
+        <div class="mb-5">
+          <h4>Primary Occupant</h4>
+          <p class="text-muted">Who is this booking for?</p>
+
+          <div class="form-check mb-3">
+            <input 
+              class="form-check-input" 
+              type="radio" 
+              name="primaryOccupant" 
+              id="forMe" 
+              [value]="true"
+              (change)="setUserAsPrimaryOccupant(true)"
+              [checked]="form?.get('userIsPrimaryOccupant')?.value === true"
+            >
+            <label class="form-check-label" for="forMe">
+              This booking is for me
+            </label>
+          </div>
+
+          <div class="form-check">
+            <input 
+              class="form-check-input" 
+              type="radio" 
+              name="primaryOccupant" 
+              id="forSomeoneElse" 
+              [value]="false"
+              (change)="setUserAsPrimaryOccupant(false)"
+              [checked]="form?.get('userIsPrimaryOccupant')?.value === false"
+            >
+            <label class="form-check-label" for="forSomeoneElse">
+              This booking is for someone else
+            </label>
+          </div>
+        </div>
+
+        <div *ngIf="form?.get('userIsPrimaryOccupant')?.value === false" class="manual-entry-form mt-4">
+          <div class="border border-1 rounded p-4 bg-light">
+            <h5 class="mb-3">Contact Information</h5>
+
+            <div class="row">
+              <div class="col-12 col-md-6">
+                <ngds-text-input
+                  [label]="'First Name'"
+                  [control]="form?.get('primaryOccupant.firstName')"
+                ></ngds-text-input>
+              </div>
+              <div class="col-12 col-md-6">
+                <ngds-text-input
+                  [label]="'Last Name'"
+                  [control]="form?.get('primaryOccupant.lastName')"
+                ></ngds-text-input>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12 col-md-6">
+                <ngds-text-input
+                  [label]="'Email (optional)'"
+                  [control]="form?.get('primaryOccupant.email')"
+                  type="email"
+                ></ngds-text-input>
+              </div>
+              <div class="col-12 col-md-6">
+                <ngds-text-input
+                  [label]="'Mobile Phone'"
+                  [control]="form?.get('primaryOccupant.phoneNumber')"
+                  type="tel"
+                ></ngds-text-input>
+              </div>
+            </div>
+
+            <h5 class="mt-4 mb-3">Address</h5>
+
+            <div class="row">
+              <div class="col-12">
+                <ngds-text-input
+                  [label]="'Street Address'"
+                  [control]="form?.get('addressInfo.streetAddress')"
+                ></ngds-text-input>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12 col-md-6">
+                <ngds-text-input
+                  [label]="'Unit Number (optional)'"
+                  [control]="form?.get('addressInfo.unitNumber')"
+                ></ngds-text-input>
+              </div>
+              <div class="col-12 col-md-6">
+                <ngds-text-input
+                  [label]="'Postal or Zip Code'"
+                  [control]="form?.get('addressInfo.postalCode')"
+                ></ngds-text-input>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12 col-md-6">
+                <ngds-text-input
+                  [label]="'City'"
+                  [control]="form?.get('addressInfo.city')"
+                ></ngds-text-input>
+              </div>
+              <div class="col-12 col-md-6">
+                <ngds-text-input
+                  [label]="'Province or State'"
+                  [control]="form?.get('addressInfo.province')"
+                ></ngds-text-input>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12 col-md-6">
+                <ngds-text-input
+                  [label]="'Country'"
+                  [control]="form?.get('addressInfo.country')"
+                ></ngds-text-input>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between border-top pt-3 mt-5">
+          <button 
+            type="button" 
+            class="btn btn-link mb-3 border-0 bg-transparent"
+            (click)="goToPrevious()"
+          >
+            <i class="fa fa-arrow-circle-left" aria-hidden="true"></i>
+            Previous
+          </button>
+
+          <button 
+            type="button" 
+            class="btn btn-primary mb-3"
+            [disabled]="!isStepValid()"
+            (click)="goToNext()"
+          >
+            Next
+            <i class="fa-solid fa-chevron-right ms-2"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

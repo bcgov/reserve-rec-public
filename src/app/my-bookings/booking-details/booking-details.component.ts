@@ -24,6 +24,7 @@ export class BookingDetailsComponent implements OnInit {
   zoomValue = 12;
   loading = true;
 
+
   
 constructor(
   private apiService: ApiService,
@@ -38,7 +39,7 @@ constructor(
       this.booking = res.data;
       this.booking.nights = this.calculateNights(this.booking.startDate, this.booking.endDate);
       this.booking.totalParty = this.formatParty(this.booking.partyInformation);
-      this.mapObj = this.formatMapCoords(this.booking);
+      this.mapObj = history.state.mapObj || this.formatMapCoords(this.booking); //use the mapObj from the state if available, otherwise format it from booking
       this.user = this.authService.getCurrentUser();
 
       if(this.user.sub != this.booking.user){

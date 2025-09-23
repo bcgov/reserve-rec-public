@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component} from '@angular/core';
 import { AuthService } from '../services/auth.service';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 
 @Component({
     selector: 'app-header',
@@ -11,7 +11,7 @@ import { RouterModule } from '@angular/router';
 })
 export class HeaderComponent { 
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   get user() {
     return this.authService.getCurrentUser(); // Directly bind to the signal
@@ -22,8 +22,6 @@ export class HeaderComponent {
   }
 
   cart(){
-    //Leaving this in for now as it is a great button for debugging login stuff prior to cart actualy being implemented
-    console.log("cart time");
-    console.log("user", this.user);
+    this.router.navigate(['/cart']);
   }
 }

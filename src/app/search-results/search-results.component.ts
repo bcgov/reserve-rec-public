@@ -73,7 +73,18 @@ export class SearchResultsComponent implements OnInit {
       return;
     }
     const result = {};
-    this.data.map(item => {
+    
+    // Initialize all categories with empty arrays
+    for (const category of this.categories) {
+      result[category.id] = [];
+    }
+    
+    this.data.forEach(item => {
+      // Ensure _source exists before accessing it
+      if (!item._source) {
+        return;
+      }
+      
       switch(item._source?.schema) {
         case 'protectedArea':
           item._source.navigation = `/protected-area/${item._source.orcs}`;
@@ -88,7 +99,8 @@ export class SearchResultsComponent implements OnInit {
           item._source.navigation = `/search/text=${item._source.displayName}`;
           break;
       }
-    })
+    });
+    
     for (const category of this.categories) {
       result[category.id] = this.data.filter(item => item._source?.schema === category.schema);
     }
@@ -97,7 +109,7 @@ export class SearchResultsComponent implements OnInit {
   }
 
   isCategorizedDataEmpty(data: Record<string, any[]>): boolean {
-    return Object.values(data).every(arr => arr.length === 0);
+    return Object.values(data).every(arr => !arr || arr.length === 0);
   }
 
   scrollToAnchor(elementId: string): void {

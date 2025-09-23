@@ -1,0 +1,93 @@
+
+
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-10 col-12">
+      
+      <!-- Left-aligned Title -->
+      <h2 class="text-dark fw-bold mb-3">{{ getParkName() }}</h2>
+      <h5 class="text-muted mb-3">{{ getActivityName() }}</h5>
+      
+      <!-- Horizontal Divider -->
+      <hr class="border-2 mb-4">
+
+      <div class="step-container">
+        <h3 class="step-title">Review & Payment</h3>
+        <p class="step-description">Review your booking details and proceed to payment.</p>
+        
+        <!-- Booking Summary -->
+        <div class="booking-summary mb-4">
+          <h4>Booking Summary</h4>
+          <div class="summary-card">
+            <div class="summary-item">
+              <span>Number of nights:</span>
+              <span>{{ calculateTotalNights() }}</span>
+            </div>
+            <div class="summary-item">
+              <span>Total occupants:</span>
+              <span>{{ calculateTotalOccupants() }}</span>
+            </div>
+            <div class="summary-item">
+              <span>Entry point:</span>
+              <span>{{ form?.get('entryPoint')?.value?.displayName || form?.get('entryPoint')?.value || 'Not selected' }}</span>
+            </div>
+            <div class="summary-item">
+              <span>Exit point:</span>
+              <span>{{ form?.get('exitPoint')?.value?.displayName || form?.get('exitPoint')?.value || 'Not selected' }}</span>
+            </div>
+            
+            <!-- Price Breakdown -->
+            <hr>
+            <div class="summary-item">
+              <span>Subtotal:</span>
+              <span>{{ getSubtotal() | currency:'CAD':'symbol':'1.2-2' }}</span>
+            </div>
+            <div class="summary-item" *ngIf="getEquipmentTotal() > 0">
+              <span>Equipment:</span>
+              <span>{{ getEquipmentTotal() | currency:'CAD':'symbol':'1.2-2' }}</span>
+            </div>
+            <div class="summary-item" *ngIf="getTaxes() > 0">
+              <span>Taxes:</span>
+              <span>{{ getTaxes() | currency:'CAD':'symbol':'1.2-2' }}</span>
+            </div>
+            <hr>
+            <div class="summary-item total">
+              <span><strong>Total Amount:</strong></span>
+              <span><strong>{{ getGrandTotal() | currency:'CAD':'symbol':'1.2-2' }}</strong></span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Navigation Buttons -->
+        <div class="d-flex justify-content-between border-top pt-3 mt-5">
+          <button 
+            type="button" 
+            class="btn btn-link mb-3 border-0 bg-transparent"
+            (click)="goToPrevious()"
+            [disabled]="isProcessingPayment"
+          >
+            <i class="fa fa-arrow-circle-left" aria-hidden="true"></i>
+            Previous
+          </button>
+          
+          <button 
+            type="button" 
+            class="btn btn-primary btn-lg mb-3"
+            (click)="processPayment()"
+            [disabled]="isProcessingPayment || !isStepValid()"
+          >
+            <span *ngIf="!isProcessingPayment">
+              <i class="fa-solid fa-credit-card me-2"></i>
+              Complete Reservation
+            </span>
+            <span *ngIf="isProcessingPayment">
+              <i class="fa-solid fa-spinner fa-spin me-2"></i>
+              Processing...
+            </span>
+          </button>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</div>

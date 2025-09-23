@@ -1,0 +1,135 @@
+<div class="mb-4">
+  <div class="card mb-3">
+    <div class="card-body py-3">
+      <div class="d-flex align-items-center justify-content-between">
+        <!-- Left side - Current item info -->
+        <div class="d-flex align-items-center">
+          <i class="fa-solid fa-shopping-cart text-primary me-3 fs-5"></i>
+          <div>
+            <h6 class="mb-1 fw-semibold">
+              {{ queueItems[currentItemIndex]?.activityName }}
+              <small class="text-muted">
+                ({{ queueItems[currentItemIndex]?.startDate | date }} - {{ queueItems[currentItemIndex]?.endDate | date }})
+                Booking Form: {{ currentItemIndex + 1 }}/{{ totalItems }}
+              </small>
+            </h6>
+          </div>
+        </div>
+
+        <!-- Right side - Jump to item dropdown -->
+        <div class="dropdown" *ngIf="totalItems > 1">
+          <button 
+            class="btn btn-outline-primary dropdown-toggle d-flex align-items-center" 
+            type="button" 
+            id="itemSelectorDropdown" 
+            data-bs-toggle="dropdown" 
+            aria-expanded="false"
+          >
+            <i class="fa-solid fa-exchange-alt me-2"></i>
+            Jump to Item
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="itemSelectorDropdown">
+            <li class="dropdown-header">
+              <i class="fa-solid fa-list me-2"></i>
+              Select Reservation
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li *ngFor="let item of queueItems; let i = index">
+              <button 
+                type="button"
+                class="dropdown-item d-flex align-items-center py-2"
+                [class.active]="i === currentItemIndex"
+                (click)="switchToItem(i)"
+              >
+                <!-- Status Icon -->
+                <span class="me-3" style="width: 20px;">
+                  <i *ngIf="item.areAllStepsCompleted" 
+                     class="fa-solid fa-check-circle text-success"></i>
+                  <i *ngIf="i === currentItemIndex" 
+                     class="fa-solid fa-clock text-primary"></i>
+                  <i *ngIf="!item.areAllStepsCompleted && i < currentItemIndex" 
+                     class="fa-regular fa-clock text-muted"></i>
+                </span>
+
+                <!-- Item Info -->
+                <div class="flex-grow-1">
+                  <div class="fw-semibold mb-0" style="font-size: 14px;">
+                    {{ item.geoZoneName }}
+                    <small class="text-muted">
+                      ({{ item.startDate | date }} - {{ item.endDate | date }})
+                    </small>
+                  </div>
+                  <small class="text-muted">{{ item.activityName }}</small>
+                </div>
+
+                <!-- Status Badge -->
+                <span class="badge ms-2" [class]="getQueueItemBadgeClasses(i)">
+                  {{ item.areAllStepsCompleted ? 'Completed' : 
+                     (i === currentItemIndex ? 'In Progress' : 
+                     (i > currentItemIndex ? 'Pending' : 'Not Complete')) }}
+                </span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Current Item Steps (Bootstrap Nav Pills Style) -->
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="mb-3">
+        <h6 class="card-subtitle text-muted mb-0">
+          <i class="fa-solid fa-list-check me-2"></i>
+          Reservation Steps
+        </h6>
+      </div>
+
+      <nav class="nav nav-pills nav-justified">
+        <div 
+          *ngFor="let step of stepperService.getSteps(); let i = index"
+          class="nav-item flex-fill"
+        >
+          <button
+            type="button"
+            class="nav-link w-100 position-relative"
+            [class.active]="step.isActive"
+            [class.text-primary]="step.isActive"
+            [class.disabled]="isPaymentStep(i) && !canAccessPayment()"
+            [class]="getStepClasses(step, i)"
+            (click)="onStepClick(i)"
+            [disabled]="isPaymentStep(i) && !canAccessPayment()"
+          >
+            <!-- Step Icon/Number -->
+            <div class="d-flex align-items-center justify-content-center mb-1">
+              <span 
+                class="badge rounded-pill d-flex align-items-center justify-content-center"
+                [class]="getStepBadgeClasses(step, i)"
+                style="width: 32px; height: 32px;"
+              >
+                <i *ngIf="isStepCompletedForCurrentItem(step, i)" 
+                   class="fa-solid fa-check"></i>
+                <i *ngIf="isPaymentStep(i) && !isStepCompletedForCurrentItem(step, i)" 
+                   class="fa-solid fa-credit-card"></i>
+                <span *ngIf="!isStepCompletedForCurrentItem(step, i) && !isPaymentStep(i)">
+                  {{ i + 1 }}
+                </span>
+              </span>
+            </div>
+
+            <!-- Step Title -->
+            <div class="fw-semibold" style="font-size: 13px;">
+              {{ getStepTitle(step, i) }}
+            </div>
+
+            <!-- Step Description -->
+            <div class="text-muted mt-1" style="font-size: 11px;" *ngIf="getStepDescription(step, i)">
+              {{ getStepDescription(step, i) }}
+            </div>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </div>
+</div>

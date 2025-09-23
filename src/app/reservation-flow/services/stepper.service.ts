@@ -20,8 +20,8 @@ export interface CartItemProgress {
   providedIn: 'root'
 })
 export class StepperService {
-  private cartItemProgress: Map<string | number, CartItemProgress> = new Map();
-  private completedSteps: Map<string | number, Set<number>> = new Map();
+  private cartItemProgress: Map<string | number, CartItemProgress> = new Map<string | number, CartItemProgress>();
+  private completedSteps: Map<string | number, Set<number>> = new Map<string | number, Set<number>>();
   private currentCartItemId: string | number | null = null;
   private isTransitioning = false;
 

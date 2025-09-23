@@ -67,6 +67,7 @@ export class CartService {
       const stored = sessionStorage.getItem(this.CART_STORAGE_KEY); // Changed to sessionStorage
       return stored ? JSON.parse(stored) : [];
     } catch (error) {
+      console.log(error);
       return [];
     }
   }

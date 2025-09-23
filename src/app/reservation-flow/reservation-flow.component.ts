@@ -116,6 +116,7 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
         { value: 'entry3', text: 'South Access Point', displayName: 'South Access Point' }
       ];
     } catch (error) {
+      console.log(error);
       this.accessPointsSelectionList = [];
     }
   }
@@ -223,7 +224,9 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
   }
 
   onStepValidated(isValid: boolean): void {
-    this.changeDetectorRef.detectChanges();
+    if(isValid) {
+      this.changeDetectorRef.detectChanges();
+    }
   }
 
   processPayment(): void {

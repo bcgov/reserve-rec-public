@@ -44,7 +44,7 @@ export class ProgressIndicatorComponent {
     );
   }
 
-  getStepClasses(step: StepConfig, index: number): string {
+  getStepClasses(step: StepConfig): string {
     return step.isActive ? 'bg-white border border-2 border-primary' : 'bg-light';
   }
 

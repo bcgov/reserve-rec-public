@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 import { UserGuard } from './guards/user.guard';
 import { UserResolver } from './resolvers/user.resolver';
 import { CheckoutGuard } from './guards/checkout.guard';
-import { BookingResolver } from './resolvers/booking.resolver';
 
 export const routes: Routes = [
   { path: '', loadComponent: () => import('./home/home.component').then(mod => mod.HomeComponent) },

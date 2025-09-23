@@ -61,7 +61,7 @@ export class PaymentStep5Component implements OnInit {
       this.stepCompleted.emit(true);
       
     } catch (error) {
-
+      console.log(error);
     } finally {
       this.isProcessingPayment = false;
     }

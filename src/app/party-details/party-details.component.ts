@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
 })
 export class PartyDetailsComponent implements AfterViewInit {
   @Input() occupantsForm;
-  @Input() inlineLayout: boolean = false;
+  @Input() inlineLayout = false;
   @Output() occupantsFormChange: EventEmitter<UntypedFormGroup> = new EventEmitter<UntypedFormGroup>();
 
   constructor(

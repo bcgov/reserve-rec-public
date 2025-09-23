@@ -97,7 +97,7 @@
             [class.active]="step.isActive"
             [class.text-primary]="step.isActive"
             [class.disabled]="isPaymentStep(i) && !canAccessPayment()"
-            [class]="getStepClasses(step, i)"
+            [class]="getStepClasses(step)"
             (click)="onStepClick(i)"
             [disabled]="isPaymentStep(i) && !canAccessPayment()"
           >

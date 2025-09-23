@@ -23,6 +23,7 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
   public _dataSignal: Signal<any[]> = signal([]);
   public _geozoneSignal: WritableSignal<any> = signal(null);
   public acCollectionId;
+  public collectionId;
   public activityType;
   public activityId;
   public data = null;
@@ -57,11 +58,11 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
 
   ngOnInit(): void {
     const params = this.route.snapshot.paramMap;
-    this.acCollectionId = params.get('acCollectionId');
+    this.collectionId = params.get('collectionId');
     this.activityType = params.get('activityType');
     this.activityId = params.get('identifier');
 
-    this.activityService.getActivity(this.acCollectionId, this.activityType, this.activityId, true);
+    this.activityService.getActivity(this.collectionId, this.activityType, this.activityId, true);
   }
 
   navBack() {
@@ -78,6 +79,7 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
     }
     return false;
   }
+
 
  submit(): void {
     if (!this.form?.valid) return;
@@ -108,6 +110,7 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
     
     this.cartService.addToCart(cartItem);
     }
+
 
   getStartDate() {
     return this.form.get('dateRange')?.value ? this.form.get('dateRange')?.value[0] : null;

@@ -185,7 +185,7 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
   
 }
 
-  onStepCompleted(completed: boolean): void {
+onStepCompleted(completed: boolean): void {
   if (!completed) return;
   
   const currentStep = this.stepperService.currentStepIndex();
@@ -197,16 +197,16 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
   this.checkAllStepsCompleted();
 
 
-  if (currentStep === 3) {
-    if (this.isLastCartItem) {
-      this.stepperService.goNext();
-    } else {
-      this.moveToNextCartItem();
-    }
-  this.changeDetectorRef.detectChanges();
+    if (currentStep === 3) {
+      if (this.isLastCartItem) {
+        this.stepperService.goNext();
+      } else {
+        this.moveToNextCartItem();
+      }
+    this.changeDetectorRef.detectChanges();
+  }
 }
-
-  private saveCurrentItemData(): void {
+private saveCurrentItemData(): void {
     const itemData = {
       cartItemIndex: this.currentCartItemIndex,
       cartItem: this.cartItem,

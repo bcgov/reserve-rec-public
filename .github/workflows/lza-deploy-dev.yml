@@ -1,6 +1,6 @@
-name: Deploy Reserve Rec Public Dev
+name: LZA Deploy Reserve Rec Public Dev
 
-run-name: Deploying ${{ github.ref_name }} to dev
+run-name: Deploying ${{ github.ref_name }} to lzadev
 
 on:
   push:
@@ -12,13 +12,22 @@ permissions:
   contents: read
 
 concurrency:
-  group: deploy-reserve-rec-public
+  group: lza-deploy-reserve-rec-public
   cancel-in-progress: false
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  STACK_NAME: ${{ vars.STACK_NAME }}
+  API_STAGE: ${{ vars.API_STAGE }}
+  ENVIRONMENT: ${{ vars.ENVIRONMENT }}
+  S3_BUCKET_PUBLIC: ${{ vars.S3_BUCKET_PUBLIC }}
+  CDK_DEFAULT_ACCOUNT: ${{ vars.CDK_DEFAULT_ACCOUNT }}
+  CDK_DEFAULT_REGION: ${{ vars.CDK_DEFAULT_REGION }}
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: dev
+    environment: lzadev
     strategy:
       max-parallel: 1
       matrix:
@@ -47,16 +56,9 @@ jobs:
 
       ## CDK Deploy
       - name: CDK Deploy
-        env:
-          # Variables
-          PUBLIC_STACK_NAME: ${{ vars.PUBLIC_STACK_NAME }}
-          API_STAGE: ${{ vars.API_STAGE }}
-          ENVIRONMENT: ${{ vars.ENVIRONMENT }}
-          S3_BUCKET_PUBLIC: ${{ vars.S3_BUCKET_PUBLIC }}
-
         run: |
-          echo "Deploying $PUBLIC_STACK_NAME"
-          cdk deploy $PUBLIC_STACK_NAME --require-approval never --rollback
+          echo "Deploying $STACK_NAME"
+          cdk deploy $STACK_NAME --require-approval never --rollback
 
       ### Install if no cache exists ###
       - name: Setup node

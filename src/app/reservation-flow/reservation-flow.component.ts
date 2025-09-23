@@ -82,6 +82,7 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
     this.initializeForCurrentItem();
   }
 
+
   private loadCartItems(): void {
     // Load all the items from the cart service
     this.cartItems = this.cartService.items();
@@ -123,6 +124,7 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
 
   private initializeFromCart(cartItem: CartItem): void {
     // Create form from cart data
+
     this.form = new UntypedFormGroup({
       entryPoint: new UntypedFormControl(null),
       exitPoint: new UntypedFormControl(null),
@@ -174,6 +176,7 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
                           item.step3Completed && 
                           item.step4Completed;
 
+
   this.cartService.updateCartItem(item.id, {
     ...item,
     areAllStepsCompleted: allStepsCompleted
@@ -193,16 +196,13 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
   
   this.checkAllStepsCompleted();
 
+
   if (currentStep === 3) {
     if (this.isLastCartItem) {
       this.stepperService.goNext();
     } else {
       this.moveToNextCartItem();
     }
-  } else {
-    this.stepperService.goNext();
-  }
-  
   this.changeDetectorRef.detectChanges();
 }
 

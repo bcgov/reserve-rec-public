@@ -1,0 +1,86 @@
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-10 col-12">
+      <h2 class="text-dark fw-bold mb-3">{{ cartItem?.geoZoneName || 'Unknown Park' }}</h2>
+      <h5 class="text-muted mb-3">{{ cartItem?.activityName || 'Unknown Activity' }}</h5>
+      <hr class="border-2 mb-4">
+
+      <div class="step-container">
+        <h3 class="step-title">Equipment & Vehicle Information</h3>
+        <p class="step-description">Please provide your vehicle information for this reservation.</p>
+
+        <!-- Vehicle Information Form -->
+        <div class="vehicle-info-section">
+          <div class="row">
+            <div class="col-md-6">
+              <ngds-text-input
+                label="License Plate Number"
+                [control]="form?.get('equipmentInfo')?.get('licensePlate')"
+                placeholder="Enter license plate number"
+              >
+                <div ngdsInputPrepend>
+                  <i class="fa-solid fa-car ms-3"></i>
+                </div>
+              </ngds-text-input>
+            </div>
+            <div class="col-md-6">
+              <ngds-text-input
+                label="Province/State/Country"
+                [control]="form?.get('equipmentInfo')?.get('registeredProvince')"
+                placeholder="e.g., BC, California, Ontario, etc."
+              >
+                <div ngdsInputPrepend>
+                  <i class="fa-solid fa-map-location-dot ms-3"></i>
+                </div>
+              </ngds-text-input>
+            </div>
+          </div>
+        </div>
+
+        <!-- Horizontal Divider -->
+        <hr class="border-2 my-4">
+
+        <!-- Equipment Section -->
+        <div class="equipment-section">
+          <h4>Equipment (Optional)</h4>
+          <p class="text-muted">This information helps search and rescue teams find you in an emergency.</p>
+          <div class="row">
+            <div class="col-12">
+              <div class="mb-3">
+                <label for="equipmentDetails" class="form-label">Equipment Details</label>
+                <textarea
+                  id="equipmentDetails"
+                  class="form-control"
+                  [formControl]="$any(form?.get('equipmentDetails'))"
+                  placeholder="Example: I will bring..."
+                  rows="4"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="d-flex justify-content-between border-top pt-3 mt-5">
+          <button
+            type="button"
+            class="btn btn-link mb-3 border-0 bg-transparent"
+            (click)="goToPrevious()"
+          >
+            <i class="fa fa-arrow-circle-left" aria-hidden="true"></i>
+            Previous
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary mb-3"
+            [disabled]="!isStepValid()"
+            (click)="goToNext()"
+          >
+            Next
+            <i class="fa-solid fa-chevron-right ms-2"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

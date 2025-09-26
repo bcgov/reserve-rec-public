@@ -1,0 +1,32 @@
+/* filepath: /home/cwalsh/Projects/reserve-rec-public/src/app/reservation-flow/components/progress-indicator/progress-indicator.component.scss */
+
+/* Minimal custom styles - mostly using Bootstrap */
+.nav-link {
+  border-radius: 0.375rem !important;
+  margin: 0 2px;
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover:not(.disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.nav-link.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .nav-pills {
+    flex-direction: column;
+  }
+  
+  .nav-item {
+    margin-bottom: 8px;
+  }
+  
+  .nav-link {
+    margin: 0;
+  }
+}

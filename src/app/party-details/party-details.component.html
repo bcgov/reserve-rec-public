@@ -4,12 +4,12 @@
     party.
 </p>
 <!-- Party Details Form -->
-<div class="row mb-5">
-    <div class="col-12 col-sm-6">
+<div class="row mb-5" [ngClass]="inlineLayout === true ? 'g-2' : 'g-3'">
+    <div [ngClass]="inlineLayout === true ? 'col-6 col-lg-3' : 'col-12 col-sm-6'">
         <div class="row align-items-end p-2">
             <div class="col-auto p-0 ">
                 <button
-                  class="btn btn-light border border-1"
+                  [ngClass]="inlineLayout === true ? 'btn btn-light border border-1 btn-sm' : 'btn btn-light border border-1'"
                   (click)="increment('totalAdult', -1)"
                   [disabled]="occupantsForm?.get('totalAdult')?.value <= 0"
                 >
@@ -30,7 +30,7 @@
             </div>
             <div class="col-auto p-0">
                 <button
-                  class="btn btn-light border border-1"
+                  [ngClass]="inlineLayout === true ? 'btn btn-light border border-1 btn-sm' : 'btn btn-light border border-1'"
                   (click)="increment('totalAdult', 1)"
                   [disabled]="getTotalOccupants() >= 10"
                 >
@@ -39,11 +39,11 @@
             </div>
         </div>
     </div>
-    <div class="col-12 col-sm-6">
+    <div [ngClass]="inlineLayout === true ? 'col-6 col-lg-3' : 'col-12 col-sm-6'">
         <div class="row align-items-end p-2">
             <div class="col-auto p-0 ">
                 <button
-                  class="btn btn-light border border-1"
+                  [ngClass]="inlineLayout === true ? 'btn btn-light border border-1 btn-sm' : 'btn btn-light border border-1'"
                   (click)="increment('totalSenior', -1)"
                   [disabled]="occupantsForm?.get('totalSenior')?.value <= 0"
                 >
@@ -64,7 +64,7 @@
             </div>
             <div class="col-auto p-0">
                 <button
-                  class="btn btn-light border border-1"
+                  [ngClass]="inlineLayout === true ? 'btn btn-light border border-1 btn-sm' : 'btn btn-light border border-1'"
                   (click)="increment('totalSenior', 1)"
                   [disabled]="getTotalOccupants() >= 10"
                 >
@@ -73,11 +73,11 @@
             </div>
         </div>
     </div>
-    <div class="col-12 col-sm-6">
+    <div [ngClass]="inlineLayout === true ? 'col-6 col-lg-3' : 'col-12 col-sm-6'">
         <div class="row align-items-end p-2">
             <div class="col-auto p-0 ">
                 <button
-                  class="btn btn-light border border-1"
+                  [ngClass]="inlineLayout === true ? 'btn btn-light border border-1 btn-sm' : 'btn btn-light border border-1'"
                   (click)="increment('totalYouth', -1)"
                   [disabled]="occupantsForm?.get('totalYouth')?.value <= 0"
                 >
@@ -98,7 +98,7 @@
             </div>
             <div class="col-auto p-0">
                 <button
-                  class="btn btn-light border border-1"
+                  [ngClass]="inlineLayout === true ? 'btn btn-light border border-1 btn-sm' : 'btn btn-light border border-1'"
                   (click)="increment('totalYouth', 1)"
                   [disabled]="getTotalOccupants() >= 10"
                 >
@@ -107,11 +107,11 @@
             </div>
         </div>
     </div>
-    <div class="col-12 col-sm-6">
+    <div [ngClass]="inlineLayout === true ? 'col-6 col-lg-3' : 'col-12 col-sm-6'">
         <div class="row align-items-end p-2">
             <div class="col-auto p-0 ">
                 <button
-                  class="btn btn-light border border-1"
+                  [ngClass]="inlineLayout === true ? 'btn btn-light border border-1 btn-sm' : 'btn btn-light border border-1'"
                   (click)="increment('totalChild', -1)"
                   [disabled]="occupantsForm?.get('totalChild')?.value <= 0"
                 >
@@ -132,7 +132,7 @@
             </div>
             <div class="col-auto p-0">
                 <button
-                  class="btn btn-light border border-1"
+                  [ngClass]="inlineLayout === true ? 'btn btn-light border border-1 btn-sm' : 'btn btn-light border border-1'"
                   (click)="increment('totalChild', 1)"
                   [disabled]="getTotalOccupants() >= 10"
                 >

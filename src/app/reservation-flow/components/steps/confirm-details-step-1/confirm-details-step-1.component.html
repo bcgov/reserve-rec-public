@@ -1,0 +1,142 @@
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-10 col-12">
+      
+      <!-- Left-aligned Title -->
+      <h2 class="text-dark fw-bold mb-3">{{ cartItem?.geoZoneName }}</h2> 
+      <h5 class="text-muted mb-3">{{ cartItem?.activityName }}</h5> 
+
+      <!-- Horizontal Divider -->
+      <hr class="border-2 mb-4">
+      
+      <!-- SECTION FOR ALERTS GOES HERE?!?!-->
+
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+          <div class="border rounded">
+            <div class="bg-reservation-grey text-center py-2 border-bottom">
+              <h6 class="mb-0 text-muted fw-semibold">Booking Type</h6>
+            </div>
+            <div class="bg-white p-3 text-center">
+              <span class="fw-medium">{{ cartItem?.activityType || 'Backcountry' }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Campsite -->
+        <div class="col-6 col-lg-3">
+          <div class="border rounded">
+            <div class="bg-reservation-grey text-center py-2 border-bottom">
+              <h6 class="mb-0 text-muted fw-semibold">Campsite</h6>
+            </div>
+            <div class="bg-white p-3 text-center">
+              <span class="fw-medium">First Come First Served</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Party Size -->
+        <div class="col-6 col-lg-3">
+          <div class="border rounded">
+            <div class="bg-reservation-grey text-center py-2 border-bottom">
+              <h6 class="mb-0 text-muted fw-semibold"><i class="fa-regular fa-user-group"></i> Party Size</h6>
+            </div>
+            <div class="bg-white p-3 text-center">
+              <span class="fw-medium">{{ totalOccupants }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Nights -->
+        <div class="col-6 col-lg-3">
+          <div class="border rounded">
+            <div class="bg-reservation-grey text-center py-2 border-bottom">
+              <h6 class="mb-0 text-muted fw-semibold"><i class="fa-regular fa-moon"></i> Nights</h6>
+            </div>
+            <div class="bg-white p-3 text-center">
+              <span class="fw-medium">{{ totalNights }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Arrival Row -->
+      <div class="row mb-3">
+        <div class="col-2">
+          <div class="bg-reservation-grey text-center py-3 h-100 d-flex align-items-center justify-content-center rounded-start border">
+            <h6 class="mb-0 text-muted fw-semibold">Arrival</h6>
+          </div>
+        </div>
+        <div class="col-10">
+          <div class="bg-white border border-start-0 rounded-end p-3">
+            <div class="mb-3">
+              <strong>Date:</strong> {{ cartItem?.startDate | date:'fullDate' }}
+            </div>
+            <div>
+              <ngds-picklist-input
+                [label]="'Entry point'"
+                [control]="form?.controls?.['entryPoint']"
+                [selectionListItems]="accessPointsSelectionList"
+                [loadWhile]="accessPointsSelectionList?.length === 0"
+              >
+                <div ngdsInputPrepend>
+                  <i class="fa-regular fa-location-dot"></i>
+                </div>
+              </ngds-picklist-input>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Departure Row -->
+      <div class="row mb-4">
+        <div class="col-2">
+          <div class="bg-reservation-grey text-center py-3 h-100 d-flex align-items-center justify-content-center rounded-start border">
+            <h6 class="mb-0 text-muted fw-semibold">Departure</h6>
+          </div>
+        </div>
+        <div class="col-10">
+          <div class="bg-white border border-start-0 rounded-end p-3">
+            <div class="mb-3">
+              <strong>Date:</strong> {{ cartItem?.endDate | date:'fullDate' }}
+            </div>
+            <div>
+              <ngds-picklist-input
+                [label]="'Exit point'"
+                [control]="form?.controls?.['exitPoint']"
+                [selectionListItems]="accessPointsSelectionList"
+                [loadWhile]="accessPointsSelectionList?.length === 0"
+              >
+                <div ngdsInputPrepend>
+                <i class="fa-regular fa-location-dot"></i>
+                </div>
+              </ngds-picklist-input>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+       <!-- Navigation Section -->
+      <div class="d-flex justify-content-between border-top pt-3">
+        <button 
+          type="button" 
+          class="btn btn-link mb-3 border-0 bg-transparent"
+          (click)="goToCart()"
+        >
+          <i class="fa fa-arrow-circle-left" aria-hidden="true"></i>
+          Back to Cart
+        </button>
+        
+        <button 
+          type="button" 
+          class="btn btn-primary mb-3 border-0"
+          (click)="goToNext()"
+        >
+          Acknowledge and continue
+          <i class="fa-solid fa-chevron-right ms-2"></i>
+        </button>
+      </div>
+      
+    </div>
+  </div>
+</div>

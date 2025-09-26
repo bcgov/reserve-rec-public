@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 import { UserGuard } from './guards/user.guard';
 import { UserResolver } from './resolvers/user.resolver';
 import { CheckoutGuard } from './guards/checkout.guard';
-import { BookingResolver } from './resolvers/booking.resolver';
 
 export const routes: Routes = [
   { path: '', loadComponent: () => import('./home/home.component').then(mod => mod.HomeComponent) },
@@ -19,5 +18,6 @@ export const routes: Routes = [
 },
   { path: 'checkout', loadComponent: () => import('./reservation-flow/reservation-flow.component').then(mod => mod.ReservationFlowComponent), canActivate: [CheckoutGuard] },
   { path: 'transaction-status', loadComponent: () => import('./transaction-status/transaction-status.component').then(mod => mod.TransactionStatusComponent)},
-  { path: 'booking-confirmation/:bookingId', loadComponent: () => import('./reservation-flow/booking-confirmation/booking-confirmation.component').then(mod => mod.BookingConfirmationComponent),  resolve: {user: UserResolver, booking: BookingResolver} },
+  { path: 'cart', loadComponent: () => import('./cart/cart.component').then(mod => mod.CartComponent) },
+  { path: 'reservation-flow', loadComponent: () => import('./reservation-flow/reservation-flow.component').then(mod => mod.ReservationFlowComponent), canActivate: [CheckoutGuard] },
 ];

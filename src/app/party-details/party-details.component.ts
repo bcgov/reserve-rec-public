@@ -1,15 +1,17 @@
 import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, Output } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-party-details',
-  imports: [NgdsFormsModule],
+  imports: [NgdsFormsModule, CommonModule],
   templateUrl: './party-details.component.html',
   styleUrl: './party-details.component.scss'
 })
 export class PartyDetailsComponent implements AfterViewInit {
   @Input() occupantsForm;
+  @Input() inlineLayout = false;
   @Output() occupantsFormChange: EventEmitter<UntypedFormGroup> = new EventEmitter<UntypedFormGroup>();
 
   constructor(

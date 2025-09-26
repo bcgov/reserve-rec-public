@@ -1,0 +1,22 @@
+.card {
+  transition: all 0.2s ease-in-out;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+}
+
+.btn-outline-danger {
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+.bg-reservation-grey{
+  background-color:#c7c7c7;
+}
+
+.bg-grey {
+  background-color: #f2f2f2;
+}

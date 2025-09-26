@@ -1,0 +1,55 @@
+.step-container {
+  padding: 20px 0;
+}
+
+.facility-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.facility-name {
+  color: #2e8b57;
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.facility-divider {
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, #2e8b57, #20b2aa);
+  margin: 0 auto;
+  border-radius: 2px;
+}
+
+.step-title {
+  color: #007bff;
+  margin-bottom: 10px;
+}
+
+.step-description {
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.step-navigation {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.bg-light-blue {
+  background-color: #e3f2fd;
+  border-radius: 4px;
+  padding: 8px;
+  min-width: 40px;
+}
+
+.bg-grey {
+  background-color: #f8f9fa;
+}
+
+.bg-reservation-grey{
+  background-color:#c7c7c7;
+}

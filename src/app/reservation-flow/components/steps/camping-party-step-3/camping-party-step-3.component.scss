@@ -1,0 +1,63 @@
+.step-container {
+  padding: 20px 0;
+}
+
+.step-title {
+  color: #007bff;
+  margin-bottom: 10px;
+}
+
+.step-description {
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.step-navigation {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.form-check {
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #f8f9fa;
+  
+  .form-check-input {
+    margin-top: 0.25rem;
+  }
+  
+  .form-check-label {
+    cursor: pointer;
+    width: 100%;
+    
+    h5 {
+      color: #333;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+  }
+  
+  &:hover {
+    background: #e9ecef;
+    border-color: #007bff;
+  }
+}
+
+.manual-entry-form {
+  animation: fadeIn 0.3s ease-in;
+}
+
+.account-details-section {
+  animation: fadeIn 0.3s ease-in;
+}
+
+.account-icon {
+  font-size: 1.5rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

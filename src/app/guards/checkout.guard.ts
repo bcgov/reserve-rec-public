@@ -1,22 +1,25 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
-
+import { CartService } from '../services/cart.service';
 @Injectable({
   providedIn: 'root',
 })
 
 // Prevents direct access to the reserve page
 export class CheckoutGuard implements CanActivate {
-  constructor(private router: Router) { }
+  constructor(private router: Router, private cartService: CartService) { }
 
-  async canActivate(): Promise<boolean> {
-    // If direct navigation OR the first segment of the URL is not 'activity' (coming from activity select page), redirect to home
-    const firstSegment = this.router.url.split('/')[1];
-    if (this.router.url === '/' || firstSegment !== 'activity') {
-      this.router.navigate(['/']);
-      return false;
+    async canActivate(): Promise<boolean> {
+    // Allow access if cart has items
+    const hasCartItems = this.cartService.items().length > 0;
+    
+    if (hasCartItems) {
+      return true;
     }
-    return true; // Allow access to the reserve page if not directly accessed
-
+    
+    // If no cart items, redirect to home
+    console.log('No cart items found, redirecting to home');
+    this.router.navigate(['/']);
+    return false;
   }
 }

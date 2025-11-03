@@ -2,13 +2,13 @@
   "name": "reserve-rec-public",
   "version": "0.0.0",
   "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
+    "cdk": "cdk",
+    "test": "jest",
     "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test",
-    "test-ci": "ng test --watch=false",
-    "lint": "ng lint"
+    "start": "ng serve",
+    "synth:local": "cdk synth -c @context=local --all",
+    "synth:dev": "cdk synth -c @context=dev --all",
+    "deploy:dev": "cdk deploy -c @context=dev --all"
   },
   "private": true,
   "dependencies": {
@@ -22,8 +22,10 @@
     "@angular/router": "^19.2.3",
     "@aws-amplify/core": "^6.10.6",
     "@aws-amplify/ui-angular": "^5.0.25",
+    "@aws-sdk/client-secrets-manager": "^3.921.0",
+    "@aws-sdk/client-ssm": "^3.921.0",
     "@digitalspace/bcparks-bootstrap-theme": "^1.4.6",
-    "@digitalspace/ngds-forms": "^0.0.111",
+    "@digitalspace/ngds-forms": "^0.0.125",
     "@maplibre/ngx-maplibre-gl": "^19.0.0",
     "@popperjs/core": "^2.11.8",
     "@types/bootstrap": "^5.2.10",
@@ -41,6 +43,7 @@
     "ngx-toastr": "^19.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
+    "winston": "^3.18.3",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {

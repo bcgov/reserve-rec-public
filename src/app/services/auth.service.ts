@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { Amplify } from "aws-amplify";
 import { ConfigService } from './config.service';
 import { Hub } from 'aws-amplify/utils';
-import { fetchAuthSession, signOut, signInWithRedirect, fetchUserAttributes} from 'aws-amplify/auth';
+import { fetchAuthSession, signOut, signInWithRedirect, fetchUserAttributes } from 'aws-amplify/auth';
 import { LoggerService } from './logger.service';
 import { Router } from '@angular/router';
 
@@ -12,28 +12,35 @@ import { Router } from '@angular/router';
 export class AuthService {
   public user = signal<any>(null); // Observable for user updates
   public session = signal(null);
+  public redirectValues;
   jwtToken: any;
 
   constructor(private configService: ConfigService, private loggerService: LoggerService, private router: Router) { }
 
   async init() {
+    console.log('this.configService.config:', this.configService.config);
+    if (this.configService.config.ENVIRONMENT === 'local' || !this.configService.config['COGNITO_REDIRECT_URI']) {
+      this.redirectValues = 'http://localhost:4200';
+    } else {
+      this.redirectValues = this.configService.config['COGNITO_REDIRECT_URI'];
+    }
     Amplify.configure({
       Auth: {
         Cognito: {
           userPoolId: this.configService.config['PUBLIC_USER_POOL_ID'],
           userPoolClientId: this.configService.config['PUBLIC_USER_POOL_CLIENT_ID'],
           identityPoolId: this.configService.config['PUBLIC_IDENTITY_POOL_ID'],
-         loginWith:{
-             oauth: {
+          loginWith: {
+            oauth: {
               domain: this.configService.config['PUBLIC_USER_POOL_DOMAIN_URL'],
               scopes: ['openid', 'email', 'profile', 'aws.cognito.signin.user.admin'],
-              redirectSignIn: ['http://localhost:4200'],
-              redirectSignOut: ['http://localhost:4200'],
+              redirectSignIn: [this.redirectValues],
+              redirectSignOut: [this.redirectValues],
               responseType: 'code',
             }
+          },
         },
-      },
-    }
+      }
     });
 
     await this.listenToAuthEvents();
@@ -61,7 +68,7 @@ export class AuthService {
         email,
         phone_number
       });
-         
+
 
       console.log('Sign-up successful:', userId);
       return { isSignUpComplete, userId, nextStep };
@@ -73,7 +80,7 @@ export class AuthService {
 
   async federatedSignIn(): Promise<void> {
     try {
-        await signInWithRedirect();
+      await signInWithRedirect();
     } catch (error) {
       this.loggerService.error(`Error during federated sign-in: ${error}`);
       throw error;
@@ -115,15 +122,15 @@ export class AuthService {
           this.loggerService.info('Auth tokens have been refreshed.');
           break;
         }
-        case 'tokenRefresh_failure':{
+        case 'tokenRefresh_failure': {
           this.loggerService.info('Failure while refreshing auth tokens.');
           break;
         }
-        case 'signInWithRedirect':{
+        case 'signInWithRedirect': {
           this.loggerService.info('signInWithRedirect API has successfully been resolved.');
           break;
         }
-        case 'signInWithRedirect_failure':{
+        case 'signInWithRedirect_failure': {
           this.loggerService.info('Failure while trying to resolve signInWithRedirect API.');
           break;
         }
@@ -141,9 +148,9 @@ export class AuthService {
    * @throws {Error} - Throws an error if the token refresh fails.
    */
   async setRefresh(forceRefresh = false) {
-    try{
+    try {
       this.session.set(await fetchAuthSession({ forceRefresh: forceRefresh }));
-      if (this.session().tokens) {
+      if (this.session()?.tokens?.accessToken) {
         this.jwtToken = this.session().tokens.accessToken.toString();
         this.loggerService.debug(JSON.stringify(this.session(), null, 2));
         const refreshInterval = ((this.session().tokens.accessToken.payload.exp * 1000) - Date.now()) / 2;
@@ -159,14 +166,14 @@ export class AuthService {
               //This is just kicking user out to login page. TODO: Add a modal to confirm logout or stay logged in?
               if (currentTime >= refreshTokenExp) {
                 this.loggerService.info('Refresh token expired. Logging out...');
-                await this.logout(); 
-                this.router.navigate(['/login']); 
+                await this.logout();
+                this.router.navigate(['/login']);
               }
             }
           }, refreshInterval);
         }
-      } 
-    }catch (error) {
+      }
+    } catch (error) {
       console.error('Error setting refresh token:', error);
       await this.logout(); // Log out on error
       this.router.navigate(['/login']); // Redirect to login
@@ -176,12 +183,12 @@ export class AuthService {
   //Use this to ensure signal gets cleared
   async logout() {
     await signOut();
-    this.updateUser(null); 
+    this.updateUser(null);
     this.session.set(null);
     console.log('User logged out', this.user);
     this.router.navigate(['/']);
   }
-  
+
   updateUser(user: any) {
     this.user.set(user); // update the signal anytime user changes
   }
@@ -189,10 +196,10 @@ export class AuthService {
   //Just use to confirm is user is logged
   getCurrentUser() {
     try {
-      return this.user() || null; 
+      return this.user() || null;
     } catch (error) {
       this.loggerService.error(`Error fetching current user: ${error}`);
-      return null; 
+      return null;
     }
   }
 

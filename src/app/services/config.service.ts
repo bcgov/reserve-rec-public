@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
@@ -25,7 +25,7 @@ export class ConfigService {
     // Initially set the configuration and see if we should be contacting our hostname endpoint for
     // any configuration data.
     this.configuration = window['__env'];
-    this.build = this.configuration['GH_HASH'];
+    this.build = this.configuration['GH_HASH'] || 'local';
 
     if (this.configuration['configEndpoint'] === true) {
       try {
@@ -66,7 +66,17 @@ export class ConfigService {
     while (true) {
       try {
         // Add blank Auth header to prevent 401
-        return (await firstValueFrom(this.httpClient.get<any>(`/api/config`)))['data'];
+        const headers = new HttpHeaders().set('Authorization', 'config');
+        let url = '/api/config?config=public';
+        if (this.configuration['CONFIG_URL']) {
+          url = this.configuration['CONFIG_URL'] + '/api/config?config=public';
+        }
+        return await firstValueFrom(this.httpClient.get<any>(url, {
+          headers: headers,
+          observe: 'response'
+        })).then(response => {
+          return response.body['data'];
+        });
       } catch (err) {
         console.log(err);
         const delay = n1 + n2;

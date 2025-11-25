@@ -16,6 +16,7 @@ import { LoadingService } from '../services/loading.service';
   styleUrls: ['./my-bookings.component.scss']
 })
 export class MyBookingsComponent implements OnInit {
+
   public currentBookings: any[] = [];
   public upcomingBookings: any[] = [];
   public pastBookings: any[] = [];
@@ -43,7 +44,7 @@ export class MyBookingsComponent implements OnInit {
     this.clearBookings();
     this.dataService.clearItemValue(Constants.dataIds.MY_BOOKINGS_RESULT);
 
-    this.user = this.route.snapshot.data['user'];
+    this.user = this.route.snapshot.data['user'] || {};
     console.log('the user: ', this.user)
     this.bookingService.getBookings(this.user.sub);
   }
@@ -118,10 +119,19 @@ export class MyBookingsComponent implements OnInit {
     this.upcomingBookings = [];
     this.currentBookings = [];
 
-    this.data = this.dataService.watchItem(Constants.dataIds.MY_BOOKINGS_RESULT)();
-    console.log("booking data: ", this.data)
+    const result = this.dataService.watchItem(Constants.dataIds.MY_BOOKINGS_RESULT)();
+    
+    // Extract the items array from the result object
+    if (result && result.items && Array.isArray(result.items)) {
+      this.data = result.items;
+    } else if (Array.isArray(result)) {
+      this.data = result;
+    } else {
+      this.data = [];
+      return;
+    }
 
-    this.data?.forEach(item => {
+    this.data.forEach(item => {
       const rangeStart = DateTime.fromISO(item.startDate);
       const rangeEnd = DateTime.fromISO(item.endDate);
 
@@ -129,18 +139,19 @@ export class MyBookingsComponent implements OnInit {
       const isUpcoming = this.today <= rangeStart && this.today <= rangeEnd;
 
       const booking = {
-        bookingId: item.bookingId,
-        bookingNumber: item.bookingHash,
+        bookingId: item.bookingId || item.globalId,
+        bookingNumber: item.clientTransactionId || item.bookingHash,
         endDate: this.formatDate(item.endDate),
         entryPoint: item.entryPoint,
-        mapObj: this.formatMapCoords(item),
         nights: this.formatNights(item.startDate, item.endDate),
-        parkName: item.parkName,
-        partyTotal: this.formatParty(item.partyInformation),
+        parkName: item.displayName || item.parkName,
+        // partyTotal: this.formatParty(item.partyInformation),
         startDate: this.formatDate(item.startDate),
       };
 
-      if (isActive) {
+      if (item.bookingStatus === 'cancelled') {
+        this.cancelledBookings.push(booking);
+      } else if (isActive) {
         this.currentBookings.push(booking);
       } else if (isUpcoming) {
         this.upcomingBookings.push(booking);

@@ -20,7 +20,7 @@ export class BookingService {
 
   async getBookings(userSub: string) {
     const queryParams = {
-      user: userSub
+      userId: userSub
     };
 
     try {

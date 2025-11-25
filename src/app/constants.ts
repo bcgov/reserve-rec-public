@@ -9,6 +9,7 @@ export class Constants {
     ACTIVITY_ACCESS_POINTS: 'activityAccessPoints',
     CREATE_BOOKING_RESULT: 'createBookingResult',
     BOOKING_DETAILS_RESULT: 'bookingDetailsResult',
+    BOOKING_DETAILS_POST_RESULT: 'bookingDetailsPostResult',
     TRANSACTION_POST_RESULTS: 'transactionPostResults',
     TRANSACTION_STATUS_RESULTS: 'transactionStatusResults'
   };

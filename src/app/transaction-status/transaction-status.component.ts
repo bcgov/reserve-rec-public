@@ -39,7 +39,11 @@ export class TransactionStatusComponent {
 
       // If transaction comes back as paid and the booking is complete, continue
       if (response?.trnApproved == 1) {
-        this.router.navigate(['/booking-confirmation', response?.ref1]);
+        // Pass all query params to booking confirmation
+        const queryParams = this.route.snapshot.queryParams;
+        this.router.navigate(['/booking-confirmation', response?.ref1], { 
+          queryParams: queryParams 
+        });
       } else {
         // TODO: if fails, redirect to checkout with sessionIds
         console.log('Redirecting to home...');

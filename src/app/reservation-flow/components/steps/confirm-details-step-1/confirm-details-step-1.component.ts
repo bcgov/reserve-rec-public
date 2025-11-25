@@ -22,7 +22,7 @@ export class ConfirmDetailsStep1Component implements OnInit, OnChanges, OnDestro
   @Output() stepCompleted = new EventEmitter<boolean>();
   @Output() stepValidated = new EventEmitter<boolean>();
   
-  accessPointsSelectionList: any[] = [];
+  public accessPointsSelectionList: any[] = [];
   private formSubscription: Subscription | null = null;
   
   constructor(private router: Router, private stepperService: StepperService) {}
@@ -66,12 +66,12 @@ export class ConfirmDetailsStep1Component implements OnInit, OnChanges, OnDestro
   private loadAccessPoints(): void {
     // Mock access points - replace with actual service call
     this.accessPointsSelectionList = [
-      { value: 'entry1', text: 'Main Trailhead' },
-      { value: 'entry2', text: 'North Access Point' },
-      { value: 'entry3', text: 'South Access Point' }
+      { pk: 'facility::bcparks_9398', sk: 'accessPoint::1', value: 'Main Trailhead' },
+      { pk: 'facility::bcparks_9398', sk: 'accessPoint::2', value: 'North Access Point' },
+      { pk: 'facility::bcparks_9398', sk: 'accessPoint::3', value: 'South Access Point' }
     ];
   }
-  
+
   get totalOccupants(): number {
     if (!this.cartItem?.occupants) return 0;
     const { totalAdult = 0, totalSenior = 0, totalYouth = 0, totalChild = 0 } = this.cartItem.occupants;

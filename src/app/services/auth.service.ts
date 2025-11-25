@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { Amplify } from "aws-amplify";
 import { ConfigService } from './config.service';
 import { Hub } from 'aws-amplify/utils';
-import { fetchAuthSession, signOut, signInWithRedirect, fetchUserAttributes} from 'aws-amplify/auth';
+import { fetchAuthSession, signOut, signInWithRedirect, fetchUserAttributes, signUp as amplifySignUp } from 'aws-amplify/auth';
 import { LoggerService } from './logger.service';
 import { Router } from '@angular/router';
 
@@ -55,11 +55,15 @@ export class AuthService {
     phone_number: string;
   }) {
     try {
-      const { isSignUpComplete, userId, nextStep } = await this.signUp({
+      const { isSignUpComplete, userId, nextStep } = await amplifySignUp({
         username,
         password,
-        email,
-        phone_number
+        options: {
+          userAttributes: {
+            email,
+            phone_number
+          }
+        }
       });
          
 
@@ -100,7 +104,7 @@ export class AuthService {
           this.updateUser(userAttributes); // Set the resolved user attributes
           this.loggerService.info('User has signed in successfully.');
           const session = await fetchAuthSession();
-          this.jwtToken = session.credentials.sessionToken;
+          this.jwtToken = session.tokens?.accessToken?.toString();
           await this.setRefresh();
           this.router.navigate(['/']);
           break;
@@ -200,10 +204,11 @@ export class AuthService {
     try {
       this.updateUser(await fetchUserAttributes()); //Fetch the attributes - Has all of the current user data plus the additional attributes
       this.session.set(await fetchAuthSession());
-      this.jwtToken = this.session()?.credentials?.sessionToken;
+      // Use accessToken for API calls, not sessionToken
+      this.jwtToken = this.session()?.tokens?.accessToken?.toString();
     } catch (error) {
       console.log('User is not signed in:', error);
-      this.logout();
+      // this.logout();
     }
   }
 }

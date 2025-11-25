@@ -83,14 +83,20 @@ export class ApiService implements OnDestroy {
   get(pk, queryParamsObject = null as any) {
     if (this.networkStatus) {
       const queryString = this.generateQueryString(queryParamsObject);
+      
+      // Create a new headers object for this request
+      let requestHeaders = this.headers;
+      
       // If logged in, add the JWT token to the headers.
       if (this.authService.jwtToken) {
-        this.headers = this.headers.append('Authorization', `Bearer ${this.authService.jwtToken}`);
+        requestHeaders = requestHeaders.append('Authorization', `Bearer ${this.authService.jwtToken}`);
       } else {
-        this.headers = this.headers.append('Authorization', `guest`);
-        console.log('calling as guest');
+        requestHeaders = requestHeaders.append('Authorization', `guest`);
       }
-      return this.http.get(`${this.apiPath}/${pk}?${queryString}`, { headers: this.headers, observe: 'response' })
+      
+      const url = `${this.apiPath}/${pk}?${queryString}`;
+      
+      return this.http.get(url, { headers: requestHeaders, observe: 'response' })
         .pipe(
           map(response => response?.body),
           catchError(this.errorHandler)
@@ -103,14 +109,19 @@ export class ApiService implements OnDestroy {
   put(pk, obj, queryParamsObject = null as any) {
     if (this.networkStatus) {
       const queryString = this.generateQueryString(queryParamsObject);
+      
+      // Create a new headers object for this request
+      let requestHeaders = this.headers;
+      
       // If logged in, append the JWT token to the headers.
       if (this.authService.jwtToken) {
-        this.headers = this.headers.append('Authorization', `Bearer ${this.authService.jwtToken}`);
+        requestHeaders = requestHeaders.append('Authorization', `Bearer ${this.authService.jwtToken}`);
       } else {
-        this.headers = this.headers.append('Authorization', `guest`);
+        requestHeaders = requestHeaders.append('Authorization', `guest`);
         console.log('calling as guest');
       }
-      return this.http.put<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: this.headers, observe: 'response' })
+      
+      return this.http.put<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: requestHeaders, observe: 'response' })
         .pipe(
           map(response => response?.body),
           catchError(this.errorHandler));
@@ -122,15 +133,19 @@ export class ApiService implements OnDestroy {
   post(pk, obj, queryParamsObject = null as any) {
     if (this.networkStatus) {
       const queryString = this.generateQueryString(queryParamsObject);
+      
+      // Create a new headers object for this request
+      let requestHeaders = this.headers;
+      
       // If logged in, append the JWT token to the headers.
       if (this.authService.jwtToken) {
-        this.headers = this.headers.append('Authorization', `Bearer ${this.authService.jwtToken}`);
+        requestHeaders = requestHeaders.append('Authorization', `Bearer ${this.authService.jwtToken}`);
       } else {
-        this.headers = this.headers.append('Authorization', `guest`);
-        console.log('calling as guest');
+        requestHeaders = requestHeaders.append('Authorization', `guest`);
       }
+      
       return this.http
-        .post<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: this.headers, observe: 'response' })
+        .post<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: requestHeaders, observe: 'response' })
         .pipe(
           map(response => response?.body),
           catchError(this.errorHandler)
@@ -143,8 +158,19 @@ export class ApiService implements OnDestroy {
   delete(pk, queryParamsObject = null as any) {
     if (this.networkStatus) {
       const queryString = this.generateQueryString(queryParamsObject);
+      
+      // Create a new headers object for this request
+      let requestHeaders = this.headers;
+      
+      // If logged in, add the JWT token to the headers.
+      if (this.authService.jwtToken) {
+        requestHeaders = requestHeaders.append('Authorization', `Bearer ${this.authService.jwtToken}`);
+      } else {
+        requestHeaders = requestHeaders.append('Authorization', `guest`);
+      }
+      
       return this.http
-        .delete<any>(`${this.apiPath}/${pk}?${queryString}`, { headers: this.headers })
+        .delete<any>(`${this.apiPath}/${pk}?${queryString}`, { headers: requestHeaders })
         .pipe(catchError(this.errorHandler));
     } else {
       throw 'Network Offline';

@@ -3,8 +3,6 @@ name: LZA Deploy Reserve Rec Public Dev
 run-name: Deploying ${{ github.ref_name }} to lzadev
 
 on:
-  push:
-    branches: [main, cdk]
   workflow_dispatch:
 
 permissions:

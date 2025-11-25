@@ -50,7 +50,10 @@ export class ApiService implements OnDestroy {
       this.apiPath = window.location.origin + '/api';
     }
 
-    this.headers = this.initHeaders();
+    this.headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+    });
+
     if (!this.headers) {
       console.log('No API key provided.');
     }
@@ -59,8 +62,13 @@ export class ApiService implements OnDestroy {
     this.checkNetworkStatus();
   }
 
-  initHeaders() {
-    return new HttpHeaders().set('x-api-key', this.configService.config['API_KEY']);
+  updateHeaders() {
+    this.token = this.authService.jwtToken;
+    if (this.token) {
+      this.headers = this.headers.set('Authorization', `Bearer ${this.token}`);
+    } else {
+      this.headers = this.headers.set('Authorization', 'guest');
+    }
   }
 
   checkNetworkStatus() {
@@ -88,15 +96,8 @@ export class ApiService implements OnDestroy {
       let requestHeaders = this.headers;
       
       // If logged in, add the JWT token to the headers.
-      if (this.authService.jwtToken) {
-        requestHeaders = requestHeaders.append('Authorization', `Bearer ${this.authService.jwtToken}`);
-      } else {
-        requestHeaders = requestHeaders.append('Authorization', `guest`);
-      }
-      
-      const url = `${this.apiPath}/${pk}?${queryString}`;
-      
-      return this.http.get(url, { headers: requestHeaders, observe: 'response' })
+      this.updateHeaders();
+      return this.http.get(`${this.apiPath}/${pk}?${queryString}`, { headers: this.headers, observe: 'response' })
         .pipe(
           map(response => response?.body),
           catchError(this.errorHandler)
@@ -114,14 +115,8 @@ export class ApiService implements OnDestroy {
       let requestHeaders = this.headers;
       
       // If logged in, append the JWT token to the headers.
-      if (this.authService.jwtToken) {
-        requestHeaders = requestHeaders.append('Authorization', `Bearer ${this.authService.jwtToken}`);
-      } else {
-        requestHeaders = requestHeaders.append('Authorization', `guest`);
-        console.log('calling as guest');
-      }
-      
-      return this.http.put<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: requestHeaders, observe: 'response' })
+      this.updateHeaders();
+      return this.http.put<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: this.headers, observe: 'response' })
         .pipe(
           map(response => response?.body),
           catchError(this.errorHandler));
@@ -138,12 +133,7 @@ export class ApiService implements OnDestroy {
       let requestHeaders = this.headers;
       
       // If logged in, append the JWT token to the headers.
-      if (this.authService.jwtToken) {
-        requestHeaders = requestHeaders.append('Authorization', `Bearer ${this.authService.jwtToken}`);
-      } else {
-        requestHeaders = requestHeaders.append('Authorization', `guest`);
-      }
-      
+      this.updateHeaders();
       return this.http
         .post<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: requestHeaders, observe: 'response' })
         .pipe(
@@ -158,17 +148,7 @@ export class ApiService implements OnDestroy {
   delete(pk, queryParamsObject = null as any) {
     if (this.networkStatus) {
       const queryString = this.generateQueryString(queryParamsObject);
-      
-      // Create a new headers object for this request
-      let requestHeaders = this.headers;
-      
-      // If logged in, add the JWT token to the headers.
-      if (this.authService.jwtToken) {
-        requestHeaders = requestHeaders.append('Authorization', `Bearer ${this.authService.jwtToken}`);
-      } else {
-        requestHeaders = requestHeaders.append('Authorization', `guest`);
-      }
-      
+      this.updateHeaders();
       return this.http
         .delete<any>(`${this.apiPath}/${pk}?${queryString}`, { headers: requestHeaders })
         .pipe(catchError(this.errorHandler));

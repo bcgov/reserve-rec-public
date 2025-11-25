@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts bin/reserve-rec-public.js",
+  "app": "node bin/app.js",
   "watch": {
     "include": [
       "**"
@@ -82,6 +82,30 @@
     "@aws-cdk/aws-route53-targets:userPoolDomainNameMethodWithoutCustomResource": true,
     "@aws-cdk/aws-elasticloadbalancingV2:albDualstackWithoutPublicIpv4SecurityGroupRulesDefault": true,
     "@aws-cdk/aws-iam:oidcRejectUnauthorizedConnections": true,
-    "@aws-cdk/core:enableAdditionalMetadataCollection": true
+    "@aws-cdk/core:enableAdditionalMetadataCollection": true,
+    "dev": {
+      "DEPLOYMENT_NAME": "dev",
+      "AWS_REGION": "ca-central-1",
+      "IS_OFFLINE": "false",
+      "FAIL_FAST": "false"
+    },
+    "test": {
+      "DEPLOYMENT_NAME": "test",
+      "AWS_REGION": "ca-central-1",
+      "IS_OFFLINE": "false",
+      "FAIL_FAST": "false"
+    },
+    "prod": {
+      "DEPLOYMENT_NAME": "prod",
+      "AWS_REGION": "ca-central-1",
+      "IS_OFFLINE": "false",
+      "FAIL_FAST": "false"
+    },
+    "local": {
+      "DEPLOYMENT_NAME": "local",
+      "AWS_REGION": "local",
+      "IS_OFFLINE": "true",
+      "FAIL_FAST": "true"
+    }
   }
 }

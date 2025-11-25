@@ -73,18 +73,18 @@ export class SearchResultsComponent implements OnInit {
       return;
     }
     const result = {};
-    
+
     // Initialize all categories with empty arrays
     for (const category of this.categories) {
       result[category.id] = [];
     }
-    
+
     this.data.forEach(item => {
       // Ensure _source exists before accessing it
       if (!item._source) {
         return;
       }
-      
+
       switch(item._source?.schema) {
         case 'protectedArea':
           item._source.navigation = `/protected-area/${item._source.orcs}`;
@@ -100,7 +100,7 @@ export class SearchResultsComponent implements OnInit {
           break;
       }
     });
-    
+
     for (const category of this.categories) {
       result[category.id] = this.data.filter(item => item._source?.schema === category.schema);
     }

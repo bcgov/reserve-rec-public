@@ -64,7 +64,7 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
     basePrice: 0,
     equipmentTotal: 0,
     taxes: 0,
-    totalPrice: 0
+    total: 0
   };
 
   constructor(
@@ -112,9 +112,9 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
      
       // Mock data for now
       this.accessPointsSelectionList = [
-        { value: 'entry1', text: 'Main Trailhead', displayName: 'Main Trailhead' },
-        { value: 'entry2', text: 'North Access Point', displayName: 'North Access Point' },
-        { value: 'entry3', text: 'South Access Point', displayName: 'South Access Point' }
+        { value: { pk: 'facility::bcparks_9398', sk: 'accessPoint::1' }, text: 'Main Trailhead', displayName: 'Main Trailhead', },
+        { value: { pk: 'facility::bcparks_9398', sk: 'accessPoint::2' }, text: 'North Access Point', displayName: 'North Access Point', },
+        { value: { pk: 'facility::bcparks_9398', sk: 'accessPoint::3' }, text: 'South Access Point', displayName: 'South Access Point',  }
       ];
     } catch (error) {
       console.log(error);
@@ -159,10 +159,10 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
         checkOutDate: endDate.toISOString(),
         numberOfNights: numberOfNights,
         numberOfOccupants: totalOccupants,
-        basePrice: this.cartItem.totalPrice || 0,
+        basePrice: this.cartItem.feeInformation?.total || 0,
         equipmentTotal: 0,
         taxes: 0, 
-        totalPrice: this.cartItem.totalPrice || 0
+        total: this.cartItem.feeInformation?.total || 0
       };
     }
   }

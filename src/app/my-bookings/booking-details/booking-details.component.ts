@@ -15,6 +15,7 @@ import { AuthService } from '../../services/auth.service';
 })
 export class BookingDetailsComponent implements OnInit {
   booking: any = null;
+  transaction: any = null;
   mapObj: any = null;
   user: any = null;
   startDate = '';
@@ -36,14 +37,30 @@ constructor(
     try {
       const bookingId = this.route.snapshot.paramMap.get('id');
       const res: any = await lastValueFrom(this.apiService.get(`bookings/${bookingId}`));
+
+      // Fetch transaction details
+      const transactionId = res.data?.clientTransactionId;
+      const transactionRes: any = await lastValueFrom(this.apiService.get(`transactions/${transactionId}`));
+      this.transaction = transactionRes.data;
+
       this.booking = res.data;
+
+      // Add calculated fields to the booking object
       this.booking.nights = this.calculateNights(this.booking.startDate, this.booking.endDate);
       this.booking.totalParty = this.formatParty(this.booking.partyInformation);
-      this.mapObj = history.state.mapObj || this.formatMapCoords(this.booking); //use the mapObj from the state if available, otherwise format it from booking
+      
+      // Only create map object if we have location data
+      if (this.booking.coordinates || this.booking.location) {
+        this.mapObj = this.formatMapCoords(this.booking);
+      } else {
+        console.warn('No map data available for this booking');
+        this.mapObj = null;
+      }
+      
       this.user = this.authService.getCurrentUser();
 
-      if(this.user.sub != this.booking.user){
-        console.error('User does not match booking user');
+      if(this.user.sub != this.booking.userId){
+        console.error('User does not match booking userId');
         this.router.navigate(['/']); 
         return;
       }
@@ -54,7 +71,12 @@ constructor(
   }
 
   formatParty(partyInfo: Record<string, number>) {
-    const partyKeys = Object.keys(partyInfo)
+    if (!partyInfo || typeof partyInfo !== 'object') {
+      console.warn('Invalid partyInfo:', partyInfo);
+      return 0;
+    }
+    
+    const partyKeys = Object.keys(partyInfo);
     let totalParty = 0;
     for (const partyKey of partyKeys) {
       totalParty += partyInfo[partyKey];
@@ -62,14 +84,20 @@ constructor(
     return totalParty;
   }
 
-  formatMapCoords(item: { sk: any; entryPoint: any; coordinates: any; location: { type: any; }; }) {
+  formatMapCoords(item: any) {
+    // Only create map object if we have the necessary data
+    if (!item.coordinates && !item.location) {
+      console.warn('No coordinates or location data available for map');
+      return null;
+    }
+
     return {
-      _id: item.sk,
-      displayName: item.entryPoint,
+      _id: item.sk || item.bookingId,
+      displayName: item.entryPoint || item.displayName || 'Location',
       imageUrl: "",
-      coordinates: item.coordinates,
-      type: item.location.type,
-      location: item.location
+      coordinates: item.coordinates || null,
+      type: item.location?.type || 'point',
+      location: item.location || {}
     };
   }
 
@@ -81,4 +109,9 @@ constructor(
     return diffDays;
   }
 
+  navigate(bookingId: string): void {
+    this.router.navigate(
+      ['/account/bookings/cancel', bookingId], {}
+    );
+  }
 }

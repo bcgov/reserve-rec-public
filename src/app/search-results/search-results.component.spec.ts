@@ -2,10 +2,22 @@ import { DataService } from '../services/data.service';
 import { LoadingService } from '../services/loading.service';
 import { SearchResultsComponent } from './search-results.component';
 import { SearchService } from '../services/search.service';
+import { Component, Input, Signal } from '@angular/core';
+import { SearchMapComponent } from '../search-map/search-map.component';
 
 import { ActivatedRoute } from '@angular/router';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, BehaviorSubject } from 'rxjs';
+
+@Component({
+  selector: 'app-search-map',
+  template: '',
+  standalone: true
+})
+class MockSearchMapComponent {
+  @Input() _dataSignal: Signal<any[]>;
+  @Input() displayGeozones = false;
+}
 
 describe('SearchResultsComponent', () => {
   let component: SearchResultsComponent;
@@ -38,7 +50,12 @@ describe('SearchResultsComponent', () => {
         { provide: DataService, useValue: mockDataService },
         { provide: LoadingService, useValue: mockLoadingService }
       ]
-    }).compileComponents();
+    })
+    .overrideComponent(SearchResultsComponent, {
+      remove: { imports: [SearchMapComponent] },
+      add: { imports: [MockSearchMapComponent] }
+    })
+    .compileComponents();
 
     fixture = TestBed.createComponent(SearchResultsComponent);
     component = fixture.componentInstance;

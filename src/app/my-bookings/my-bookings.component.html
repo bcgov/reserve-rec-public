@@ -101,7 +101,20 @@
           <section *ngIf="cancelledBookings.length > 0" class="mb-5" aria-label="Cancelled bookings">
 
             <h2 id="cancelled" tabindex="-1" class="mb-4 text-primary ps-0">Cancelled</h2>
-            <div class="past-bookings mb-5"></div>
+            <div class="col-12" *ngFor="let booking of cancelledBookings">
+              <app-bookings-main-card
+                [ariaLabel]="'Booking at ' + booking.parkName + ' from ' + booking.startDate + ' to ' + booking.endDate"
+                [bookingId]="booking.bookingId"
+                [bookingNumber]="booking.bookingNumber"
+                [endDate]="booking.endDate"
+                [entryPoint]="booking.entryPoint"
+                [mapObj]="booking.mapObj"
+                [nights]="booking.nights"
+                [startDate]="booking.startDate"
+                [parkName]="booking.parkName"
+                [partyTotal]="booking.partyTotal">
+              </app-bookings-main-card>
+            </div>
           
           </section>
 

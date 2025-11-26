@@ -22,7 +22,6 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
 
   public _dataSignal: Signal<any[]> = signal([]);
   public _geozoneSignal: WritableSignal<any> = signal(null);
-  public acCollectionId;
   public collectionId;
   public activityType;
   public activityId;
@@ -89,7 +88,7 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
       geoZoneName: this.data?.geozone?.displayName,
       activityId: this.activityId || '',
       activityName: this.data?.displayName || 'Activity',
-      acCollectionId: this.acCollectionId || '',
+      collectionId: this.collectionId || '',
       activityType: this.activityType || '',              
       dateRange: this.form.get('dateRange')?.value || ['', ''],
       startDate: this.getStartDate() || '',
@@ -105,7 +104,12 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
         totalYouth: 0,
         totalChild: 0
       },
-      totalPrice: 0
+      feeInformation: {
+        registrationFees: 0,
+        transactionFees: 0,
+        tax: 0,
+        total: 0
+      },
     };
     
     this.cartService.addToCart(cartItem);

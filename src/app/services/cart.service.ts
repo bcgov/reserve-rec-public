@@ -5,7 +5,7 @@ export interface CartItem {
   geoZoneName: string;
   activityId: string;
   activityName: string;
-  acCollectionId: string;
+  collectionId: string;
   activityType: string;
   dateRange: [string, string];
   startDate: string;
@@ -16,13 +16,19 @@ export interface CartItem {
     totalYouth: number;
     totalChild: number;
   };
-  totalPrice: number;
+  feeInformation: {
+    registrationFees: number;
+    transactionFees: number;
+    tax: number;
+    total: number;
+  };
   step1Completed: boolean;
   step2Completed: boolean;
   step3Completed: boolean;
   step4Completed: boolean;
   areAllStepsCompleted: boolean;
-
+  entryPoint?: { pk: string; sk: string };
+  exitPoint?: { pk: string; sk: string };
 }
 
 @Injectable({

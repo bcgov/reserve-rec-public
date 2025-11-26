@@ -1,0 +1,155 @@
+.booking-card {
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #ffffff;
+
+  .card-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 1.5rem;
+
+    h3 {
+      color: #0d47a1;
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .text-muted {
+      font-size: 0.9rem;
+    }
+  }
+
+  .card-body {
+    padding: 2rem;
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  .btn {
+    padding: 0.625rem 1.25rem;
+  }
+}
+
+.booking-detail {
+  .detail-label {
+    display: block;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+
+    i {
+      color: #6c757d;
+    }
+  }
+
+  .detail-value {
+    font-size: 1rem;
+    color: #212529;
+
+    i {
+      color: #0d47a1;
+    }
+  }
+
+  small {
+    display: block;
+    margin-top: 0.25rem;
+  }
+}
+
+.alert {
+  border-radius: 6px;
+
+  &.alert-success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+
+    i {
+      color: #28a745;
+    }
+  }
+
+  &.alert-info {
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+    color: #0c5460;
+
+    .alert-link {
+      color: #0c5460;
+      text-decoration: underline;
+      font-weight: 600;
+    }
+  }
+}
+
+.btn-outline-primary {
+  color: #0d47a1;
+  border-color: #0d47a1;
+
+  &:hover {
+    background-color: #0d47a1;
+    border-color: #0d47a1;
+    color: #ffffff;
+  }
+}
+
+.btn-primary {
+  background-color: #0d47a1;
+  border-color: #0d47a1;
+
+  &:hover {
+    background-color: #093273;
+    border-color: #093273;
+  }
+}
+
+.btn-outline-secondary {
+  color: #6c757d;
+  border-color: #6c757d;
+
+  &:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: #ffffff;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .booking-card .card-body {
+    padding: 1.5rem;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+
+    .btn {
+      width: 100%;
+    }
+  }
+
+  .d-flex.justify-content-between {
+    flex-direction: column;
+
+    .d-flex.gap-2 {
+      width: 100%;
+      flex-direction: column;
+
+      .btn {
+        width: 100%;
+      }
+    }
+
+    .btn-outline-secondary {
+      width: 100%;
+    }
+  }
+}

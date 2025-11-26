@@ -6,6 +6,8 @@
     "test": "jest",
     "build": "ng build",
     "start": "ng serve --port 4300",
+    "lint": "ng lint",
+    "test-ci": "ng test --watch=false",
     "synth:local": "cdk synth -c @context=local --all",
     "synth:dev": "cdk synth -c @context=dev --all",
     "synth:test": "cdk synth -c @context=test --all",

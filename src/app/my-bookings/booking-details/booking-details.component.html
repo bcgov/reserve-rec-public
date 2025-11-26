@@ -21,6 +21,12 @@
     <div class="row mb-4">
       <div class="col-md-8">
         <div class="p-4" style="background-color: #f0f0f0; width: 100%;">
+          <div class="d-flex justify-content-end">
+            <span class="d-flex flex-end badge badge-pill bg-danger m-1" *ngIf="booking?.bookingStatus === 'cancelled'">Cancelled</span>
+            <span class="d-flex flex-end badge badge-pill bg-warning m-1" *ngIf="transaction?.transactionStatus === 'refund in progress'">Refund in process</span>
+            <span class="d-flex flex-end badge badge-pill bg-warning m-1" *ngIf="transaction?.transactionStatus === 'partial refund'">Partially refunded</span>
+            <span class="d-flex flex-end badge badge-pill bg-success m-1" *ngIf="transaction?.transactionStatus === 'refunded'">Refunded</span>
+          </div>
           <div class="row mt-3">
             <div class="col">
               <h5 class="display-4 fw-bold">{{ booking.parkName }}</h5>
@@ -55,7 +61,7 @@
               <span class="text-muted d-block">Departure date</span>
               <span class="d-block" *ngIf="booking.endDate">{{ booking.endDate | date: 'EEE, MMM d, y' }}</span>
               <span class="d-block" *ngIf="!booking.endDate">Not availble</span>
-            
+
             </div>
             <div class="col-3">
               <span class="text-muted d-block">Number of nights</span>
@@ -86,20 +92,12 @@
           <div class="row mt-3">
             <div class="col-12 d-flex justify-content-center">
               <div class="btn-group w-25" role="group" aria-label="Map or Photos toggle">
-                <button
-                  type="button"
-                  class="btn btn-outline-primary btn-lg w-50"
-                  [class.active]="viewMap"
-                  (click)="viewMap = true"
-                >
+                <button type="button" class="btn btn-outline-primary btn-lg w-50" [class.active]="viewMap"
+                  (click)="viewMap = true">
                   Map
                 </button>
-                <button
-                  type="button"
-                  class="btn btn-outline-primary btn-lg w-50"
-                  [class.active]="!viewMap"
-                  (click)="viewMap = false"
-                >
+                <button type="button" class="btn btn-outline-primary btn-lg w-50" [class.active]="!viewMap"
+                  (click)="viewMap = false">
                   Photos
                 </button>
               </div>
@@ -115,6 +113,14 @@
         </button>
         <button class="btn btn-outline-primary rounded-0" type="button">
           View receipt
+        </button>
+        <button 
+          class="btn btn-danger rounded-0"
+          type="button"
+          *ngIf="booking?.bookingStatus !== 'cancelled'"  
+          (click)="navigate(booking.bookingId)"
+        >
+          Cancel booking
         </button>
       </div>
     </div>

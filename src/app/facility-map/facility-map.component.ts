@@ -13,13 +13,18 @@ export class FacilityMapComponent implements AfterViewInit, OnDestroy {
   private map: Map | undefined;
 
   ngAfterViewInit() {
-    this.map = new Map({
-      container: this.mapContainer.nativeElement,
-      style: 'https://demotiles.maplibre.org/style.json',
-      center: [-123.19, 48.24],
-      zoom: 5,
-    });
+    if (!this.mapContainer?.nativeElement) return;
 
+    try {
+      this.map = new Map({
+        container: this.mapContainer.nativeElement,
+        style: 'https://demotiles.maplibre.org/style.json',
+        center: [-123.19, 48.24],
+        zoom: 5,
+      });
+    } catch (err) {
+      console.warn('Map failed to initialize', err);
+    }
   }
 
   ngOnDestroy() {

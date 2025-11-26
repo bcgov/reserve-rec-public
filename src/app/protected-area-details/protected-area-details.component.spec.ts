@@ -1,6 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Component, Input, Signal } from '@angular/core';
 
 import { ProtectedAreaDetailsComponent } from './protected-area-details.component';
+import { SearchMapComponent } from '../search-map/search-map.component';
+
+@Component({
+  selector: 'app-search-map',
+  template: '',
+  standalone: true
+})
+class MockSearchMapComponent {
+  @Input() _dataSignal: Signal<any[]>;
+  @Input() displayGeozones = false;
+}
 import { ConfigService } from '../services/config.service';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
@@ -19,6 +31,10 @@ describe('ProtectedAreaDetailsComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting()
       ]
+    })
+    .overrideComponent(ProtectedAreaDetailsComponent, {
+      remove: { imports: [SearchMapComponent] },
+      add: { imports: [MockSearchMapComponent] }
     })
     .compileComponents();
 

@@ -14,6 +14,7 @@ describe('FacilityMapComponent', () => {
 
     fixture = TestBed.createComponent(FacilityMapComponent);
     component = fixture.componentInstance;
+    spyOn(component, 'ngAfterViewInit');
     fixture.detectChanges();
   });
 

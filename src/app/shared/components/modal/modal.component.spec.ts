@@ -13,6 +13,7 @@ describe('ModalComponent', () => {
 
   const mockModalButton: modalButtonSchema = {
     text: 'text',
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     onClick: () => {},
   };
 

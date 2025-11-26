@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { NgIf, NgFor } from '@angular/common';
 

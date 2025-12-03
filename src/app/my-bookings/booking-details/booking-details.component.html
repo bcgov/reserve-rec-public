@@ -3,9 +3,15 @@
 </div>
 <div *ngIf="!loading && booking">
   <div class="container mt-5 mb-3">
-    <a routerLink="/my-bookings" class="btn btn-link p-0">
-      &lt; Back to My Bookings
-    </a>
+    @if (user.sub.startsWith('guest')) {
+      <a routerLink="/" class="btn btn-link p-0">
+        &lt; Back to home
+      </a>
+    } @else {
+      <a routerLink="/my-bookings" class="btn btn-link p-0">
+        &lt; Back to <strong>My bookings</strong>
+      </a>
+    }
   </div>
 
   <div class="container mt-5" *ngIf="booking">

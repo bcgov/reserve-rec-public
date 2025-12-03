@@ -72,4 +72,23 @@ export class BookingService {
       throw error; // Re-throw the error for further handling if needed
     }
   }
+  
+  async getBookingByGlobalIdAndEmail(globalId: string, email: string, fetchAccessPoints = false) {
+    const queryParams = {
+      email: email,
+      fetchAccessPoints: fetchAccessPoints
+    };
+    try {
+      this.dataService.clearItemValue(Constants.dataIds.BOOKING_DETAILS_RESULT);
+      this.loadingService.addToFetchList(Constants.dataIds.BOOKING_DETAILS_RESULT);
+      const res = await lastValueFrom(this.apiService.get(`bookings/${globalId}`, queryParams));
+      this.dataService.setItemValue(Constants.dataIds.BOOKING_DETAILS_RESULT, res);
+      this.loadingService.removeFromFetchList(Constants.dataIds.BOOKING_DETAILS_RESULT);
+      return res;
+    } catch (error) {
+      this.loadingService.removeFromFetchList(Constants.dataIds.BOOKING_DETAILS_RESULT);
+      this.loggerService.error(error);
+      throw error; // Re-throw the error for further handling if needed
+    }
+  }
 }

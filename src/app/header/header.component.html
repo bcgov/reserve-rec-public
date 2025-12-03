@@ -9,14 +9,16 @@
             <!-- Account Dropdown -->
             <div class="dropdown me-2">
                 <button class="btn btn-outline-light dropdown-toggle square-btn" type="button" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    {{ user ? (user.given_name + ' ' + user.family_name) : 'Login' }}
+                    {{ user && !user.sub.startsWith('guest') ? (user.given_name + ' ' + user.family_name) : 'Login' }}
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="accountDropdown">
-                    <li><a class="dropdown-item btn" routerLink="/account" *ngIf="user">Account</a></li>
-                    <li><a class="dropdown-item btn" routerLink="/account-details" *ngIf="user">Account Details</a></li>
-                    <li><a class="dropdown-item btn" routerLink="/my-bookings" *ngIf="user">My Bookings</a></li>
-                    <li><a class="dropdown-item btn-link" (click)="logout()" *ngIf="user">Log Out</a></li>
-                    <li><a class="dropdown-item btn-link" routerLink="/login" *ngIf="!user">Log In</a></li>
+                    <li><a class="dropdown-item btn" routerLink="/account" *ngIf="user && !user.sub.startsWith('guest')">Account</a></li>
+                    <li><a class="dropdown-item btn" routerLink="/account-details" *ngIf="user && !user.sub.startsWith('guest')">Account details</a></li>
+                    <li><a class="dropdown-item btn" routerLink="/my-bookings" *ngIf="user && !user.sub.startsWith('guest')">My bookings</a></li>
+                    <li><a class="dropdown-item btn-link" (click)="logout()" *ngIf="user && !user.sub.startsWith('guest')">Log out</a></li>
+                    
+                    <li><a class="dropdown-item btn-link" routerLink="/login" *ngIf="!user || user.sub.startsWith('guest')">Log In</a></li>
+                    <li><a class="dropdown-item btn" routerLink="/find-booking" *ngIf="!user || user.sub.startsWith('guest')">Find booking</a></li>
                 </ul>
             </div>
         </div>

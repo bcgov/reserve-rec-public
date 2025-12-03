@@ -85,7 +85,7 @@ export class PaymentStep5Component implements OnInit {
     
     if (bookingId && sessionId) {
       // This will redirect the user to the payment gateway
-      await this.initiateTransaction(bookingId, sessionId);
+      await this.initiateTransaction(bookingId, sessionId, this.form.get('primaryOccupant.email').value || this.user?.email || '');
     } else {
       throw new Error('Booking creation failed, no booking ID returned.');
     }
@@ -118,7 +118,7 @@ export class PaymentStep5Component implements OnInit {
         tax: this.getTaxes() || 0, // Todo - update to reflect tax calculation
         total: this.getTotalCost(),
       },
-      userId: this.user?.sub ? this.user.sub : '',
+      userId: this.user?.sub ? this.user.sub : 'guest',
       partyInformation: {
         adult: parseInt(formValue.occupants.totalAdult) || 0,
         senior: parseInt(formValue.occupants.totalSenior) || 0,
@@ -159,12 +159,11 @@ export class PaymentStep5Component implements OnInit {
   getNamedOccupantInformation() {
     const userIsOccupant = this.form.get('userIsPrimaryOccupant').value;
     const obj = {
-      firstName: userIsOccupant ? this.user?.given_name || '' : this.form.get('contactInfo.firstName').value,
-      lastName: userIsOccupant ? this.user?.family_name || '' : this.form.get('contactInfo.lastName').value,
+      firstName: userIsOccupant ? this.user?.given_name || '' : this.form.get('primaryOccupant.firstName').value,
+      lastName: userIsOccupant ? this.user?.family_name || '' : this.form.get('primaryOccupant.lastName').value,
       contactInfo: {
-        email: userIsOccupant ? this.user?.email || '' : this.form.get('contactInfo.email').value,
-        mobilePhone: userIsOccupant ? this.user?.phone_number || '' : this.form.get('contactInfo.mobilePhone').value,
-        homePhone: userIsOccupant ? this.user?.phone_number || '' : this.form.get('contactInfo.homePhone').value,
+        email: userIsOccupant ? this.user?.email || '' : this.form.get('primaryOccupant.email').value,
+        mobilePhone: userIsOccupant ? this.user?.phone_number || '' : this.form.get('primaryOccupant.phoneNumber').value,
         streetAddress: userIsOccupant ? this.user?.address?.streetAddress || '' : this.form.get('addressInfo.streetAddress').value,
         unitNumber: userIsOccupant ? this.user?.address?.unitNumber || '' : this.form.get('addressInfo.unitNumber').value,
         postalCode: userIsOccupant ? this.user?.address?.postalCode || '' : this.form.get('addressInfo.postalCode').value,
@@ -172,7 +171,8 @@ export class PaymentStep5Component implements OnInit {
         province: userIsOccupant ? this.user?.address?.province || '' : this.form.get('addressInfo.province').value,
         country: userIsOccupant ? this.user?.address?.country || '' : this.form.get('addressInfo.country').value,
       }
-    }
+    };
+
     for (const key in obj.contactInfo) {
       if (obj.contactInfo[key] === '') {
         delete obj.contactInfo[key];
@@ -215,12 +215,13 @@ export class PaymentStep5Component implements OnInit {
     return parseInt(this.form.get('occupants.totalYouth').value || 0) + parseInt(this.form.get('occupants.totalChild').value || 0);
   }
 
-  async initiateTransaction(bookingId: string, sessionId: string) {
+  async initiateTransaction(bookingId: string, sessionId: string, email: string) {
     const totalCost = this.getTotalCost();
     const body = {
       trnAmount: totalCost,
       bookingId: bookingId,
-      sessionId: sessionId
+      sessionId: sessionId,
+      email: email,
     };
 
     try {

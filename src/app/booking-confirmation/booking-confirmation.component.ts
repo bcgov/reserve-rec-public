@@ -67,19 +67,23 @@ export class BookingConfirmationComponent implements OnInit {
   }
 
   getBookingNumber(): string {
-    return this.queryParams['trnOrderNumber'] || this.booking?.clientTransactionId || 'N/A';
+    return this.booking?.bookingId || this.queryParams['ref1'] || 'N/A';
+  }
+  
+  getEmail(): string {
+    return this.booking?.data?.namedOccupant?.contactInfo?.email || this.queryParams['ref3'] || 'N/A';
   }
 
   getArrivalDate(): string {
-    return this.booking?.startDate || 'N/A';
+    return this.booking?.data?.startDate || 'N/A';
   }
 
   getDepartureDate(): string {
-    return this.booking?.endDate || 'N/A';
+    return this.booking?.data?.endDate || 'N/A';
   }
 
   getAreaName(): string {
-    return this.booking?.displayName || 'N/A';
+    return this.booking?.data?.displayName || 'N/A';
   }
 
   getCampsite(): string {
@@ -87,37 +91,37 @@ export class BookingConfirmationComponent implements OnInit {
   }
 
   getPartySize(): number {
-    if (!this.booking?.partyInformation) return 0;
-    const party = this.booking.partyInformation;
+    if (!this.booking?.data?.partyInformation) return 0;
+    const party = this.booking.data.partyInformation;
     return (party.adult || 0) + (party.senior || 0) + (party.youth || 0) + (party.child || 0);
   }
 
   getNights(): number {
-    if (!this.booking?.startDate || !this.booking?.endDate) return 0;
-    const start = new Date(this.booking.startDate);
-    const end = new Date(this.booking.endDate);
+    if (!this.booking?.data?.startDate || !this.booking?.data?.endDate) return 0;
+    const start = new Date(this.booking.data.startDate);
+    const end = new Date(this.booking.data.endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
 
   getEntryPoint(): string {
     // Try to get text from entryPoint object or just return the value
-    if (this.booking?.entryPoint) {
-      if (typeof this.booking.entryPoint === 'object') {
-        return this.booking.entryPoint.text || this.booking.entryPoint.sk || 'Not specified';
+    if (this.booking?.data?.entryPoint) {
+      if (typeof this.booking.data.entryPoint === 'object') {
+        return this.booking.data.entryPoint.text || this.booking.data.entryPoint.sk || 'Not specified';
       }
-      return this.booking.entryPoint;
+      return this.booking.data.entryPoint;
     }
     return 'Not specified';
   }
 
   getExitPoint(): string {
     // Try to get text from exitPoint object or just return the value
-    if (this.booking?.exitPoint) {
-      if (typeof this.booking.exitPoint === 'object') {
-        return this.booking.exitPoint.text || this.booking.exitPoint.sk || 'Not specified';
+    if (this.booking?.data?.exitPoint) {
+      if (typeof this.booking.data.exitPoint === 'object') {
+        return this.booking.data.exitPoint.text || this.booking.data.exitPoint.sk || 'Not specified';
       }
-      return this.booking.exitPoint;
+      return this.booking.data.exitPoint;
     }
     return 'Not specified';
   }

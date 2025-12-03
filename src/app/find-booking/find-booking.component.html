@@ -1,0 +1,59 @@
+<div class="container mt-5 px-4">
+  <div class="row mb-5">
+    <h1 class="fw-bold text-primary">Find My Booking</h1>
+  </div>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-12 col-md-6">
+        <p class="mb-4">
+          To find your booking, please enter the email address and booking reference number used when making the reservation.
+        </p>
+        
+        <form [formGroup]="form" (ngSubmit)="findBooking()">
+          <div class="mb-3">
+            <ngds-text-input
+              label="Email"
+              [control]="form?.get('email')"
+              placeholder="email@example.com"
+              type="email"
+            >
+              <div ngdsInputPrepend>
+                <i class="fa-solid fa-envelope ms-3"></i>
+              </div>
+            </ngds-text-input>
+          </div>
+
+          <div class="mb-3">
+            <ngds-text-input
+              label="Booking reference number"
+              [control]="form?.get('bookingRef')"
+              placeholder="BCPR-123-ABC"
+            >
+              <div ngdsInputPrepend>
+                <i class="fa-solid fa-hashtag ms-3"></i>
+              </div>
+            </ngds-text-input>
+          </div>
+
+          <div *ngIf="errorMessage" class="alert alert-danger mb-3" role="alert">
+            {{ errorMessage }}
+          </div>
+
+          <button 
+            type="submit" 
+            class="btn btn-primary" 
+            [disabled]="isLoading || form.invalid"
+          >
+            @if (isLoading) {
+              <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Searching...
+            } @else {
+              Find Booking
+            }
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

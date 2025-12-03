@@ -13,6 +13,7 @@ export class AuthService {
   public user = signal<any>(null); // Observable for user updates
   public session = signal(null);
   public redirectValues;
+  private readonly GUEST_SUB_KEY = 'guest_sub';
   jwtToken: any;
 
   constructor(private configService: ConfigService, private loggerService: LoggerService, private router: Router) { }
@@ -185,6 +186,7 @@ export class AuthService {
     await signOut();
     this.updateUser(null);
     this.session.set(null);
+    this.clearGuestSub(); // Clear guest session on logout
     console.log('User logged out', this.user);
     this.router.navigate(['/']);
   }
@@ -196,7 +198,29 @@ export class AuthService {
   //Just use to confirm is user is logged
   getCurrentUser() {
     try {
-      return this.user() || null;
+      if (this.user()) {
+        return this.user() || '';
+      } else {
+        // Check for guest session
+        const guestSub = this.getGuestSub();
+        return {
+            "email": "null",
+            "email_verified": "false",
+            "family_name": "guest",
+            "given_name": "guest",
+            "custom:secondaryNumber": "",
+            "custom:country": "",
+            "custom:licensePlate": "",
+            "custom:vehicleRegLocale": "",
+            "custom:pwUpdate": "",
+            "custom:streetAddress": "",
+            "custom:mobilePhone": "",
+            "custom:province": "",
+            "custom:city": "",
+            "custom:postalCode": "",
+            "sub": guestSub || "guest"
+        }
+      }
     } catch (error) {
       this.loggerService.error(`Error fetching current user: ${error}`);
       return null;
@@ -210,7 +234,34 @@ export class AuthService {
       this.jwtToken = this.session()?.credentials?.sessionToken;
     } catch (error) {
       console.log('User is not signed in:', error);
-      this.logout();
+      // Don't logout - preserve guest session if it exists
+      // Only clear authenticated user state
+      this.updateUser(null);
+      this.session.set(null);
     }
+  }
+
+  /**
+   * Store guest sub in sessionStorage for the current session
+   */
+  setGuestSub(guestSub: string) {
+    if (guestSub && guestSub.startsWith('guest-')) {
+      sessionStorage.setItem(this.GUEST_SUB_KEY, guestSub);
+      this.loggerService.info(`Guest session established: ${guestSub}`);
+    }
+  }
+
+  /**
+   * Retrieve guest sub from sessionStorage
+   */
+  getGuestSub(): string | null {
+    return sessionStorage.getItem(this.GUEST_SUB_KEY);
+  }
+
+  /**
+   * Clear guest session
+   */
+  clearGuestSub() {
+    sessionStorage.removeItem(this.GUEST_SUB_KEY);
   }
 }

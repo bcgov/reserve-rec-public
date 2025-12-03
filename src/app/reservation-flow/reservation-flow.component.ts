@@ -139,7 +139,7 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
       }),
       
       // User info (step 3 will add more fields as needed)
-      userIsPrimaryOccupant: new UntypedFormControl(this.user ? true : false, { nonNullable: true })
+      userIsPrimaryOccupant: new UntypedFormControl(this.user && !this.user.sub.startsWith('guest') ? true : false, { nonNullable: true })
     });
 
   }

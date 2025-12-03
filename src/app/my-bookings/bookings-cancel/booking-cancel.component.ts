@@ -8,6 +8,7 @@ import { AuthService } from '../../services/auth.service';
 import { ConfirmationModalComponent, ModalRowSpec } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { CancelService } from '../../services/cancel.service';
+// import { Utils } from '../../utils/utils';
 
 @Component({
   selector: 'app-booking-cancel',
@@ -48,12 +49,9 @@ constructor(
       this.booking = res.data;
       console.log('this.booking', this.booking);
       
-      const transRes: any = await lastValueFrom(this.apiService.get(`transactions/${this.booking.clientTransactionId}`));
-      console.log('transRes >>>', transRes);
-
       this.booking.nights = this.calculateNights(this.booking.startDate, this.booking.endDate);
       this.booking.totalParty = this.formatParty(this.booking.partyInformation);
-      // this.mapObj = this.formatMapCoords(this.booking);
+      // this.mapObj = Utils.formatMapCoords(this.booking);
       this.userId = this.authService.getCurrentUser();
 
       // if(this.user.sub != this.booking.user){

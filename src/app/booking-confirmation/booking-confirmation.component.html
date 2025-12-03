@@ -69,20 +69,26 @@
               <p class="detail-label">Booking number</p>
               <div class="detail-value fw-bold">{{ getBookingNumber() }}</div>
             </div>
+            
+            <!-- Email -->
+            <div class="booking-detail mb-3">
+              <p class="detail-label">Email</p>
+              <div class="detail-value fw-bold">{{ getEmail() }}</div>
+            </div>
 
             <!-- Arrival / Departure Row -->
             <div class="row g-3 mb-3">
               <div class="col-md-6">
                 <div class="booking-detail">
                   <p class="detail-label">Arrival</p>
-                  <!-- <div class="detail-value">{{ getArrivalDate() | date:'fullDate' }}</div> -->
+                  <div class="detail-value">{{ getArrivalDate() | date:'fullDate' }}</div>
                   <small class="text-muted">From 1 PM</small>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="booking-detail">
                   <p class="detail-label">Departure</p>
-                  <!-- <div class="detail-value">{{ getDepartureDate() | date:'fullDate' }}</div> -->
+                  <div class="detail-value">{{ getDepartureDate() | date:'fullDate' }}</div>
                   <small class="text-muted">Until 12 PM</small>
                 </div>
               </div>

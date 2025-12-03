@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { BookingMapComponent } from '../../booking-map/booking-map.component';
 import { AuthService } from '../../services/auth.service';
+import { Utils } from '../../utils/utils';
 
 @Component({
   selector: 'app-booking-details',
@@ -36,11 +37,17 @@ constructor(
   async ngOnInit() {
     try {
       const bookingId = this.route.snapshot.paramMap.get('id');
-      const res: any = await lastValueFrom(this.apiService.get(`bookings/${bookingId}`));
+      const email = this.route.snapshot.queryParamMap.get('email');
+      const queryParams: any = {};
+      if (email) {
+        queryParams.email = email;
+      }
+      
+      const res: any = await lastValueFrom(this.apiService.get(`bookings/${bookingId}`, queryParams));
 
       // Fetch transaction details
       const transactionId = res.data?.clientTransactionId;
-      const transactionRes: any = await lastValueFrom(this.apiService.get(`transactions/${transactionId}`));
+      const transactionRes: any = await lastValueFrom(this.apiService.get(`transactions/${transactionId}`, queryParams));
       this.transaction = transactionRes.data;
 
       this.booking = res.data;
@@ -51,7 +58,7 @@ constructor(
       
       // Only create map object if we have location data
       if (this.booking.coordinates || this.booking.location) {
-        this.mapObj = this.formatMapCoords(this.booking);
+        this.mapObj = Utils.formatMapCoords(this.booking);
       } else {
         console.warn('No map data available for this booking');
         this.mapObj = null;
@@ -59,7 +66,7 @@ constructor(
       
       this.user = this.authService.getCurrentUser();
 
-      if(this.user.sub != this.booking.userId){
+      if(this.user.sub != this.booking.userId && !this.user.sub.startsWith('guest')) {
         console.error('User does not match booking userId');
         this.router.navigate(['/']); 
         return;
@@ -82,23 +89,6 @@ constructor(
       totalParty += partyInfo[partyKey];
     }
     return totalParty;
-  }
-
-  formatMapCoords(item: any) {
-    // Only create map object if we have the necessary data
-    if (!item.coordinates && !item.location) {
-      console.warn('No coordinates or location data available for map');
-      return null;
-    }
-
-    return {
-      _id: item.sk || item.bookingId,
-      displayName: item.entryPoint || item.displayName || 'Location',
-      imageUrl: "",
-      coordinates: item.coordinates || null,
-      type: item.location?.type || 'point',
-      location: item.location || {}
-    };
   }
 
   calculateNights(start: string, end: string): number {

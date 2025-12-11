@@ -45,9 +45,27 @@ export class TransactionStatusComponent {
           queryParams: queryParams 
         });
       } else {
-        // TODO: if fails, redirect to checkout with sessionIds
-        console.log('Redirecting to home...');
-        this.router.navigate(['/']);
+        // Payment failed - redirect to payment retry page with booking info
+        const bookingId = response?.ref1 || this.route.snapshot.queryParams['ref1'];
+        const sessionId = response?.ref2 || this.route.snapshot.queryParams['ref2'];
+        const email = response?.ref3 || this.route.snapshot.queryParams['ref3'];
+        const errorMsg = response?.messageText || 'Payment was not completed';
+        
+        console.log('Payment failed, redirecting to payment-retry page...');
+        
+        // Preserve booking info for retry (don't clear cart yet)
+        if (bookingId) {
+          sessionStorage.setItem('failedBookingId', bookingId);
+        }
+        
+        this.router.navigate(['/payment-retry'], {
+          queryParams: {
+            bookingId: bookingId,
+            sessionId: sessionId,
+            email: email,
+            error: errorMsg
+          }
+        });
       }
     }
   });

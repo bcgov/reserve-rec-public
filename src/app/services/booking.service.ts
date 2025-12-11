@@ -91,4 +91,8 @@ export class BookingService {
       throw error; // Re-throw the error for further handling if needed
     }
   }
+
+  cancelBooking(bookingId: string) {
+    return this.apiService.delete(`bookings/${bookingId}`, {});
+  }
 }

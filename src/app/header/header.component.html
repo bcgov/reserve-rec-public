@@ -24,3 +24,6 @@
         </div>
     </div>
 </nav>
+<div *ngIf="showBanner" class="env-banner text-center bg-danger text-white py-2">
+    This is the <strong>{{ envName }}</strong> environment. The content you are viewing is not final and subject to change.
+</div>

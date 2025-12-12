@@ -18,6 +18,7 @@ export const routes: Routes = [
   { path: 'find-booking', loadComponent: () => import('./find-booking/find-booking.component').then(mod => mod.FindBookingComponent) },
   { path: 'login', loadComponent: () => import('./login/login.component').then(mod => mod.LoginComponent) },
   { path: 'my-bookings', loadComponent: () => import('./my-bookings/my-bookings.component').then(mod => mod.MyBookingsComponent), canActivate: [UserGuard], resolve: { user: UserResolver } },
+  { path: 'payment-retry', loadComponent: () => import('./payment-retry/payment-retry.component').then(mod => mod.PaymentRetryComponent) },
   { path: 'protected-area/:orcs', loadComponent: () => import('./protected-area-details/protected-area-details.component').then(mod => mod.ProtectedAreaDetailsComponent) },
   { path: 'reservation-flow', loadComponent: () => import('./reservation-flow/reservation-flow.component').then(mod => mod.ReservationFlowComponent), canActivate: [CheckoutGuard] },
   { path: 'results', loadComponent: () => import('./search-results/search-results.component').then(mod => mod.SearchResultsComponent) },

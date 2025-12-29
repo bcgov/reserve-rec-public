@@ -30,4 +30,7 @@ export class LoginComponent implements OnInit{
   logCurrentDate() {
     console.log('Current Date:', this.currentDate);
   }
+   onLogin(provider: string) {
+    this.authService.loginWithProvider(provider);
+    }
 }

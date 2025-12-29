@@ -264,4 +264,15 @@ export class AuthService {
   clearGuestSub() {
     sessionStorage.removeItem(this.GUEST_SUB_KEY);
   }
+
+  //Setup to match logic for admin. Gives opprotunity to add BCEID in future.
+  loginWithProvider(provider: string) {
+    let idpName = '';
+    if (provider === 'bcsc') idpName = 'BCSC';
+    //else if (provider === 'bceid') idpName = 'BCEID';
+    else return;
+    // Use Amplify's signInWithRedirect method to initiate the OAuth flow instead of custome method
+    signInWithRedirect({ provider: { custom: idpName } });
+  }
+
 }

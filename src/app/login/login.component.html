@@ -92,7 +92,7 @@
 
     </ng-template>
       <ng-template amplifySlot="footer" let-user="user" let-signOut="signOut">
-        <button class="custom-sign-in-button" (click)="signInWithRedirect()">Sign in with BC Services Card</button>
+        <button class="custom-sign-in-button" (click)="onLogin('bcsc')">Sign in with BC Services Card</button>
       </ng-template>
       <ng-template amplifySlot="authenticated" let-user="user" let-signOut="signOut">
         <button (click)="signOut()">Sign Out</button>

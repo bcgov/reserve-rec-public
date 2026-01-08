@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { BookingService } from '../services/booking.service';
 import { LoadingService } from '../services/loading.service';
+import { QrPrintService } from '../services/qr-print.service';
 import { Constants } from '../constants';
 
 @Component({
@@ -18,11 +19,15 @@ export class BookingConfirmationComponent implements OnInit {
   queryParams: any = {};
   loading = true;
   error: string | null = null;
+  qrCodeDataUrl: string | null = null;
+  isPrinting = false;
+  printError: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private bookingService: BookingService,
+    private qrPrintService: QrPrintService,
     protected loadingService: LoadingService
   ) {}
 
@@ -56,6 +61,12 @@ export class BookingConfirmationComponent implements OnInit {
       // Fetch booking from API
       const bookingData = await this.bookingService.getBookingByGlobalId(this.bookingId!, true);
       this.booking = bookingData;
+      
+      // Extract QR code if available
+      if (bookingData?.qrCode?.dataUrl) {
+        this.qrCodeDataUrl = bookingData.qrCode.dataUrl;
+      }
+      
       console.log('Booking data:', this.booking);
     } catch (error) {
       console.error('Error loading booking:', error);
@@ -133,6 +144,54 @@ export class BookingConfirmationComponent implements OnInit {
   viewConfirmationLetter(): void {
     // TODO: Implement confirmation letter generation
     console.log('View confirmation letter');
+  }
+  
+  downloadQRCode(): void {
+    if (!this.qrCodeDataUrl) {
+      console.warn('No QR code available to download');
+      return;
+    }
+    
+    // Validate that qrCodeDataUrl is actually a data URL
+    if (!this.qrCodeDataUrl.startsWith('data:image/png;base64,')) {
+      console.error('Invalid QR code data URL format');
+      return;
+    }
+    
+    // Create a download link
+    const link = document.createElement('a');
+    link.href = this.qrCodeDataUrl;
+    // Sanitize bookingId for filename
+    const safeBookingId = (this.bookingId || 'unknown').replace(/[^a-zA-Z0-9-]/g, '');
+    link.download = `booking-qr-${safeBookingId}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+  
+  async printQRCode(): Promise<void> {
+    if (!this.qrCodeDataUrl) {
+      console.warn('No QR code available to print');
+      this.printError = 'QR code is not available for printing';
+      return;
+    }
+
+    // Clear any previous print errors
+    this.printError = null;
+    this.isPrinting = true;
+
+    try {
+      await this.qrPrintService.printQRCode(this.qrCodeDataUrl, {
+        bookingNumber: this.getBookingNumber(),
+        areaName: this.getAreaName(),
+        arrivalDate: this.getArrivalDate()
+      });
+    } catch (error) {
+      console.error('Failed to print QR code:', error);
+      this.printError = 'Failed to open print dialog. Please try again or download the QR code instead.';
+    } finally {
+      this.isPrinting = false;
+    }
   }
 
   viewBooking(): void {

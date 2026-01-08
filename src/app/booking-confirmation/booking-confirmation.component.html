@@ -53,6 +53,44 @@
           </div>
 
           <div class="card-body">
+            <!-- QR Code Section (if available) -->
+            <div *ngIf="qrCodeDataUrl" class="qr-code-section mb-4 p-3 bg-light border rounded">
+              <div class="row align-items-center">
+                <div class="col-md-4 text-center">
+                  <img [src]="qrCodeDataUrl" alt="Booking QR Code" class="img-fluid" style="max-width: 200px;" />
+                </div>
+                <div class="col-md-8">
+                  <h4 class="mb-2">
+                    <i class="fa-solid fa-qrcode me-2"></i>
+                    Your Booking QR Code
+                  </h4>
+                  <p class="text-muted mb-3">
+                    Present this QR code to park staff at check-in. You can also access it from your confirmation email.
+                  </p>
+                  <div class="d-flex gap-2 flex-wrap">
+                    <button type="button" class="btn btn-sm btn-outline-primary" (click)="downloadQRCode()">
+                      <i class="fa-solid fa-download me-1"></i>
+                      Download QR Code
+                    </button>
+                    <button 
+                      type="button" 
+                      class="btn btn-sm btn-outline-primary" 
+                      (click)="printQRCode()"
+                      [disabled]="isPrinting">
+                      <i class="fa-solid fa-print me-1"></i>
+                      <span *ngIf="!isPrinting">Print QR Code</span>
+                      <span *ngIf="isPrinting">Opening print...</span>
+                    </button>
+                  </div>
+                  <!-- Print Error Message -->
+                  <div *ngIf="printError" class="alert alert-warning mt-3 mb-0" role="alert">
+                    <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                    {{ printError }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Action Buttons -->
             <div class="action-buttons mb-4">
               <button type="button" class="btn btn-outline-primary" (click)="viewConfirmationLetter()">

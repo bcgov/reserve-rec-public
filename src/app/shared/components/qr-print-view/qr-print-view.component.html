@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking QR Code - {{ bookingInfo?.bookingNumber }}</title>
+</head>
+<body>
+  <div class="container">
+    <h2>BC Parks Booking Confirmation</h2>
+    
+    <div class="info">
+      <p><strong>Booking Number:</strong> {{ bookingInfo?.bookingNumber }}</p>
+      <p><strong>Park:</strong> {{ bookingInfo?.areaName }}</p>
+      <p><strong>Arrival:</strong> {{ bookingInfo?.arrivalDate }}</p>
+    </div>
+    
+    <div class="qr-container">
+      <img [src]="qrCodeDataUrl" alt="Booking QR Code" />
+    </div>
+    
+    <div class="instructions">
+      <p>Present this QR code to park staff for check-in</p>
+    </div>
+  </div>
+</body>
+</html>

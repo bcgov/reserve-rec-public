@@ -34,10 +34,10 @@ export class BookingConfirmationComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     // Get bookingId from route parameter
     this.bookingId = this.route.snapshot.paramMap.get('bookingId');
-    
+
     // Get all query parameters from URL
     this.queryParams = this.route.snapshot.queryParams;
-    
+
     // Extract ref1 (bookingId) from query params if not in route
     const ref1BookingId = this.queryParams['ref1'];
     if (ref1BookingId && !this.bookingId) {
@@ -59,14 +59,14 @@ export class BookingConfirmationComponent implements OnInit {
     try {
       this.loadingService.addToFetchList(Constants.dataIds.BOOKING_DETAILS_RESULT);
       // Fetch booking from API
-      const bookingData = await this.bookingService.getBookingByGlobalId(this.bookingId!, true);
+      const bookingData: any = await this.bookingService.getBookingByGlobalId(this.bookingId!, true);
       this.booking = bookingData;
-      
+
       // Extract QR code if available
       if (bookingData?.qrCode?.dataUrl) {
         this.qrCodeDataUrl = bookingData.qrCode.dataUrl;
       }
-      
+
       console.log('Booking data:', this.booking);
     } catch (error) {
       console.error('Error loading booking:', error);
@@ -80,7 +80,7 @@ export class BookingConfirmationComponent implements OnInit {
   getBookingNumber(): string {
     return this.booking?.bookingId || this.queryParams['ref1'] || 'N/A';
   }
-  
+
   getEmail(): string {
     return this.booking?.data?.namedOccupant?.contactInfo?.email || this.queryParams['ref3'] || 'N/A';
   }
@@ -145,19 +145,19 @@ export class BookingConfirmationComponent implements OnInit {
     // TODO: Implement confirmation letter generation
     console.log('View confirmation letter');
   }
-  
+
   downloadQRCode(): void {
     if (!this.qrCodeDataUrl) {
       console.warn('No QR code available to download');
       return;
     }
-    
+
     // Validate that qrCodeDataUrl is actually a data URL
     if (!this.qrCodeDataUrl.startsWith('data:image/png;base64,')) {
       console.error('Invalid QR code data URL format');
       return;
     }
-    
+
     // Create a download link
     const link = document.createElement('a');
     link.href = this.qrCodeDataUrl;
@@ -168,7 +168,7 @@ export class BookingConfirmationComponent implements OnInit {
     link.click();
     document.body.removeChild(link);
   }
-  
+
   async printQRCode(): Promise<void> {
     if (!this.qrCodeDataUrl) {
       console.warn('No QR code available to print');

@@ -17,6 +17,7 @@ import { provideRouter } from '@angular/router';
 import { ConfigService } from '../services/config.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideToastr } from 'ngx-toastr';
 
 describe('ActivityDetailsComponent', () => {
   let component: ActivityDetailsComponent;
@@ -29,7 +30,8 @@ describe('ActivityDetailsComponent', () => {
         ConfigService,
         provideRouter([{ path: 'activity/:orcs/:activityType/:identifier', component: ActivityDetailsComponent }]),
         provideHttpClient(),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        provideToastr()
       ]
     })
       .overrideComponent(ActivityDetailsComponent, {

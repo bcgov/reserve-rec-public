@@ -29,8 +29,8 @@ export class FeatureFlagService {
   async init(): Promise<void> {
     try {
       this.loggerService.debug('Initializing feature flags...');
-      const response = await lastValueFrom(this.apiService.get('featureFlags'));
-      this._flags.set((response as Record<string, boolean>) || this.defaultFlags);
+      const response: any = await lastValueFrom(this.apiService.get('featureFlags'));
+      this._flags.set(response?.data || this.defaultFlags);
       this._initialized.set(true);
       this.loggerService.debug(`Feature flags initialized: ${JSON.stringify(this._flags())}`);
     } catch (error) {

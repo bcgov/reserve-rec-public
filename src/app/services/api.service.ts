@@ -67,14 +67,6 @@ export class ApiService implements OnDestroy {
     if (this.token) {
       this.headers = this.headers.set('Authorization', `Bearer ${this.token}`);
       console.log('Using JWT token auth');
-    } else {
-      // Check if we have a stored guest sub
-      const guestSub = this.authService.getGuestSub();
-      if (guestSub) {
-        this.headers = this.headers.set('Authorization', `Guest ${guestSub}`);
-      } else {
-        this.headers = this.headers.set('Authorization', 'guest');
-      }
     }
   }
 
@@ -102,14 +94,7 @@ export class ApiService implements OnDestroy {
       this.updateHeaders();
       return this.http.get(`${this.apiPath}/${pk}?${queryString}`, { headers: this.headers, observe: 'response' })
         .pipe(
-          map(response => {
-            // Capture guest sub from response headers if present
-            const guestSub = response?.headers?.get('x-guest-sub');
-            if (guestSub) {
-              this.authService.setGuestSub(guestSub);
-            }
-            return response?.body;
-          }),
+          map(response => response?.body),
           catchError(this.errorHandler)
         );
     } else {
@@ -139,14 +124,7 @@ export class ApiService implements OnDestroy {
       return this.http
         .post<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: this.headers, observe: 'response' })
         .pipe(
-          map(response => {
-            // Capture guest sub from response headers if present
-            const guestSub = response?.headers?.get('x-guest-sub');
-            if (guestSub) {
-              this.authService.setGuestSub(guestSub);
-            }
-            return response?.body;
-          }),
+          map(response => response?.body),
           catchError(this.errorHandler)
         );
     } else {

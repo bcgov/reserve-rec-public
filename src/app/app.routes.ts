@@ -23,5 +23,5 @@ export const routes: Routes = [
   { path: 'reservation-flow', loadComponent: () => import('./reservation-flow/reservation-flow.component').then(mod => mod.ReservationFlowComponent), canActivate: [CheckoutGuard] },
   { path: 'results', loadComponent: () => import('./search-results/search-results.component').then(mod => mod.SearchResultsComponent) },
   { path: 'search', loadComponent: () => import('./search-page/search-page.component').then(mod => mod.SearchPageComponent) },
-  { path: 'transaction-status', loadComponent: () => import('./transaction-status/transaction-status.component').then(mod => mod.TransactionStatusComponent)},
+  { path: 'transaction-status', loadComponent: () => import('./transaction-status/transaction-status.component').then(mod => mod.TransactionStatusComponent), canActivate: [UserGuard]},
 ];

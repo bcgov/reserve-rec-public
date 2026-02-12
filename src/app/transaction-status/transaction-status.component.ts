@@ -27,8 +27,7 @@ export class TransactionStatusComponent {
   ) {
     const params = this.route.snapshot.queryParams;
     const clientTransactionId = params['trnOrderNumber'];
-    const sessionId = params['ref2'];
-    this.queryTransaction(clientTransactionId, sessionId);
+    this.queryTransaction(clientTransactionId);
   }
 
   transactionEffect = effect(() => {
@@ -70,12 +69,11 @@ export class TransactionStatusComponent {
     }
   });
 
-  async queryTransaction(clientTransactionId: string, sessionId: string) {
+  async queryTransaction(clientTransactionId: string) {
     try {
       this.loadingService.addToFetchList(Constants.dataIds.TRANSACTION_STATUS_RESULTS);
       const queryParams = {
-        clientTransactionId,
-        sessionId
+        clientTransactionId
       };
       const res: any = await lastValueFrom(
         this.apiService.get(`transactions`, queryParams)

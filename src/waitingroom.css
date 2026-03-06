@@ -1,0 +1,66 @@
+/* BC Parks Waiting Room — standalone page styles */
+
+:root {
+  --bcparks-blue: #013366;
+  --bcparks-blue-dark: #01254d;
+}
+
+/* ── Header ── */
+.wr-header {
+  background-color: var(--bcparks-blue);
+}
+
+/* ── Card ── */
+.wr-card {
+  max-width: 500px;
+}
+
+/* ── Countdown ── */
+.wr-countdown {
+  font-size: 3rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--bcparks-blue);
+  letter-spacing: 0.04em;
+}
+
+/* ── Queue position ── */
+.wr-position {
+  margin: 0.5rem 0;
+}
+
+.wr-position-number {
+  display: block;
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: var(--bcparks-blue);
+  line-height: 1.1;
+}
+
+/* ── Icon emojis ── */
+.wr-icon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+/* ── Button overrides ── */
+.btn-primary,
+.btn-outline-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--bcparks-blue);
+  --bs-btn-border-color: var(--bcparks-blue);
+  --bs-btn-hover-bg: var(--bcparks-blue-dark);
+  --bs-btn-hover-border-color: var(--bcparks-blue-dark);
+  --bs-btn-active-bg: var(--bcparks-blue-dark);
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--bcparks-blue);
+  --bs-btn-bg: transparent;
+  --bs-btn-hover-color: #fff;
+}
+
+/* ── Progress bar ── */
+.progress-bar.bg-success {
+  transition: width 0.6s ease;
+}

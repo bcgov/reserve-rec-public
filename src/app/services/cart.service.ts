@@ -29,6 +29,7 @@ export interface CartItem {
   areAllStepsCompleted: boolean;
   entryPoint?: { pk: string; sk: string };
   exitPoint?: { pk: string; sk: string };
+  waitingRoomActive?: boolean;
 }
 
 @Injectable({
@@ -45,7 +46,11 @@ export class CartService {
   addToCart(item: CartItem): void {
     const itemWithId = { ...item, id: this.generateId() };
     this.cartItems.update(items => {
-      const newItems = [...items, itemWithId];
+      // Drop any stale waiting-room-locked items before adding the new one.
+      // This enforces the single-item-per-waiting-room rule and prevents stale
+      // waitingRoomActive:true entries from triggering the guard on future visits.
+      const filtered = items.filter(i => !i.waitingRoomActive);
+      const newItems = [...filtered, itemWithId];
       this.saveCartToStorage(newItems);
       return newItems;
     });
@@ -70,17 +75,45 @@ export class CartService {
   
   private loadCartFromStorage(): CartItem[] {
     try {
-      const stored = sessionStorage.getItem(this.CART_STORAGE_KEY); // Changed to sessionStorage
-      return stored ? JSON.parse(stored) : [];
+      const stored = localStorage.getItem(this.CART_STORAGE_KEY);
+      if (!stored) return [];
+      const items: CartItem[] = JSON.parse(stored);
+      // Clear stale waitingRoomActive flags on load unless there is a matching
+      // active admission in sessionStorage. This prevents the WaitingRoomGuard
+      // from misfiring on items left over from a previous session.
+      const admission = this.getStoredAdmission();
+      return items.map(item => {
+        if (!item.waitingRoomActive) return item;
+        const facilityKey = `${item.collectionId}#${item.activityType}#${item.activityId}`;
+        const now = Math.floor(Date.now() / 1000);
+        if (
+          admission &&
+          admission.facilityKey === facilityKey &&
+          admission.dateKey === item.startDate &&
+          admission.tokenExpiry > now
+        ) {
+          return item; // valid admission — keep the flag
+        }
+        return { ...item, waitingRoomActive: false }; // stale — clear it
+      });
     } catch (error) {
       console.log(error);
       return [];
     }
   }
-  
+
+  private getStoredAdmission(): { facilityKey: string; dateKey: string; tokenExpiry: number } | null {
+    try {
+      const stored = sessionStorage.getItem('wr_admission');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  }
+
   private saveCartToStorage(items: CartItem[]): void {
     try {
-      sessionStorage.setItem(this.CART_STORAGE_KEY, JSON.stringify(items)); // Changed to sessionStorage
+      localStorage.setItem(this.CART_STORAGE_KEY, JSON.stringify(items));
     } catch (error) {
       console.warn('Failed to save cart to storage:', error);
     }

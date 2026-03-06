@@ -5,7 +5,7 @@ set -e
 
 SANDBOX_NAME="${1:?Usage: ./sandbox-setup.sh <sandbox-name> [base-env]}"
 BASE_ENV="${2:-dev}"
-DEPLOYMENT_NAME="${BASE_ENV}-${SANDBOX_NAME}"
+DEPLOYMENT_NAME="${SANDBOX_NAME}"
 APP_NAME="reserveRecPublic"
 REGION="ca-central-1"
 
@@ -17,6 +17,7 @@ echo ""
 
 STACKS=(
   "distributionStack"
+  "waitingRoomEdgeStack"
 )
 
 echo "Step 1: Copying SSM config parameters..."
@@ -65,6 +66,22 @@ if [ -n "${SECRET_VALUE}" ]; then
   echo "    ✓ Copied"
 else
   echo "    ⚠ WARNING: Source secret not found, skipping"
+fi
+
+echo ""
+echo "Step 3: Ensuring waitingRoomEdgeStack SSM config exists..."
+echo "-----------------------------------------------------------"
+EDGE_CONFIG_PATH="/${APP_NAME}/${DEPLOYMENT_NAME}/waitingRoomEdgeStack/config"
+EXISTING=$(aws ssm get-parameter --region ${REGION} --name "${EDGE_CONFIG_PATH}" --query 'Parameter.Value' --output text 2>/dev/null || echo "")
+if [ -z "${EXISTING}" ]; then
+  aws ssm put-parameter --region ${REGION} \
+    --name "${EDGE_CONFIG_PATH}" \
+    --type String \
+    --value '{"logLevel":"info"}' \
+    --description "WaitingRoom Edge stack config for ${SANDBOX_NAME}" >/dev/null
+  echo "    ✓ Created minimal waitingRoomEdgeStack config"
+else
+  echo "    ✓ waitingRoomEdgeStack config already exists"
 fi
 
 echo ""

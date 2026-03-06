@@ -48,10 +48,16 @@ export class BookingService {
       this.dataService.setItemValue(Constants.dataIds.CREATE_BOOKING_RESULT, res);
       this.loadingService.removeFromFetchList(Constants.dataIds.CREATE_BOOKING_RESULT);
       return res;
-    } catch (error) {
+    } catch (error: any) {
       this.loadingService.removeFromFetchList(Constants.dataIds.CREATE_BOOKING_RESULT);
       this.loggerService.error(error);
-      throw error; // Re-throw the error for further handling if needed
+      // Surface waiting room 403 so callers can redirect appropriately
+      if (error?.status === 403 && error?.error?.waitingRoom) {
+        const wrError: any = new Error('Waiting room required');
+        wrError.waitingRoom = true;
+        throw wrError;
+      }
+      throw error;
     }
   }
 

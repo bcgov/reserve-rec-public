@@ -1,6 +1,7 @@
 const cdk = require('aws-cdk-lib');
 const { logger } = require('../lib/helpers/utils.js');
 const { createDistributionStack } = require('../lib/distribution-stack/distribution-stack.js');
+const { createWaitingRoomEdgeStack } = require('../lib/waiting-room-edge-stack/waiting-room-edge-stack.js');
 
 class CDKProject {
   constructor() {
@@ -41,7 +42,7 @@ class CDKProject {
     const baseName = this.context?.DEPLOYMENT_NAME || 'local';
     const sandboxName = this.getSandboxName();
     if (sandboxName) {
-      return `${baseName}-${sandboxName}`;
+      return sandboxName;
     }
     return baseName;
   }
@@ -179,12 +180,22 @@ class CDKProject {
 
   async createStacks() {
 
+    // Edge stack (us-east-1): WAF WebACL for CloudFront.
+    // Must be created before distributionStack so the WAF ARN is in ca-central-1 SSM when
+    // the distribution stack resolves it at deploy time.
+    const edgeStack = await this.addStack('waitingRoomEdgeStack', createWaitingRoomEdgeStack);
+
+    // Bind edge stack reference on scope so DistributionStack can access it (e.g. for future
+    // direct construct references with crossRegionReferences). The WAF ARN is passed via SSM.
+    if (edgeStack) {
+      this.waitingRoomEdgeStack = edgeStack;
+    }
+
     const distributionStack = await this.addStack('distributionStack', createDistributionStack);
 
-    // const s3Stack = await this.addStack('s3Stack', createS3Stack);
-    // const cloudFrontStack = await this.addStack('cloudFrontStack', createCloudFrontStack);
-
-    // cloudFrontStack.addDependency(s3Stack);
+    if (distributionStack && edgeStack) {
+      distributionStack.addDependency(edgeStack);
+    }
 
   }
 

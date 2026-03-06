@@ -12,18 +12,20 @@ import { PolicyReviewStep2Component } from './components/steps/policy-review-ste
 import { CampingPartyStep3Component } from './components/steps/camping-party-step-3/camping-party-step-3.component';
 import { EquipmentStep4Component } from './components/steps/equipment-step-4/equipment-step-4.component';
 import { PaymentStep5Component } from './components/steps/payment-step-5/payment-step-5.component';
+import { AdmissionCountdownComponent } from '../components/admission-countdown/admission-countdown.component';
 
 @Component({
   selector: 'app-reservation-flow',
   imports: [
-    CommonModule, 
-    NgdsFormsModule, 
+    CommonModule,
+    NgdsFormsModule,
     ProgressIndicatorComponent,
     ConfirmDetailsStep1Component,
     PolicyReviewStep2Component,
     CampingPartyStep3Component,
     EquipmentStep4Component,
     PaymentStep5Component,
+    AdmissionCountdownComponent,
     RouterModule
   ],
   templateUrl: './reservation-flow.component.html',

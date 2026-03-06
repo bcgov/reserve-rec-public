@@ -38,7 +38,10 @@
                 "input": "public"
               },
               "src/assets",
-              "src/env.js"
+              "src/env.js",
+              "src/waitingroom.html",
+              "src/waitingroom.css",
+              "src/waitingroom.js"
             ],
             "styles": [
               "node_modules/@aws-amplify/ui-angular/theme.css",

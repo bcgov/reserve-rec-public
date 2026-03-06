@@ -90,7 +90,19 @@ export class PaymentStep5Component implements OnInit {
       throw new Error('Booking creation failed, no booking ID returned.');
     }
 
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.waitingRoom && this.cartItem) {
+      // Admission expired or invalidated — send user back to the waiting room
+      const params = new URLSearchParams({
+        collectionId: this.cartItem.collectionId,
+        activityType: this.cartItem.activityType,
+        activityId: this.cartItem.activityId,
+        startDate: this.cartItem.startDate,
+        returnUrl: '/checkout',
+      });
+      window.location.href = `/waitingroom.html?${params.toString()}`;
+      return;
+    }
     console.error('Error creating booking:', error);
     alert(`There was an error creating your booking. Please try again later.`);
     this.isProcessingPayment = false;

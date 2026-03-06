@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Waiting Room - BC Parks Reserve</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="/assets/images/favicon_bcid.ico">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+        crossorigin="anonymous">
+  <link rel="stylesheet" href="/waitingroom.css">
+</head>
+<body class="bg-light">
+
+  <header class="wr-header">
+    <div class="container d-flex align-items-center py-2">
+      <img src="assets/images/BCParks_Primary_Reversed-cropped-0080416cb5f347c8e7c33f32739f17ca.svg"
+           alt="BC Parks" height="48" class="me-3">
+      <span class="text-white fs-5 fw-semibold">BC Parks Reserve</span>
+    </div>
+  </header>
+
+  <main class="container py-5">
+
+    <!-- Loading -->
+    <div id="state-loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status" aria-label="Loading"></div>
+      <p class="mt-3 text-muted" id="loading-message">Joining the waiting room…</p>
+    </div>
+
+    <!-- Pre-open (countdown) -->
+    <div id="state-preopen" class="d-none">
+      <div class="card shadow-sm mx-auto wr-card">
+        <div class="card-body text-center py-4 px-4">
+          <div class="wr-icon mb-3" aria-hidden="true">⏳</div>
+          <h1 class="card-title h3">Waiting Room</h1>
+          <p class="text-muted mb-1" id="facility-name"></p>
+          <p class="mb-1 mt-3">Booking opens in:</p>
+          <div class="wr-countdown" id="countdown-timer" aria-live="polite">--:--:--</div>
+          <p class="text-muted small mt-2" id="opening-time-display"></p>
+          <hr>
+          <p class="text-muted small mb-1">
+            You are in the queue. When booking opens, all waiting users will be randomly ordered.
+            <strong>Stay on this page</strong> — leaving will remove you from the queue.
+          </p>
+          <p class="text-muted small mb-0" id="queue-size-display"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Randomizing -->
+    <div id="state-randomizing" class="d-none">
+      <div class="card shadow-sm mx-auto wr-card">
+        <div class="card-body text-center py-4 px-4">
+          <div class="spinner-border text-primary mb-3" role="status" aria-label="Randomizing"></div>
+          <h1 class="card-title h3">Assigning Positions</h1>
+          <p class="text-muted">The queue is being randomized. Your position will be assigned momentarily.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Releasing (position display) -->
+    <div id="state-releasing" class="d-none">
+      <div class="card shadow-sm mx-auto wr-card">
+        <div class="card-body text-center py-4 px-4">
+          <h1 class="card-title h3">You're in the Queue</h1>
+          <p class="text-muted mb-0" id="facility-name-releasing"></p>
+          <div class="wr-position mt-3">
+            <span class="wr-position-number" id="position-number" aria-live="polite">—</span>
+            <div class="text-muted" id="position-of-total"></div>
+          </div>
+          <div class="progress mt-4" style="height:8px" role="progressbar"
+               aria-label="Queue progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-bar bg-success" id="progress-bar" style="width:0%"></div>
+          </div>
+          <p class="text-muted small mt-3 mb-0">
+            Users are being admitted in batches. Please wait — <strong>do not close this page</strong>.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admitted -->
+    <div id="state-admitted" class="d-none">
+      <div class="card shadow-sm mx-auto wr-card border-success">
+        <div class="card-body text-center py-4 px-4">
+          <div class="wr-icon mb-3" aria-hidden="true">✅</div>
+          <h1 class="card-title h3 text-success">You're Admitted!</h1>
+          <p class="text-muted">Claiming your booking session…</p>
+          <div class="spinner-border spinner-border-sm text-success" role="status" aria-label="Claiming"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mode 2: Full-site queue (position display) -->
+    <div id="state-mode2" class="d-none">
+      <div class="card shadow-sm mx-auto wr-card">
+        <div class="card-body text-center py-4 px-4">
+          <h1 class="card-title h3">High Demand</h1>
+          <p class="text-muted mb-3">This site is experiencing high demand. You are in the queue — access is being restored in batches.</p>
+          <div class="wr-position mt-2">
+            <span class="wr-position-number" id="mode2-position-number" aria-live="polite">—</span>
+            <div class="text-muted" id="mode2-position-total"></div>
+          </div>
+          <div class="progress mt-4" style="height:8px" role="progressbar"
+               aria-label="Queue progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-bar bg-success" id="mode2-progress-bar" style="width:0%"></div>
+          </div>
+          <p class="text-muted small mt-3 mb-0">
+            <strong>Stay on this page</strong> — leaving will remove you from the queue.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div id="state-error" class="d-none">
+      <div class="card shadow-sm mx-auto wr-card border-danger">
+        <div class="card-body text-center py-4 px-4">
+          <h1 class="card-title h3 text-danger">Something went wrong</h1>
+          <p class="text-muted" id="error-message">An unexpected error occurred.</p>
+          <a href="/" class="btn btn-outline-primary mt-2">Return to Home</a>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="/waitingroom.js"></script>
+</body>
+</html>

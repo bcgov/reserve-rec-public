@@ -18,7 +18,7 @@ export class ActivityService {
     private loadingService: LoadingService
   ) { }
 
-  async getActivity(collectionId: string, activityType: string, activityId: string, fetchGeozone = false) {
+  async getActivity(collectionId: string, activityType: string, activityId: string, fetchGeozone = false, startDate?: string) {
     const queryParams = {};
     if (activityType) {
       queryParams['activityType'] = activityType;
@@ -28,6 +28,9 @@ export class ActivityService {
     }
     if (fetchGeozone) {
       queryParams['fetchGeozone'] = true;
+    }
+    if (startDate) {
+      queryParams['startDate'] = startDate;
     }
 
     try {

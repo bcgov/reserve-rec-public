@@ -28,6 +28,9 @@ export class WaitingRoomService {
     const admission = this.getAdmission();
     if (!admission) return false;
     const now = Math.floor(Date.now() / 1000);
+    if (admission.facilityKey === 'MODE2#global#1') {
+      return admission.tokenExpiry > now;
+    }
     return (
       admission.facilityKey === facilityKey &&
       admission.dateKey === dateKey &&

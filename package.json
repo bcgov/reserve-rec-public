@@ -29,7 +29,7 @@
     "@aws-sdk/client-secrets-manager": "^3.921.0",
     "@aws-sdk/client-ssm": "^3.921.0",
     "@digitalspace/bcparks-bootstrap-theme": "^1.4.6",
-    "@digitalspace/ngds-forms": "^0.0.125",
+    "@digitalspace/ngds-forms": "^0.0.130",
     "@maplibre/ngx-maplibre-gl": "^19.0.0",
     "@popperjs/core": "^2.11.8",
     "@types/bootstrap": "^5.2.10",

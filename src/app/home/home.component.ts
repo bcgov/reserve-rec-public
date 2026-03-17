@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { SearchPageComponent } from '../search-page/search-page.component';
 
 @Component({
@@ -7,4 +7,14 @@ import { SearchPageComponent } from '../search-page/search-page.component';
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss'
 })
-export class HomeComponent { }
+export class HomeComponent implements OnDestroy {
+
+    constructor(
+        private cd: ChangeDetectorRef
+    ) { }
+
+    ngOnDestroy(): void {
+        this.cd.detectChanges();
+        this.cd.detach();
+    }
+}

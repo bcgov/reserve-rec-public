@@ -4,6 +4,7 @@ import { ProductDateService } from './product-date.service';
 import { ConfigService } from './config.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideToastr } from 'ngx-toastr';
 
 describe('ProductDateService', () => {
   let service: ProductDateService;
@@ -13,7 +14,8 @@ describe('ProductDateService', () => {
       providers: [
         ConfigService,
         provideHttpClient(),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        provideToastr()
       ]
     });
     service = TestBed.inject(ProductDateService);

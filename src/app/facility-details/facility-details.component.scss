@@ -1,62 +1,23 @@
-.search-map {
-  width: 100%;
-  display: inline-block;
+.section-underline {
+  height: 3px;
+  border: none; 
+  opacity: 1;
+  background-color: #FCBA19;
+  max-width: 80px;
 }
 
-.activity-results {
-  max-height: 35rem;
-  overflow-y: auto;
+.hero-section {
+  height: 384px;
+  display: flex;
+  align-items: center;
 }
 
-.search-results-container {
-  height: calc(100vh - 118.78px);
-  min-width: 375px;
-  overflow-y: auto;
-  background-color: #f2f2f2;
-
-  .btn {
-    background-color: #fff;
-    border: 1px solid #c8c8c8;
-    font-size: 14px;
-    border-radius: 0px;
-
-    &:hover {
-      background-color: #c7c7c7;
-    }
-  }
+.passes-required {
+  background-color: #E9E9E9;
+  color: #333333;
 }
 
-@media only screen and (max-width: 765px) and (orientation: portrait) {
-  .search-header {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-
-  .search-results-container {
-    min-height: 500px;
-    width: 100%;
-  }
-
-  .search-map {
-    height: 30vh;
-  }
+.disable-btn[disabled] {
+  opacity: 1;
+  color: #C7C7C7 !important;
 }
-
-@media only screen and (max-width: 765px) and (orientation: landscape) {
-  .search-body {
-    width: 50%;
-    min-height: 50vh;
-  }
-
-  .search-results-container {
-    height: 100vh;
-    width: 50%;
-    min-width: 0px;
-  }
-}
-
-
-
-
-

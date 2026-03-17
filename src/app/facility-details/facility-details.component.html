@@ -1,39 +1,181 @@
-<div class="container-fluid p-0 ">
-    <div class="d-flex flex-column-reverse flex-md-row">
-        <!-- Left Column: Search Results -->
-        <div class="search-results-container col-lg-4 p-0 d-flex flex-column">
-            <div class="p-4">
-                <h2
-                  id="search-results"
-                  tabindex="-1"
-                >{{data?.displayName}}</h2>
-                <hr class="my-3">
-                <div class="col">
-                    <button class="btn btn-link mb-3 border-0 bg-transparent" (click)="navToProtectedArea()">
-                        <h4>
-                            < Facilities</h4>
-                    </button>
-                </div>
-                <h3>
-                    Select an activity
-                </h3>
-                <!-- Scrollable Content Area -->
-                <div class="activity-results h-100 flex-grow-1 overflow-auto px-4 pb-4 mb-3">
-                    <!-- Search Results -->
+<div class="container mb-5">
 
-                    <app-search-result-section [title]="''">
-                        <app-search-result-item
-                          *ngFor="let activity of activities"
-                          [title]="activity?.displayName"
-                          [navigation]="activity?.navigation"
-                        >{{activity}}</app-search-result-item>
-                    </app-search-result-section>
-                </div>
-            </div>
-        </div>
-        <!-- Right Column: Map -->
-        <div class="search-map w-100 p-0">
-            <app-search-map [_dataSignal]="_dataSignal"></app-search-map>
-        </div>
-    </div>
+	<!-- Breadcrumb -->
+	<nav aria-label="breadcrumb" class="my-4">
+		<ol class="breadcrumb">
+			<li class="breadcrumb-item"><a routerLink="/">Home</a></li>
+			<li class="breadcrumb-item active" aria-current="page">{{ facility?.displayName }}</li>
+		</ol>
+	</nav>
+
+	<!-- Hero block -->
+	<div class="row">
+		<div class="col">
+			<!-- Back button -->
+			<button class="btn btn-outline-primary btn-sm mb-4 p-2 px-3">
+				<i class="fa-solid fa-circle-chevron-left me-1"></i> Back
+			</button>
+
+			<!-- Park/Facility name -->
+			<h1 class="text-primary mb-4">{{ facility?.displayName }}</h1>
+
+			<!-- Tags -->
+			<div class="mb-3">
+				<span class="badge text-dark border border-1 rounded-1 border-primary fw-normal p-2 mb-3">Day-use pass
+					required</span>
+			</div>
+
+			<!-- Location & Status -->
+			<div class="d-flex flex-column gap-1 mb-4">
+				<div class="d-flex align-items-center gap-2 mb-4 ms-1">
+					<i class="fa-jelly fa-regular fa-location-dot fa-2xl text-primary" style="min-width: 2.75rem"></i>
+					<span>{{ facility?.region || facility?.displayName }}</span>
+				</div>
+				<div class="d-flex align-items-center gap-2 mb-5 mt-2">
+					<i
+						*ngIf="facility?.isOpen"
+						class="fa-sharp-duotone fa-solid fa-circle-dot fa-2xl text-success"
+						style="min-width: 3rem">
+					</i>
+					<i
+						*ngIf="!facility?.isOpen"
+						class="fa-sharp-duotone fa-solid fa-circle-dot fa-2xl text-danger"
+						style="min-width: 3.1rem">
+					</i>
+					<span>{{ facility?.isOpen ? "Open" : "Closed" }}, <a href="#" class="text-secondary">check advisory</a></span>
+				</div>
+			</div>
+
+			<!-- Hero image -->
+			<div class="hero-section text-white text-center py-5 mb-5"
+				[ngStyle]="{'background-image': 'url(' + facility?.imageUrl + ')', 'background-size': 'cover', 'background-position': 'center'}">
+			</div>
+		</div>
+	</div>
+
+	<!-- Park information -->
+	<section class="row mb-5">
+		<div class="col-lg-8 mx-auto">
+			<h2 class="text-primary">Park information</h2>
+			<hr class="section-underline mb-5">
+			<p class="mb-4">{{ facility?.description}}</p>
+			<div class="mt-2">
+				<a
+					[href]="facilityUrl()"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="btn btn-outline-primary fw-bold rounded-1 px-3"
+				>
+					View park page
+				</a>
+			</div>
+		</div>
+	</section>
+
+	<!-- Park and facility operating dates -->
+	<section class="row mt-4 mb-4">
+		<div class="col-lg-8 mx-auto">
+			<h3 class="section-heading mb-4">Park and facility operating dates</h3>
+
+			<!-- Passes required box -->
+			<div class="passes-required text-dark rounded-1 border border-1 p-3 mb-5">
+				<p class="fw-bold mb-1">Passes required</p>
+				<p class="mb-0">March 20, 2026 - September 15, 2026</p>
+			</div>
+
+			<!-- Activities/Facilities list -->
+			<div class="row">
+				<div class="col-lg-6 mb-4" *ngFor="let activity of relatedActivities">
+					<div class="d-flex align-items-start gap-2">
+						<i
+							class="fa-2xl text-primary mt-3 me-3 pt-1 flex-shrink-0"
+							[ngClass]="getIcon(activity?.activityType, activity?.activitySubType)"
+						></i>
+						<div>
+							<p class="fw-bold mb-1">{{ activity?.displayName }}</p>
+							<p class="mb-0">{{ activity?.description }}</p>
+							<p class="mb-0 text-muted small" *ngIf="activity?.schedule">{{ activity?.schedule }}</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Request your pass -->
+	<section class="row mt-4" id="request-a-pass">
+		<div class="col-lg-8 mx-auto bg-primary rounded-1 px-5 pt-3 pb-4">
+			<h4 class="text-white mb-3 pt-3">Request your pass</h4>
+			<div class="row g-3 align-items-end mb-3">
+				<div class="col-md-6">
+					<ngds-picklist-input
+						[class]="'text-white rounded-1'"
+						[control]="this.form.get('selectedActivity')"
+						[selectionListItems]="availableActivities"
+						[label]="'Activity'"
+						[placeholder]="'Choose an activity'"
+						></ngds-picklist-input>
+				</div>
+				<div class="col-md-6">
+					<ngds-picklist-input
+						[class]="'text-white rounded-1'"
+						[control]="this.form.get('selectedProduct')"
+						[selectionListItems]="availableProducts"
+						[label]="'Pass type'"
+						[placeholder]="loadingProducts ? 'Loading...' : 'Choose a pass type'"
+						[disabled]="!this.form.get('selectedActivity').value || this.availableProducts.length === 0 || loadingProducts"
+					></ngds-picklist-input>
+				</div>
+			</div>
+			<div class="row g-3 align-items-end" *ngIf="this.form.get('selectedProduct').value && this.facilityOpen">
+				<div class="col-md-6">
+						<ngds-date-input
+							[class]="'text-white rounded-1'"
+							[control]="this.form.get('selectedDate')"
+							[label]="'Date of visit'"
+							[placeholder]="loadingDates ? 'Loading...' : 'Select a date'"
+							[dateFormat]="'yyyy-LL-dd'"
+							[dateDisplayFormat]="'EEEE, LLLL d, yyyy'"
+							[dateRange]="false"
+							[hideInvalidState]="true"
+							[minDate]="startDate"
+							[maxDate]="endDate"
+							[disabled]="!this.form.get('selectedProduct').value || this.availableProducts.length === 0 || loadingDates"
+							>
+						<i
+							ngdsInputPrepend
+							class="me-1 ms-3 fa-solid fa-calendar text-black-50"
+						></i>
+					</ngds-date-input>
+				</div>
+				<div class="col-md-6">
+					<ngds-picklist-input
+						[class]="'text-white rounded-1'"
+						[control]="this.form.get('selectedVisitors')"
+						[selectionListItems]="availableVisitorsAllowed"
+						[label]="'Number of passes'"
+						[placeholder]="passesAvailable ? 'Number of passes' : 'Unavailable'"
+						[disabled]="!this.form.get('selectedProduct').value || this.availableProducts.length === 0 || !passesAvailable"
+						></ngds-picklist-input>
+				</div>
+			</div>
+			<div class="row mt-5 mb-3">
+				<div class="col-12">
+					<button
+						*ngIf="facilityOpen"
+						class="disable-btn btn bg-white text-primary fw-bold rounded-1 px-4 w-100"
+						[disabled]="!this.form.get('selectedVisitors').value || !this.form.get('selectedDate').value || !this.form.get('selectedProduct').value || !this.passesAvailable"
+						(click)="submit()"
+					>
+						{{ passesAvailable ? "Book day-use pass" : "No passes available" }}
+					</button>
+
+					<div class="alert alert-danger pb-3" role="alert"  *ngIf="!facilityOpen">
+						<i class="fa-regular fa-circle-exclamation text-danger mx-2"></i>
+						<strong>This facility is closed.</strong>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
 </div>

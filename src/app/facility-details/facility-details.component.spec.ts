@@ -17,6 +17,7 @@ import { provideRouter } from '@angular/router';
 import { ConfigService } from '../services/config.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideToastr } from 'ngx-toastr';
 
 describe('FacilityDetailsComponent', () => {
   let component: FacilityDetailsComponent;
@@ -29,7 +30,8 @@ describe('FacilityDetailsComponent', () => {
         ConfigService,
         provideRouter([{ path: 'facility/:orcs/:facilityType/:identifier', component: FacilityDetailsComponent }]),
         provideHttpClient(),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        provideToastr()
       ]
     })
       .overrideComponent(FacilityDetailsComponent, {

@@ -1,103 +1,135 @@
 <div class="d-flex align-items-center justify-content-around">
   <div class="amplify-auth-container w-100">
-    <amplify-authenticator [loginMechanisms]="['username']" [signUpAttributes]="['email', 'given_name', 'family_name']" >
-      <ng-template amplifySlot="sign-up-form-fields">
+    
+    <!-- Login Selection Screen -->
+    <div *ngIf="!showAmplifyAuth" class="login-selection-container text-center py-5">
+      <h1 class="mb-5">Login</h1>
+      <div class="d-flex flex-column align-items-center gap-3">
+        <button 
+          class="btn btn-primary btn-lg login-choice-button"
+          (click)="onLogin('bcsc')">
+          BC Services Card
+        </button>
+        <button 
+          class="btn btn-outline-primary btn-lg login-choice-button"
+          (click)="showBCParksLogin()">
+          BC Parks Account
+        </button>
+      </div>
+    </div>
 
-        <amplify-sign-up-form-fields></amplify-sign-up-form-fields>
+    <!-- Amplify Authenticator for Sign In -->
+    <div *ngIf="showAmplifyAuth">
+      <button 
+        class="btn btn-link mb-3"
+        (click)="goBack()">
+        <i class="fa fa-arrow-left me-2"></i> Back
+      </button>
+      
+      <ng-container *ngIf="authKey">
+        <amplify-authenticator 
+          [loginMechanisms]="['username']"
+          [signUpAttributes]="['email', 'given_name', 'family_name']"
+          [initialState]="initialState">
+        <ng-template amplifySlot="sign-up-form-fields">
 
-        <amplify-text-field
-          label="Mobile Phone Number (Optional)"
-          name="custom:mobilePhone"
-          autocomplete="false"
-          placeholder="Enter your mobile phone number"
-          type="tel"
-          [required]="false">
-        </amplify-text-field>
-
-
-        <amplify-text-field
-          label="Home Phone Number (Optional)"
-          name="custom:secondaryNumber"
-          autocomplete="false"
-          placeholder="Enter your Home phone number"
-          type="tel"
-          [required]="false">
-        </amplify-text-field>
-
-        <amplify-text-field
-            label="License Plate (Optional)"
-            name="custom:licensePlate"
-            autocomplete="false"
-            placeholder="Enter your license plate"
-            type="text"
-            [required]="false">
-        </amplify-text-field>
-        <amplify-text-field
-            label="Province of Vehicle Registration (Optional)"
-            name="custom:vehicleRegLocale"
-            autocomplete="false"
-            placeholder="Where is your vehicle registered?"
-            type="text"
-            [required]="false">
-        </amplify-text-field>
-        <input
-          type="hidden"
-          name="custom:pwUpdate"
-          [value]="currentDate">
+          <amplify-sign-up-form-fields></amplify-sign-up-form-fields>
 
           <amplify-text-field
-          label="Street Address"
-          name="custom:streetAddress"
-          autocomplete="false"
-          placeholder="564 Stornoway Ave"
-          type="text"
-          [required]="false">
-        </amplify-text-field>
+            label="Mobile Phone Number (Optional)"
+            name="custom:mobilePhone"
+            autocomplete="false"
+            placeholder="Enter your mobile phone number"
+            type="tel"
+            [required]="false">
+          </amplify-text-field>
 
-        <amplify-text-field
-          label="City"
-          name="custom:city"
-          autocomplete="false"
-          placeholder="Victoria"
-          type="text"
-          [required]="false">
-        </amplify-text-field>
+          <amplify-text-field
+            label="Home Phone Number (Optional)"
+            name="custom:secondaryNumber"
+            autocomplete="false"
+            placeholder="Enter your Home phone number"
+            type="tel"
+            [required]="false">
+          </amplify-text-field>
 
-        <amplify-text-field
-          label="Province"
-          name="custom:province"
-          autocomplete="false"
-          placeholder="British Columbia"
-          type="text"
-          [required]="false">
-        </amplify-text-field>
+          <amplify-text-field
+              label="License Plate (Optional)"
+              name="custom:licensePlate"
+              autocomplete="false"
+              placeholder="Enter your license plate"
+              type="text"
+              [required]="false">
+          </amplify-text-field>
 
-        <amplify-text-field
-          label="Postal Code"
-          name="custom:postalCode"
-          autocomplete="false"
-          placeholder="V9C 2R4"
-          type="text"
-          [required]="false">
-        </amplify-text-field>
+          <amplify-text-field
+              label="Province of Vehicle Registration (Optional)"
+              name="custom:vehicleRegLocale"
+              autocomplete="false"
+              placeholder="Where is your vehicle registered?"
+              type="text"
+              [required]="false">
+          </amplify-text-field>
 
-        <amplify-text-field
-          label="Country"
-          name="custom:country"
-          autocomplete="false"
-          placeholder="Canada"
-          type="text"
-          [required]="false">
-        </amplify-text-field>
+          <input
+            type="hidden"
+            name="custom:pwUpdate"
+            [value]="currentDate">
 
-    </ng-template>
-      <ng-template amplifySlot="footer" let-user="user" let-signOut="signOut">
-        <button class="custom-sign-in-button" (click)="onLogin('bcsc')">Sign in with BC Services Card</button>
-      </ng-template>
-      <ng-template amplifySlot="authenticated" let-user="user" let-signOut="signOut">
-        <button (click)="signOut()">Sign Out</button>
-      </ng-template>
-    </amplify-authenticator>
+          <amplify-text-field
+            label="Street Address"
+            name="custom:streetAddress"
+            autocomplete="false"
+            placeholder="564 Stornoway Ave"
+            type="text"
+            [required]="false">
+          </amplify-text-field>
+
+          <amplify-text-field
+            label="City"
+            name="custom:city"
+            autocomplete="false"
+            placeholder="Victoria"
+            type="text"
+            [required]="false">
+          </amplify-text-field>
+
+          <amplify-text-field
+            label="Province"
+            name="custom:province"
+            autocomplete="false"
+            placeholder="British Columbia"
+            type="text"
+            [required]="false">
+          </amplify-text-field>
+
+          <amplify-text-field
+            label="Postal Code"
+            name="custom:postalCode"
+            autocomplete="false"
+            placeholder="V9C 2R4"
+            type="text"
+            [required]="false">
+          </amplify-text-field>
+
+          <amplify-text-field
+            label="Country"
+            name="custom:country"
+            autocomplete="false"
+            placeholder="Canada"
+            type="text"
+            [required]="false">
+          </amplify-text-field>
+
+        </ng-template>
+        <ng-template amplifySlot="authenticated" let-user="user" let-signOut="signOut">
+          <button (click)="signOut()">Sign Out</button>
+        </ng-template>
+        </amplify-authenticator>
+      </ng-container>
+    </div>
+    
   </div>
 </div>
+
 

@@ -1,7 +1,19 @@
 .amplify-auth-container {
     padding-top: 5rem;
+    padding-bottom: 5rem;
     width: 50%; /* Set the width to 50% of the screen */
     margin: 0 auto; /* Center the container horizontally */
+    max-width: 500px; /* Match Amplify authenticator size */
+}
+
+.login-selection-container {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.login-choice-button {
+    width: 100%;
+    max-width: 100%;
 }
 
 .custom-grid {
@@ -30,4 +42,14 @@ padding: var(--amplify-space-medium);
 .full-width {
   display: block;
   margin: 0 auto; 
+}
+
+// Style the back button to match primary theme
+.btn-link {
+  color: #013366;
+  text-decoration: none;
+  
+  &:hover {
+    color: #002855;
+  }
 }

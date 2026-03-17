@@ -5,10 +5,27 @@
 // regular style toast
 @use 'ngx-toastr/toastr';
 
+:root {
+  --amplify-components-button-primary-background-color: rgba(1, 51, 102, 1);
+  --amplify-components-button-primary-hover-background-color: rgba(0, 40, 85, 1);
+  --amplify-components-tabs-item-active-color: rgba(1, 51, 102, 1);
+  --amplify-components-tabs-item-active-border-color: rgba(1, 51, 102, 1);
+  --amplify-components-tabs-item-color: rgba(1, 51, 102, 1);
+  --amplify-components-tabs-item-hover-color: rgba(0, 40, 85, 1);
+  --amplify-components-link-color: rgba(1, 51, 102, 1);
+  --amplify-components-link-hover-color: rgba(0, 40, 85, 1);
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --amplify-components-button-primary-background-color: rgba(1, 51, 102, 1);
+    --amplify-components-button-primary-hover-background-color: rgba(0, 40, 85, 1);
     --amplify-components-tabs-item-active-color: rgba(1, 51, 102, 1);
+    --amplify-components-tabs-item-active-border-color: rgba(1, 51, 102, 1);
+    --amplify-components-tabs-item-color: rgba(1, 51, 102, 1);
+    --amplify-components-tabs-item-hover-color: rgba(0, 40, 85, 1);
+    --amplify-components-link-color: rgba(1, 51, 102, 1);
+    --amplify-components-link-hover-color: rgba(0, 40, 85, 1);
   }
 }
 

@@ -3,6 +3,7 @@ import { UserGuard } from './guards/user.guard';
 import { UserResolver } from './resolvers/user.resolver';
 import { CheckoutGuard } from './guards/checkout.guard';
 import { WaitingRoomGuard } from './guards/waiting-room.guard';
+import { FacilityResolver } from './resolvers/facility.resolver';
 
 export const routes: Routes = [
   { path: '', loadComponent: () => import('./home/home.component').then(mod => mod.HomeComponent) },
@@ -15,7 +16,13 @@ export const routes: Routes = [
   { path: 'booking/:id', loadComponent: () => import('./my-bookings/booking-details/booking-details.component').then(mod => mod.BookingDetailsComponent) },
   { path: 'cart', loadComponent: () => import('./cart/cart.component').then(mod => mod.CartComponent) },
   { path: 'checkout', loadComponent: () => import('./reservation-flow/reservation-flow.component').then(mod => mod.ReservationFlowComponent), canActivate: [CheckoutGuard, WaitingRoomGuard] },
-  { path: 'facility/:collectionId/:facilityType/:identifier', loadComponent: () => import('./facility-details/facility-details.component').then(mod => mod.FacilityDetailsComponent) },
+  { 
+    path: 'facility/:collectionId/:facilityType/:facilityId',
+    loadComponent: () => import('./facility-details/facility-details.component')
+      .then(mod => mod.FacilityDetailsComponent),
+    resolve: { facility: FacilityResolver },
+    runGuardsAndResolvers: 'always',
+  },
   { path: 'find-booking', loadComponent: () => import('./find-booking/find-booking.component').then(mod => mod.FindBookingComponent) },
   { path: 'login', loadComponent: () => import('./login/login.component').then(mod => mod.LoginComponent) },
   { path: 'my-bookings', loadComponent: () => import('./my-bookings/my-bookings.component').then(mod => mod.MyBookingsComponent), canActivate: [UserGuard], resolve: { user: UserResolver } },

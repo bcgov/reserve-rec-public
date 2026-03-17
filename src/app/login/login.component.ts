@@ -13,12 +13,19 @@ import { Router } from '@angular/router';
 })
 
 export class LoginComponent implements OnInit{
+  showAmplifyAuth = false;
+  authKey = Date.now();
+  initialState: 'signIn' | 'signUp' = 'signIn';
+  
   constructor(
     private authService: AuthService,
     private router: Router
   ) {}
   currentDate = '';
   ngOnInit() {
+    // Force authenticator reset by updating key
+    this.authKey = Date.now();
+    
     // If user is already authenticated, redirect to home
     if (this.authService.user()) {
       this.router.navigate(['/']);
@@ -40,7 +47,22 @@ export class LoginComponent implements OnInit{
   logCurrentDate() {
     console.log('Current Date:', this.currentDate);
   }
-   onLogin(provider: string) {
+  
+  onLogin(provider: string) {
     this.authService.loginWithProvider(provider);
-    }
+  }
+  
+  showBCParksLogin() {
+    this.initialState = 'signIn';
+    this.showAmplifyAuth = true;
+  }
+  
+  showBCParksSignUp() {
+    this.initialState = 'signUp';
+    this.showAmplifyAuth = true;
+  }
+  
+  goBack() {
+    this.showAmplifyAuth = false;
+  }
 }

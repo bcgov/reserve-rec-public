@@ -52,7 +52,7 @@
             ],
             "scripts": [
               "node_modules/@popperjs/core/dist/umd/popper.min.js",
-              "node_modules/@digitalspace/bcparks-bootstrap-theme/dist/js/bootstrap-theme.min.js"
+              "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
             ]
           },
           "configurations": {

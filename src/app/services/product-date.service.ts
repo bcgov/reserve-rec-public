@@ -4,7 +4,7 @@ import { ApiService } from './api.service';
 import { DataService } from './data.service';
 import { LoadingService } from './loading.service';
 import { LoggerService } from './logger.service';
-import { ToastService, ToastTypes } from './toast.service';
+import { ToastService } from './toast.service';
 import { Constants } from '../constants';
 
 @Injectable({

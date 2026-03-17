@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, EventEmitter, inject, Output } from '@ang
 import { DateTime } from 'luxon';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormsModule, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, UntypedFormGroup } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 import { ProductService } from '../services/product.service';
 import { ProductDateService } from '../services/product-date.service';
@@ -22,9 +22,9 @@ export class FacilityDetailsComponent {
   
   public form: UntypedFormGroup;
   public facilityOpen = true;
-  public passesAvailable: boolean = true;
-  public loadingProducts: boolean = false;
-  public loadingDates: boolean = false;
+  public passesAvailable = true;
+  public loadingProducts = false;
+  public loadingDates = false;
   
   public facility;
   
@@ -73,16 +73,16 @@ export class FacilityDetailsComponent {
 
   private initializeForm() {
     this.form = this.fb.group({
-      selectedActivity: [, {
+      selectedActivity: [null, {
         updateOn: 'blur'
       }],
-      selectedProduct: [, {
+      selectedProduct: [null, {
         updateOn: 'blur'
       }],
-      selectedDate: [, {
+      selectedDate: [null, {
         updateOn: 'blur'
       }],
-      selectedVisitors: [, {
+      selectedVisitors: [null, {
         updateOn: 'blur'
       }]
     }, {
@@ -152,7 +152,7 @@ export class FacilityDetailsComponent {
 
       // Convert this.availableDates to an object with sk: {availableDate}
       const availableDatesMap = {}
-      for (let date of dates) {
+      for (const date of dates) {
         availableDatesMap[date.sk] = date;
       }
 

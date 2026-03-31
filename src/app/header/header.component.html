@@ -1,29 +1,73 @@
-<nav class="navbar bg-primary">
-    <div class="container py-2 d-flex justify-content-between align-items-center">
+<nav aria-label="Main navigation" class="navbar navbar-expand-sm bg-primary py-3 fixed-top">
+    <div class="container">
         <a class="navbar-brand" href="">
             <img src="assets/images/BCParks_Primary_Reversed-cropped-0080416cb5f347c8e7c33f32739f17ca.svg"
-                alt="Bootstrap" height="45">
+                alt="BC Parks" height="45">
         </a>
-        <div class="d-flex align-items-center">
-            <button *ngIf="user" class="btn btn-outline-light square-btn me-2" (click)="cart()">Cart</button>
-            <!-- Account Dropdown -->
-            <div class="dropdown me-2">
-                <button class="btn btn-outline-light dropdown-toggle square-btn" type="button" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    {{ user && !user.sub.startsWith('guest') ? (user.given_name + ' ' + user.family_name) : 'Login' }}
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="accountDropdown">
-                    <li><a class="dropdown-item btn" routerLink="/account" *ngIf="user && !user.sub.startsWith('guest')">Account</a></li>
-                    <li><a class="dropdown-item btn" routerLink="/account-details" *ngIf="user && !user.sub.startsWith('guest')">Account details</a></li>
-                    <li><a class="dropdown-item btn" routerLink="/my-bookings" *ngIf="user && !user.sub.startsWith('guest')">My bookings</a></li>
-                    <li><a class="dropdown-item btn-link" (click)="logout()" *ngIf="user && !user.sub.startsWith('guest')">Log out</a></li>
 
-                    <li><a class="dropdown-item btn-link" routerLink="/login" *ngIf="!user || user.sub.startsWith('guest')">Log In</a></li>
-                    <li><a class="dropdown-item btn" routerLink="/find-booking" *ngIf="!user || user.sub.startsWith('guest')">Find booking</a></li>
-                </ul>
-            </div>
+        <!-- Hamburger only visible only when collapsed -->
+        <button
+            class="navbar-toggler border-0"
+            type="button"
+            aria-controls="navbarSupportedContent"
+            [attr.aria-expanded]="!hamburgerIcon"
+            aria-label="Toggle navigation"
+            (click)="toggleHamburger()"
+        >
+            <i [class]="'bi fa-2xl text-light'" [ngClass]="hamburgerIcon ? 'bi-list' : 'bi-x'"></i>
+        </button>
+
+        <!-- Full width menu -->
+        <div class="collapse navbar-collapse" id="navbarSupportedContentFull">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <ng-container *ngIf="user">
+                        <button
+                            class="account-btn btn dropdown-toggle text-light fw-bold"
+                            type="button"
+                            id="accountDropdown"
+                            data-bs-toggle="dropdown"
+                            [attr.aria-expanded]="!hamburgerIcon"
+                        >
+                            Account
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
+                            <li class="nav-item"><a class="dropdown-item p-3 text-primary" routerLink="/my-bookings">My bookings</a></li>
+                            <li class="nav-item"><a class="dropdown-item p-3 border-top border-info border-1 text-primary" routerLink="/account-details">Account settings</a></li>
+                            <button class="dropdown-item p-3 border-top border-info border-1 text-primary" (click)="logout()">Log out</button>
+                        </div>
+                    </ng-container>
+                    <ng-container *ngIf="!user">
+                        <li class="nav-item">
+                            <a class="account-btn btn text-primary bg-light fw-bold rounded-1" routerLink="/login">
+                                Log in
+                            </a>
+                        </li>
+                    </ng-container>
+                </li>
+            </ul>
         </div>
+    </div>
+    <!-- Hamburger submenu -->
+    <div 
+        class="hamburger-dropdown d-sm-none w-100" 
+        [ngClass]="{'show-menu': !hamburgerIcon}" 
+        id="navbarSupportedContent">
+        <ul class="navbar-nav ms-auto text-primary bg-light mt-3">
+            <li class="nav-item dropdown my-2">
+                <ng-container *ngIf="user">
+                    <li class="nav-item"><a class="dropdown-item p-3" routerLink="/my-bookings">My bookings</a></li>
+                    <li class="nav-item"><a class="dropdown-item p-3 border-top border-info border-1 text-primary" routerLink="/account-details">Account settings</a></li>
+                    <li class="nav-item"><a class="dropdown-item p-3 border-top border-info border-1 text-primary" (click)="logout()">Log out</a></li>
+                </ng-container>
+                <ng-container *ngIf="!user">
+                    <li class="nav-item"><a class="dropdown-item p-3" routerLink="/login">Log In</a></li>
+                </ng-container>
+            </li>
+        </ul>
     </div>
 </nav>
 <div *ngIf="showBanner" class="env-banner text-center bg-danger text-white py-2">
-    This is the <strong>{{ envName }}</strong> environment. The content you are viewing is not final and subject to change.
+    This is the <strong>{{ envName }}</strong> environment. The content you are viewing is not final and subject to
+    change.
 </div>

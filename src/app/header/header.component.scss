@@ -1,14 +1,44 @@
-.square-btn {
-    border-radius: 0; 
+.account-btn {
+    border: none;
 }
 
-
-.btn-outline-light {
-    color: #fff; 
-    border-color: #fff;
+// Show focus for account button, for accessibility
+.account-btn:focus {
+    border: 2px solid white;
 }
 
-.btn-outline-light:hover {
-    background-color: #fff;
-    color: #000;
+.hamburger-dropdown {
+    max-height: 0;
+    overflow: hidden;
+    // Show the menu collapse isn't jarring
+    transition: max-height 0.35s ease-out, opacity 0.3s ease;
+    opacity: 0;
+    margin-bottom: -16px;
+
+    &.show-menu {
+        max-height: 500px;
+        opacity: 1;
+    }
+}
+
+.env-banner {
+    margin-top: 84px;
+}
+
+// Ensure the desktop menu remains visible, fixes a conflict with
+// the mobile menu's functionality to close when clicking anywhere else
+@media (min-width: 576px) {
+    .navbar-collapse {
+        display: flex !important;
+        max-height: none !important;
+        opacity: 1 !important;
+    }
+}
+
+// Get full-width menu to be a bit bigger, and a bit to the left
+@media (min-width: 400px) {
+    .dropdown-menu {
+        width: 246px;
+        margin-left: -120px;
+    }
 }

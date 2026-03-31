@@ -1,10 +1,49 @@
 @use "../../assets/styles/index" as *;
 
-
 footer {
+    color: white;
+}
+
+.top-box {
+    background-color: #2464A4;
+    color: white;
+    position: relative; 
+    z-index: 2;
+    width: 90%;
+    max-width: 926px;
+}
+
+.top-box-content {
+    max-width: 600px;
+}
+
+.bottom-box {
     background-color: $primary-nav;
     color: white;
     position: relative;
+    z-index: 1;
+    margin-top: -60px;   
+    padding-top: 80px;   
+}
+
+.bottom-box-content {
+    width: 90%;
+    max-width: 1166px;
+}
+
+.footer-section-underline {
+  height: 1px;
+  border: none; 
+  opacity: 1;
+  background-color: #FCBA19;
+  max-width: 48px;
+}
+
+ul li {
+    // no bullet points
+    list-style-type: none;
+    margin-left: -2em;
+    margin-bottom: .75em;
 }
 
 a {
@@ -13,32 +52,14 @@ a {
 }
 
 a:hover {
-    color: $bcgold;
+    text-decoration: underline;
 }
-.gov-links {
-    font-size: 0.875rem;
-    line-height: 1rem;
-    list-style-type: none;
-    text-align: center;
-    margin: 0;
-    padding: 0;
 
-    li {
-        display: inline-block;
-
-        &:after {
-            position: relative;
-            top: -1px;
-            display: inline-block;
-            margin-left: 0.5rem;
-            margin-right: 0.25rem;
-            content: "|";
-        }
-
-        &:last-child {
-            &:after {
-                display: none;
-            }
-        }
+// I have decreed it that this is the best way to do this
+// and I will fight anyone who says otherwise
+@media (max-width: 767px) {
+    .top-box-content {
+        padding-left: 1.5em !important;
+        padding-right: 1.5em !important;
     }
 }

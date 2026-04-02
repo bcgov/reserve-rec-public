@@ -4,6 +4,7 @@ import { ActivityService } from './activity.service';
 import { ConfigService } from './config.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideToastr } from 'ngx-toastr';
 
 describe('ActivityService', () => {
   let service: ActivityService;
@@ -13,7 +14,8 @@ describe('ActivityService', () => {
       providers: [
         ConfigService,
         provideHttpClient(),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        provideToastr()
       ]
     });
     service = TestBed.inject(ActivityService);

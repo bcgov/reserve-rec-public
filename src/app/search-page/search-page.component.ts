@@ -1,4 +1,4 @@
-import { AfterViewChecked, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { AfterViewChecked, ChangeDetectorRef, Component, inject, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { SearchService } from '../services/search.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
@@ -8,6 +8,7 @@ import { NgdsFormsModule } from "@digitalspace/ngds-forms";
 @Component({
     selector: 'app-search-page',
     imports: [CommonModule, FormsModule, NgdsFormsModule],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
     templateUrl: './search-page.component.html',
     styleUrl: './search-page.component.scss'
 })

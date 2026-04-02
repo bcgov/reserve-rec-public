@@ -11,9 +11,34 @@
     margin: 0 auto;
 }
 
+.or-divider {
+    display: flex;
+    align-items: center;
+    width: 100%;
+
+    &::before,
+    &::after {
+        content: '';
+        flex: 1;
+        border-top: 1px solid #dee2e6;
+    }
+
+    span {
+        padding: 0 0.75rem;
+    }
+}
+
+.login-card {
+    background-color: #f5f5f5;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 2rem;
+}
+
 .login-choice-button {
     width: 100%;
     max-width: 100%;
+    font-weight: bold;
 }
 
 .custom-grid {

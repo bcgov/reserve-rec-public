@@ -3,18 +3,24 @@
     
     <!-- Login Selection Screen -->
     <div *ngIf="!showAmplifyAuth" class="login-selection-container text-center py-5">
-      <h1 class="mb-5">Login</h1>
-      <div class="d-flex flex-column align-items-center gap-3">
-        <button 
-          class="btn btn-primary btn-lg login-choice-button"
-          (click)="onLogin('bcsc')">
-          BC Services Card
-        </button>
-        <button 
-          class="btn btn-outline-primary btn-lg login-choice-button"
-          (click)="showBCParksLogin()">
-          BC Parks Account
-        </button>
+      <div class="login-card">
+        <h1 class="mb-4 text-start">Log in</h1>
+        <div class="d-flex flex-column align-items-center">
+          <button
+            class="btn btn-primary btn-lg login-choice-button"
+            (click)="onLogin('bcsc')">
+            BC Services Card account <i class="fas fa-arrow-up-right-from-square ms-2"></i>
+          </button>
+          <div class="or-divider my-2"><span class="text-muted">or</span></div>
+          <button
+            class="btn btn-outline-primary btn-lg login-choice-button"
+            (click)="showBCParksLogin()">
+            BC Parks account
+          </button>
+        </div>
+        <p class="text-start mt-3 mb-0">
+          Dont have an account? <a href="#" (click)="showBCParksSignUp(); $event.preventDefault()">Create an account</a>
+        </p>
       </div>
     </div>
 

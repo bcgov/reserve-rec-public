@@ -5,6 +5,7 @@ import { ApiService } from './api.service';
 import { DataService } from './data.service';
 import { LoadingService } from './loading.service';
 import { LoggerService } from './logger.service';
+import { ToastService, ToastTypes } from './toast.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +16,8 @@ export class ActivityService {
     private dataService: DataService,
     private loggerService: LoggerService,
     private apiService: ApiService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private toastService: ToastService
   ) { }
 
   async getActivity(collectionId: string, activityType: string, activityId: string, fetchGeozone = false, startDate?: string) {
@@ -41,6 +43,18 @@ export class ActivityService {
     } catch (error) {
       this.loadingService.removeFromFetchList(Constants.dataIds.ACTIVITY_DETAILS_RESULT);
       this.loggerService.error(error);
+      const errorMessage = 
+        (error as any)?.error?.msg ||
+        (error as any)?.error?.error ||
+        (error as any)?.error?.Message ||
+        (error as any)?.message ||
+        'Unknown error';
+      this.toastService.addMessage(
+        errorMessage,
+        `Product failed to get`,
+        ToastTypes.ERROR
+      );
+      return null;
     }
   }
 }

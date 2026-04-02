@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { AfterViewChecked, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { SearchService } from '../services/search.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
@@ -11,7 +11,7 @@ import { NgdsFormsModule } from "@digitalspace/ngds-forms";
     templateUrl: './search-page.component.html',
     styleUrl: './search-page.component.scss'
 })
-export class SearchPageComponent implements OnInit {
+export class SearchPageComponent implements OnInit, AfterViewChecked {
   private searchService = inject(SearchService);
   searchBox = '';
   isAccordionOpen = false;
@@ -20,38 +20,63 @@ export class SearchPageComponent implements OnInit {
 
   public options = [
     {
-      value: 'Garibaldi ',
-      display: 'Garibaldi Provincial Park'
+      value: '/facility/bcparks_7/accessPoint/1',
+      display: 'Garibaldi Provincial Park - Rubble Creek'
     },
     {
-      value: 'Golden Ears',
-      display: 'Golden Ears Provincial Park'
+      value: '/facility/bcparks_7/accessPoint/2',
+      display: 'Garibaldi Provincial Park - Cheakamus'
     },
     {
-      value: 'Joffre Lake',
-      display: 'Joffre Lake Provincial Park'
+      value: '/facility/bcparks_7/accessPoint/3',
+      display: 'Garibaldi Provincial Park - Diamond Head'
+    },
+    {
+      value: '/facility/bcparks_8/accessPoint/1',
+      display: 'Golden Ears Provincial Park - Alouette Lake Boat Launch'
+    },
+    {
+      value: '/facility/bcparks_8/accessPoint/2',
+      display: 'Golden Ears Provincial Park - Alouette Lake South Beach Day-Use Area'
+    },
+    {
+      value: '/facility/bcparks_8/accessPoint/3',
+      display: 'Golden Ears Provincial Park - West Canyon Trailhead'
+    },
+    {
+      value: '/facility/bcparks_8/accessPoint/4',
+      display: 'Golden Ears Provincial Park - Gold Creek'
+    },
+    {
+      value: '/facility/bcparks_363/accessPoint/1',
+      display: 'Joffre Lakes Provincial Park - Joffre Lakes'
     },
   ];
 
   constructor(
     private router: Router,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
     this.form = new UntypedFormGroup({
-      search: new UntypedFormControl('')
+      facilitySelect: new UntypedFormControl('')
     });
     this.form.valueChanges.subscribe((value) => {
       if (value) {
-        this.search();
+        this.redirect();
       }
     });
   }
 
-  search(): void {
-    const query = this.form.get('search')?.value;
-    if (query) {
-      this.router.navigate(['/results'], { queryParams: { search: query } });
+  ngAfterViewChecked(): void {
+    this.cdr.detectChanges();
+  }
+
+  redirect(): void {
+    const facility = this.form.get('facilitySelect')?.value;
+    if (facility) {
+      this.router.navigate([facility]);
     }
   }
 

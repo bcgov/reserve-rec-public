@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, EventEmitter, inject, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, inject, OnDestroy, Output } from '@angular/core';
 import { DateTime } from 'luxon';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -17,7 +17,7 @@ import { ToastService, ToastTypes } from '../services/toast.service';
   templateUrl: './facility-details.component.html',
   styleUrl: './facility-details.component.scss'
 })
-export class FacilityDetailsComponent {
+export class FacilityDetailsComponent implements OnDestroy {
   @Output() formValue: EventEmitter<any> = new EventEmitter<any>();
   
   public form: UntypedFormGroup;
@@ -244,5 +244,15 @@ export class FacilityDetailsComponent {
       window.scrollTo(0, 0);
       this.cdr.detectChanges();
     });
+  }
+
+  goBack() {
+    this.router.navigate(['/']).then(() => {
+      this.cdr.detectChanges();
+    });
+  }
+
+  ngOnDestroy() {
+    this.cdr.detectChanges();
   }
 }

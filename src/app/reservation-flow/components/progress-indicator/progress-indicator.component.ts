@@ -29,7 +29,7 @@ export class ProgressIndicatorComponent {
   }
 
   // Payment step is not included in the 3-step flow
-  isPaymentStep(stepIndex: number): boolean {
+  isPaymentStep(): boolean {
     return false; // No payment step in current flow
   }
 
@@ -47,11 +47,11 @@ export class ProgressIndicatorComponent {
     return 'bg-secondary text-white';
   }
 
-  getStepTitle(step: StepConfig, index: number): string {
+  getStepTitle(step: StepConfig): string {
     return step.title;
   }
 
-  getStepDescription(step: StepConfig, index: number): string | null {
+  getStepDescription(step: StepConfig): string | null {
     return step.description || null;
   }
 

@@ -24,7 +24,7 @@ export class VisitorDetailsStepComponent implements OnInit {
   @Output() stepCompleted = new EventEmitter<boolean>();
   @Output() stepValidated = new EventEmitter<boolean>();
   
-  smsOptIn: boolean = false;
+  smsOptIn = false;
   
   constructor(private stepperService: StepperService) {}
   

@@ -2,7 +2,7 @@
 
 	<!-- Breadcrumb -->
 	<nav aria-label="breadcrumb" class="my-4">
-		<ol class="breadcrumb">
+		<ol class="breadcrumb bg-white">
 			<li class="breadcrumb-item"><a routerLink="/">Home</a></li>
 			<li class="breadcrumb-item active" aria-current="page">{{ facility?.displayName }}</li>
 		</ol>
@@ -21,7 +21,7 @@
 
 			<!-- Tags -->
 			<div class="mb-3">
-				<span class="badge text-dark border border-1 rounded-1 border-primary fw-normal p-2 mb-3">Day-use pass
+				<span class="badge text-black border border-1 rounded-1 border-primary fw-normal bg-tertiary p-2 mb-3">Day-use pass
 					required</span>
 			</div>
 
@@ -55,7 +55,7 @@
 
 	<!-- Park information -->
 	<section class="row mb-5">
-		<div class="col-lg-8 mx-auto">
+		<div class="col-12 mx-auto">
 			<h2 class="text-primary">Park information</h2>
 			<hr class="section-underline mb-5">
 			<p class="mb-4">{{ facility?.description}}</p>
@@ -64,7 +64,7 @@
 					[href]="facilityUrl()"
 					target="_blank"
 					rel="noopener noreferrer"
-					class="btn btn-outline-primary fw-bold rounded-1 px-3"
+					class="btn btn-outline-primary col-lg-auto col-12 fw-bold rounded-1 px-4"
 				>
 					View park page
 				</a>
@@ -103,76 +103,110 @@
 	</section>
 
 	<!-- Request your pass -->
-	<section class="row mt-4" id="request-a-pass">
-		<div class="col-lg-8 mx-auto bg-primary rounded-1 px-5 pt-3 pb-4">
-			<h4 class="text-white mb-3 pt-3">Request your pass</h4>
-			<div class="row g-3 align-items-end mb-3">
-				<div class="col-md-6">
-					<ngds-picklist-input
-						[class]="'text-white rounded-1'"
-						[control]="this.form.get('selectedActivity')"
-						[selectionListItems]="availableActivities"
-						[label]="'Activity'"
-						[placeholder]="'Choose an activity'"
-						></ngds-picklist-input>
-				</div>
-				<div class="col-md-6">
-					<ngds-picklist-input
-						[class]="'text-white rounded-1'"
-						[control]="this.form.get('selectedProduct')"
-						[selectionListItems]="availableProducts"
-						[label]="'Pass type'"
-						[placeholder]="loadingProducts ? 'Loading...' : 'Choose a pass type'"
-						[disabled]="!this.form.get('selectedActivity').value || this.availableProducts.length === 0 || loadingProducts"
-					></ngds-picklist-input>
-				</div>
-			</div>
-			<div class="row g-3 align-items-end" *ngIf="this.form.get('selectedProduct').value && this.facilityOpen">
-				<div class="col-md-6">
-						<ngds-date-input
+	 <section class="container">
+		<div class="row mt-4" id="request-a-pass">
+			<div class="col-lg-8 mx-auto bg-primary rounded-1 px-5 pt-3 pb-4">
+				<h4 class="text-white mb-3 pt-3">Request your pass</h4>
+				<div class="row g-3 align-items-end mb-3">
+					<div class="col-md-6">
+						<ngds-picklist-input
 							[class]="'text-white rounded-1'"
-							[control]="this.form.get('selectedDate')"
-							[label]="'Date of visit'"
-							[placeholder]="loadingDates ? 'Loading...' : 'Select a date'"
-							[dateFormat]="'yyyy-LL-dd'"
-							[dateDisplayFormat]="'EEEE, LLLL d, yyyy'"
-							[dateRange]="false"
-							[hideInvalidState]="true"
-							[minDate]="startDate"
-							[maxDate]="endDate"
-							[disabled]="!this.form.get('selectedProduct').value || this.availableProducts.length === 0 || loadingDates"
-							>
-						<i
-							ngdsInputPrepend
-							class="me-1 ms-3 fa-solid fa-calendar text-black-50"
-						></i>
-					</ngds-date-input>
-				</div>
-				<div class="col-md-6">
-					<ngds-picklist-input
-						[class]="'text-white rounded-1'"
-						[control]="this.form.get('selectedVisitors')"
-						[selectionListItems]="availableVisitorsAllowed"
-						[label]="'Number of passes'"
-						[placeholder]="passesAvailable ? 'Number of passes' : 'Unavailable'"
-						[disabled]="!this.form.get('selectedProduct').value || this.availableProducts.length === 0 || !passesAvailable"
+							[control]="this.form.get('selectedActivity')"
+							[selectionListItems]="availableActivities"
+							[label]="'Activity'"
+							[placeholder]="'Choose an activity'"
+							[disabled]="availableActivities.length === 0"
+							></ngds-picklist-input>
+					</div>
+					<div class="col-md-6">
+						<ngds-picklist-input
+							[class]="'text-white rounded-1'"
+							[control]="this.form.get('selectedProduct')"
+							[selectionListItems]="availableProducts"
+							[label]="'Pass type'"
+							[placeholder]="loadingProducts ? 'Loading...' : 'Select a pass type'"
+							[disabled]="!this.form.get('selectedActivity').value || this.availableProducts.length === 0 || loadingProducts"
 						></ngds-picklist-input>
+					</div>
 				</div>
-			</div>
-			<div class="row mt-5 mb-3">
-				<div class="col-12">
-					<button
-						*ngIf="facilityOpen"
-						class="disable-btn btn bg-white text-primary fw-bold rounded-1 px-4 w-100"
-						[disabled]="!this.form.get('selectedVisitors').value || !this.form.get('selectedDate').value || !this.form.get('selectedProduct').value || !this.passesAvailable"
-						(click)="submit()"
-					>
-						{{ passesAvailable ? "Book day-use pass" : "No passes available" }}
-					</button>
+				<div class="row g-3 align-items-end" *ngIf="this.form.get('selectedProduct').value && this.facilityOpen">
+					<div class="col-md-6">
+							<ngds-date-input
+								[class]="'text-white rounded-1'"
+								[control]="this.form.get('selectedDate')"
+								[label]="'Date of visit'"
+								[placeholder]="loadingDates ? 'Loading...' : 'Select a date'"
+								[dateFormat]="'yyyy-LL-dd'"
+								[dateDisplayFormat]="'EEEE, LLLL d, yyyy'"
+								[dateRange]="false"
+								[hideInvalidState]="true"
+								[minDate]="startDate"
+								[maxDate]="endDate"
+								[disabled]="!this.form.get('selectedProduct').value || this.availableProducts.length === 0 || loadingDates"
+								>
+							<i
+								ngdsInputPrepend
+								class="me-1 ms-3 fa-solid fa-calendar text-black-50"
+							></i>
+						</ngds-date-input>
+					</div>
+					<div class="col-md-6">
+						<ngds-picklist-input
+							[class]="'text-white rounded-1'"
+							[control]="this.form.get('selectedVisitors')"
+							[selectionListItems]="availableVisitorsAllowed"
+							[label]="'Number of passes'"
+							[placeholder]="passesAvailable ? 'Number of passes' : 'Unavailable'"
+							[disabled]="!this.form.get('selectedProduct').value || this.availableProducts.length === 0 || !passesAvailable"
+							></ngds-picklist-input>
+					</div>
+				</div>
+				<div class="row mt-4 mb-2">
+					<div class="col-12 mt-3">
+						<button
+							*ngIf="facilityOpen && emailVerified"
+							class="disable-btn btn bg-white text-primary fw-bold rounded-1 px-4 w-100"
+							[disabled]="!this.form.get('selectedVisitors').value || !this.form.get('selectedDate').value || !this.form.get('selectedProduct').value || !this.passesAvailable"
+							(click)="submit()"
+						>
+							{{ passesAvailable ? "Book day-use pass" : "No passes available" }}
+						</button>
 
-					<div class="alert alert-danger pb-3" role="alert"  *ngIf="!facilityOpen">
-						<i class="fa-regular fa-circle-exclamation text-danger mx-2"></i>
-						<strong>This facility is closed.</strong>
+						<div 
+							*ngIf="!facilityOpen"
+							class="alert alert-danger p-3 d-flex align-items-start custom-alert"
+							role="alert"
+						>
+							<div class="me-3" style="margin-top: 2px;">
+								<i class="fa-regular fa-circle-exclamation text-danger fs-5"></i>
+							</div>
+							<div class="d-flex flex-column flex-grow-1">
+								<div class="mb-1">
+									<strong>This facility is closed.</strong>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div
+					*ngIf="emailVerificationLoaded && !emailVerified"
+					class="row mt-3 mb-3"
+				>
+					<div class="col-12">
+						<div class="alert alert-danger p-4 d-flex align-items-start custom-alert" role="alert">
+							<div class="me-3" style="margin-top: 2px;">
+								<i class="fa-regular fa-circle-exclamation text-danger fs-5"></i>
+							</div>
+							<div class="d-flex flex-column flex-grow-1">
+								<div class="mb-1">
+									<strong>You will not be able to book a day-use pass until your email has been verified.</strong>
+									<p class="mb-0 mt-1">Please check your inbox for the verification e-mail or select the button below to resend.</p>
+								</div>
+								<div class="d-flex justify-content-end mt-3">
+									<button class="btn btn-primary btn-dark-blue px-4 py-2" (click)="resendVerification()">Resend verification</button>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>

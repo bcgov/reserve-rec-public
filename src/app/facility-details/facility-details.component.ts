@@ -9,6 +9,7 @@ import { ProductDateService } from '../services/product-date.service';
 import { Constants } from '../constants';
 import { CartService, CartItem } from '../services/cart.service';
 import { ToastService, ToastTypes } from '../services/toast.service';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-facility-details',
@@ -19,6 +20,9 @@ import { ToastService, ToastTypes } from '../services/toast.service';
 })
 export class FacilityDetailsComponent implements OnDestroy {
   @Output() formValue: EventEmitter<any> = new EventEmitter<any>();
+
+  public emailVerified = false;
+  public emailVerificationLoaded = false;
   
   public form: UntypedFormGroup;
   public facilityOpen = true;
@@ -53,7 +57,8 @@ export class FacilityDetailsComponent implements OnDestroy {
     private router: Router,
     private cdr: ChangeDetectorRef,
     private productService: ProductService,
-    private productDateService: ProductDateService
+    private productDateService: ProductDateService,
+    private authService: AuthService
   ) {
     this.facility = this.route.snapshot.data['facility'];
     this.relatedActivities = this.facility?.activities || []
@@ -69,6 +74,10 @@ export class FacilityDetailsComponent implements OnDestroy {
     });
 
     this.initializeForm();
+  }
+
+  async ngOnInit() {
+      await this.checkUserEmailVerification();
   }
 
   private initializeForm() {
@@ -200,7 +209,7 @@ export class FacilityDetailsComponent implements OnDestroy {
     });
 
   }
-  
+
   // Get the correct icon for the activity type using Constants.activityTypes
   getIcon(activityType, activitySubType) {
     return Constants.activityTypes[activityType]?.subTypes[activitySubType]?.iconClass || 'fa-solid fa-person-hiking';
@@ -246,10 +255,25 @@ export class FacilityDetailsComponent implements OnDestroy {
     });
   }
 
+  // Method to navigate back to the previous page
   goBack() {
     this.router.navigate(['/']).then(() => {
       this.cdr.detectChanges();
     });
+  }
+
+  // Method to check if the user's email is verified
+  async checkUserEmailVerification() {
+    this.emailVerificationLoaded = false;
+    this.emailVerified = await this.authService.checkEmailVerification();
+    this.emailVerificationLoaded = true;
+    this.cdr.detectChanges();
+  }
+
+  // Method to resend the verification code to the user's email
+  resendVerification() {
+    this.authService.handleResendAttributeCodeToEmail();
+    this.toastService.addMessage('Verification code resent. Please check your email.', 'Verification Sent', ToastTypes.SUCCESS);
   }
 
   ngOnDestroy() {

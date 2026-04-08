@@ -2,23 +2,27 @@ import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
+import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
 import { StepperService } from '../../../services/stepper.service';
 import { CartItem } from '../../../../services/cart.service';
+import { PROVINCES_STATES } from '../../../../data/provinces-states.data';
 
 @Component({
-  selector: 'app-equipment-step-4',
+  selector: 'app-equipment-step',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, NgdsFormsModule],
-  templateUrl: './equipment-step-4.component.html',
-  styleUrl: './equipment-step-4.component.scss'
+  imports: [CommonModule, ReactiveFormsModule, NgdsFormsModule, TypeaheadModule],
+  templateUrl: './equipment-step.component.html',
+  styleUrl: './equipment-step.component.scss'
 })
-export class EquipmentStep4Component implements OnInit {
+export class EquipmentStepComponent implements OnInit {
   @Input() form: FormGroup | null = null;
   @Input() cartItem: CartItem | null = null;
   @Input() bookingSummary: any = null;
   
   @Output() stepCompleted = new EventEmitter<boolean>();
   @Output() stepValidated = new EventEmitter<boolean>();
+  
+  provincesStates: string[] = PROVINCES_STATES;
   
   constructor(private stepperService: StepperService) {}
   
@@ -69,15 +73,15 @@ export class EquipmentStep4Component implements OnInit {
   
   validateStep(): void {
     const isValid = this.isStepValid();
-    this.stepperService.markStepValid(3, isValid);
+    this.stepperService.markStepValid(2, isValid);
     this.stepValidated.emit(isValid);
   }
   
   goToNext(): void {
+    
     if (this.isStepValid()) {
-      this.cartItem.step4Completed = true;
+      this.cartItem.equipmentStepCompleted = true;
       this.stepCompleted.emit(true);
-      this.stepperService.goNext();
     }
   }
   

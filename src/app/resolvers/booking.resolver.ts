@@ -8,7 +8,7 @@ export class BookingResolver implements Resolve<any> {
 
   resolve(route: ActivatedRouteSnapshot) {
     const globalId = route.paramMap.get('bookingId');
-    const booking = this.bookingService.getBookingByGlobalId(globalId, true); // Replace with actual global ID
+    const booking = this.bookingService.getBookingByGlobalId(globalId, false); // Don't fetch optional access points
     return booking; // Assuming getBookingByGlobalId returns an observable
   }
 }

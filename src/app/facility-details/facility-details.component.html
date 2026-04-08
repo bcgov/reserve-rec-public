@@ -47,7 +47,9 @@
 			</div>
 
 			<!-- Hero image -->
-			<div class="hero-section text-white text-center py-5 mb-5"
+			<div 
+				*ngIf="facility?.imageUrl"
+				class="hero-section text-white text-center py-5 mb-5"
 				[ngStyle]="{'background-image': 'url(' + facility?.imageUrl + ')', 'background-size': 'cover', 'background-position': 'center'}">
 			</div>
 		</div>
@@ -58,7 +60,7 @@
 		<div class="col-12 mx-auto">
 			<h2 class="text-primary">Park information</h2>
 			<hr class="section-underline mb-5">
-			<p class="mb-4">{{ facility?.description}}</p>
+			<p class="mb-4">{{ facility?.description }}</p>
 			<div class="mt-2">
 				<a
 					[href]="facilityUrl()"
@@ -73,7 +75,7 @@
 	</section>
 
 	<!-- Park and facility operating dates -->
-	<section class="row mt-4 mb-4">
+	<section class="row mt-4 mb-4" *ngIf="relatedActivities && relatedActivities.length > 0">
 		<div class="col-lg-8 mx-auto">
 			<h3 class="section-heading mb-4">Park and facility operating dates</h3>
 

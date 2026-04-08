@@ -1,0 +1,88 @@
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-10 col-12">
+      <h2 class="text-dark fw-bold mb-3">{{ cartItem?.geoZoneName }}</h2>
+      <hr class="border-2 mb-4">
+
+      <!-- Visitor Details Card -->
+      <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">Visitor Details</h4>
+        </div>
+        <div class="card-body">
+          <!-- Explanation Text -->
+          <div class="alert alert-info mb-4">
+            <p class="mb-2">Day-use passes can only be redeemed by the account holder that booked the reservation.</p>
+            <p class="mb-0">We will use the following information from your account in this booking:</p>
+          </div>
+
+          <!-- Account Information -->
+          <div class="border rounded p-4 bg-light mb-4">
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <strong>Name</strong>
+                <p class="mb-0">{{ user?.given_name || 'N/A' }} {{ user?.family_name || '' }}</p>
+              </div>
+              <div class="col-md-4">
+                <strong>Email Address</strong>
+                <p class="mb-0">{{ user?.email || 'N/A' }}</p>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4">
+                <strong>Home Address</strong>
+                <p class="mb-0">{{ user['custom:streetAddress'] || 'N/A' }}</p>
+                <p class="mb-0">{{ user['custom:city'] }}, {{ user['custom:province'] || '' }}</p>
+                <p class="mb-0">{{ user['custom:postalCode'] }}</p>
+                <p class="mb-0">{{ user['custom:country'] }}</p>
+              </div>
+              <div class="col-md-4">
+                <strong>Phone Number</strong>
+                <p class="mb-0">Mobile: {{ user['custom:mobilePhone'] || 'N/A' }}</p>
+                <p class="mb-0">Secondary: {{ user['custom:secondaryNumber'] || 'N/A' }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Text Message Reminders -->
+          <div class="border rounded p-4 bg-white">
+            <h5 class="mb-3">Text Message Reminders Opt-in</h5>
+            <div class="form-check">
+              <input 
+                class="form-check-input" 
+                type="checkbox" 
+                id="smsReminders"
+                [(ngModel)]="smsOptIn"
+                (change)="onSmsOptInChange()"
+              >
+              <label class="form-check-label" for="smsReminders">
+                I would like to receive reminders via text message
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="d-flex justify-content-between border-top pt-3 mt-5">
+        <button 
+          type="button" 
+          class="btn btn-outline-primary mb-3"
+          (click)="goToPrevious()"
+        >
+          <i class="fa-solid fa-chevron-left me-2"></i>
+          Back
+        </button>
+
+        <button 
+          type="button" 
+          class="btn btn-primary mb-3"
+          (click)="goToNext()"
+        >
+          Continue
+          <i class="fa-solid fa-chevron-right ms-2"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

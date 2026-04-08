@@ -8,13 +8,13 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 @Component({
-  selector: 'app-confirm-details-step-1',
+  selector: 'app-confirm-details-step',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, NgdsFormsModule],
-  templateUrl: './confirm-details-step-1.component.html',
-  styleUrl: './confirm-details-step-1.component.scss',
+  templateUrl: './confirm-details-step.component.html',
+  styleUrl: './confirm-details-step.component.scss',
 })
-export class ConfirmDetailsStep1Component implements OnInit, OnChanges, OnDestroy {
+export class ConfirmDetailsStepComponent implements OnInit, OnChanges, OnDestroy {
   @Input() form: FormGroup | null = null;
   @Input() cartItem: CartItem | null = null;
   @Input() bookingSummary: any = null;
@@ -22,14 +22,12 @@ export class ConfirmDetailsStep1Component implements OnInit, OnChanges, OnDestro
   @Output() stepCompleted = new EventEmitter<boolean>();
   @Output() stepValidated = new EventEmitter<boolean>();
   
-  public accessPointsSelectionList: any[] = [];
   private formSubscription: Subscription | null = null;
   
   constructor(private router: Router, private stepperService: StepperService) {}
   
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['cartItem']) {
-      this.loadAccessPoints();
       this.validateStep();
     }
     if (changes['form'] && !changes['form'].firstChange) {
@@ -38,7 +36,7 @@ export class ConfirmDetailsStep1Component implements OnInit, OnChanges, OnDestro
   }
   
   ngOnInit(): void { 
-    this.loadAccessPoints();
+    this.validateStep();
     this.setupFormValidation();
   }
   
@@ -62,15 +60,6 @@ export class ConfirmDetailsStep1Component implements OnInit, OnChanges, OnDestro
       this.formSubscription = null;
     }
   }
-  
-  private loadAccessPoints(): void {
-    // Mock access points - replace with actual service call
-    this.accessPointsSelectionList = [
-      { pk: 'facility::bcparks_9398', sk: 'accessPoint::1', value: 'Main Trailhead' },
-      { pk: 'facility::bcparks_9398', sk: 'accessPoint::2', value: 'North Access Point' },
-      { pk: 'facility::bcparks_9398', sk: 'accessPoint::3', value: 'South Access Point' }
-    ];
-  }
 
   get totalOccupants(): number {
     if (!this.cartItem?.occupants) return 0;
@@ -87,25 +76,26 @@ export class ConfirmDetailsStep1Component implements OnInit, OnChanges, OnDestro
   }
   
   validateStep(): void {
-    if (!this.form || !this.cartItem) {
+    if (!this.cartItem) {
       this.stepperService.markStepValid(0, false);
       this.stepValidated.emit(false);
-      this.cartItem.step1Completed = false;
+      if (this.cartItem) {
+        this.cartItem.detailsStepCompleted = false;
+      }
       return;
     }
       
-    const entryPoint = this.form.get('entryPoint')?.value;
-    const exitPoint = this.form.get('exitPoint')?.value;
+    // Check if user has acknowledged the booking details
+    const acknowledgeDetails = this.form?.get('acknowledgeDetails')?.value;
+    const isValid = !!acknowledgeDetails;
       
-    const isValid = !!(entryPoint && exitPoint);
-      
-    this.cartItem.step1Completed = isValid;
+    this.cartItem.detailsStepCompleted = isValid;
     this.stepperService.markStepValid(0, isValid);
     this.stepValidated.emit(isValid);
   }
   
   goToNext(): void {
-    if (this.cartItem?.step1Completed) {
+    if (this.cartItem?.detailsStepCompleted) {
       this.stepCompleted.emit(true);
       this.stepperService.goNext();
     }

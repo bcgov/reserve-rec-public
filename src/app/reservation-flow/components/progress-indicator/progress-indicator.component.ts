@@ -24,24 +24,17 @@ export class ProgressIndicatorComponent {
   get overallProgressPercentage(): number {
     if (this.totalItems <= 1) return 0;
     const completedItems = this.currentItemIndex;
-    const currentItemProgress = this.currentStepIndex / 5; 
+    const currentItemProgress = this.currentStepIndex / 3; // Changed from 5 to 3 steps
     return Math.round(((completedItems + currentItemProgress) / this.totalItems) * 100);
   }
 
+  // Payment step is not included in the 3-step flow
   isPaymentStep(stepIndex: number): boolean {
-    return stepIndex === 4; 
+    return false; // No payment step in current flow
   }
 
   canAccessPayment(): boolean {
-    const currentItem = this.queueItems[this.currentItemIndex];
-    if (!currentItem) return false;
-
-    return (
-      currentItem.step1Completed &&
-      currentItem.step2Completed &&
-      currentItem.step3Completed &&
-      currentItem.step4Completed
-    );
+    return false; // No payment step in current flow
   }
 
   getStepClasses(step: StepConfig): string {
@@ -51,20 +44,15 @@ export class ProgressIndicatorComponent {
   getStepBadgeClasses(step: StepConfig, index: number): string {
     if (this.isStepCompletedForCurrentItem(step, index)) return 'bg-success text-white';
     if (step.isActive) return 'bg-primary text-white';
-    if (this.isPaymentStep(index)) return 'bg-warning text-dark';
     return 'bg-secondary text-white';
   }
 
   getStepTitle(step: StepConfig, index: number): string {
-    return this.isPaymentStep(index) && this.totalItems > 1
-      ? 'Payment (All Items)'
-      : step.title;
+    return step.title;
   }
 
   getStepDescription(step: StepConfig, index: number): string | null {
-    return this.isPaymentStep(index) && this.totalItems > 1
-      ? `Pay for ${this.totalItems} items`
-      : step.description || null;
+    return step.description || null;
   }
 
   getQueueItemBadgeClasses(index: number): string {
@@ -82,9 +70,6 @@ export class ProgressIndicatorComponent {
   }
 
   onStepClick(stepIndex: number): void {
-    if (this.isPaymentStep(stepIndex) && !this.canAccessPayment()) {
-      return;
-    }
     this.stepperService.goToStep(stepIndex);
   }
 
@@ -96,12 +81,11 @@ export class ProgressIndicatorComponent {
     const currentItem = this.queueItems[this.currentItemIndex];
     if (!currentItem) return false;
 
+    // Updated to 3 steps (removed step2 - policy review, step5 - payment)
     const stepCompletionMap = [
-      currentItem.step1Completed,
-      currentItem.step2Completed,
-      currentItem.step3Completed,
-      currentItem.step4Completed,
-      currentItem.step5Completed,
+      currentItem.detailsStepCompleted,  // Step 1: Details
+      currentItem.visitorDetailsStepCompleted,  // Step 2: Visitor Details
+      currentItem.equipmentStepCompleted,  // Step 3: Equipment
     ];
 
     return stepCompletionMap[stepIndex] || false;

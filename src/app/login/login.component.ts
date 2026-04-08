@@ -24,9 +24,7 @@ export class LoginComponent implements OnInit{
   currentDate = '';
   ngOnInit() {
     // Force authenticator reset by updating key
-    this.authKey = Date.now();
-    
-    // If user is already authenticated, redirect to home
+    this.authKey = Date.now();    // If user is already authenticated, redirect to home
     if (this.authService.user()) {
       this.router.navigate(['/']);
       return;
@@ -56,7 +54,7 @@ export class LoginComponent implements OnInit{
     this.initialState = 'signIn';
     this.showAmplifyAuth = true;
   }
-  
+
   showBCParksSignUp() {
     this.initialState = 'signUp';
     this.showAmplifyAuth = true;

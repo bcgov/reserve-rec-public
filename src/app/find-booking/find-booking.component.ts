@@ -53,7 +53,7 @@ export class FindBookingComponent implements OnInit, AfterContentChecked, OnDest
       const bookingData = await this.bookingService.getBookingByGlobalIdAndEmail(
         bookingRef,
         email,
-        true
+        false // Don't fetch optional access points
       );
 
       const bookingId = (bookingData as any)?.data.bookingId;

@@ -20,7 +20,7 @@ export class AuthService {
   async init() {
     console.log('this.configService.config:', this.configService.config);
     if (this.configService.config.ENVIRONMENT === 'local' || !this.configService.config['COGNITO_REDIRECT_URI']) {
-      this.redirectValues = 'http://localhost:4200';
+      this.redirectValues = 'http://localhost:4300';
     } else {
       this.redirectValues = this.configService.config['COGNITO_REDIRECT_URI'];
     }

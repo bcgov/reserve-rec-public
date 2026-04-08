@@ -7,6 +7,8 @@ export interface CartItem {
   activityName: string;
   collectionId: string;
   activityType: string;
+  productId?: string;
+  quantity?: number;
   dateRange: [string, string];
   startDate: string;
   endDate: string;
@@ -22,10 +24,10 @@ export interface CartItem {
     tax: number;
     total: number;
   };
-  step1Completed: boolean;
-  step2Completed: boolean;
-  step3Completed: boolean;
-  step4Completed: boolean;
+  detailsStepCompleted: boolean;
+  visitorDetailsStepCompleted: boolean;
+  equipmentStepCompleted: boolean;
+  paymentStepCompleted: boolean;
   areAllStepsCompleted: boolean;
   entryPoint?: { pk: string; sk: string };
   exitPoint?: { pk: string; sk: string };

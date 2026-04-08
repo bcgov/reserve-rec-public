@@ -13,17 +13,19 @@ import { Constants } from '../../../../constants';
 import { lastValueFrom } from 'rxjs';
 
 @Component({
-  selector: 'app-payment-step-5',
+  selector: 'app-payment-step',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, NgdsFormsModule],
-  templateUrl: './payment-step-5.component.html',
-  styleUrl: './payment-step-5.component.scss'
+  templateUrl: './payment-step.component.html',
+  styleUrl: './payment-step.component.scss'
 })
-export class PaymentStep5Component implements OnInit {
+export class PaymentStepComponent implements OnInit {
   @Input() form: FormGroup | null = null;
   @Input() cartItem: CartItem | null = null; // Added: cart-based input
   @Input() bookingSummary: any = null; // Added: booking summary
   @Input() user: any = null; // Added: user information
+  @Input() bookingId: string | null = null; // Booking ID from parent (created before payment)
+  @Input() sessionId: string | null = null; // Session ID from booking creation
   
   @Output() stepCompleted = new EventEmitter<boolean>();
   @Output() stepValidated = new EventEmitter<boolean>();
@@ -60,57 +62,17 @@ export class PaymentStep5Component implements OnInit {
   
   validateStep(): void {
     const isValid = this.isStepValid();
-    this.stepperService.markStepValid(4, isValid); // Step 4 (0-indexed)
+    this.stepperService.markStepValid(3, isValid); // Step 3 (0-indexed) - payment is 4th step
     this.stepValidated.emit(isValid);
+    
+    // Mark step as completed in cart item
+    if (this.cartItem && isValid) {
+      this.cartItem.paymentStepCompleted = true;
+    }
   }
   
   async processPayment(): Promise<void> {
-  if (!this.isStepValid() || this.isProcessingPayment) return;
-  
-  this.isProcessingPayment = true;
-
-  try {
-    const submissionValue = this.formatFormForSubmission();
-    
-    const booking = await this.bookingService.createBooking(
-      submissionValue, 
-      this.cartItem.collectionId, 
-      this.cartItem.activityType, 
-      this.cartItem.activityId, 
-      submissionValue.startDate
-    );
-    
-    const bookingId = booking?.booking?.[0]?.data?.globalId || null;
-    const sessionId = booking?.booking?.[0]?.data?.sessionId || null;
-    
-    if (bookingId && sessionId) {
-      // This will redirect the user to the payment gateway
-      await this.initiateTransaction(bookingId, sessionId, this.form.get('primaryOccupant.email').value || this.user?.email || '');
-    } else {
-      throw new Error('Booking creation failed, no booking ID returned.');
-    }
-
-  } catch (error: any) {
-    if (error?.waitingRoom && this.cartItem) {
-      // Admission expired or invalidated — send user back to the waiting room
-      const params = new URLSearchParams({
-        collectionId: this.cartItem.collectionId,
-        activityType: this.cartItem.activityType,
-        activityId: this.cartItem.activityId,
-        startDate: this.cartItem.startDate,
-        returnUrl: '/checkout',
-      });
-      window.location.href = `/waitingroom.html?${params.toString()}`;
-      return;
-    }
-    console.error('Error creating booking:', error);
-    alert(`There was an error creating your booking. Please try again later.`);
-    this.isProcessingPayment = false;
-  }
-}
-
-  formatFormForSubmission() {
-    const formValue = this.form.value;
+  const formValue = this.form.value;
 
     const bookedAt = new Date().toISOString();
     const formattedValue = {
@@ -139,8 +101,103 @@ export class PaymentStep5Component implements OnInit {
       },
       rateClass: 'standard', // Todo - update to reflect activity rate class
       namedOccupant: this.getNamedOccupantInformation(),
-      vehicleInformation: formValue?.vehicleInfo || [],
-      equipmentInformation: formValue?.additionalEquipment || '',
+      smsOptIn: Boolean(formValue?.smsOptIn),
+      vehicleInformation: this.getVehicleInformation(formValue),
+      equipmentInformation: formValue?.equipmentDetails || formValue?.additionalEquipment || '',
+      bookingStatus: 'confirmed',
+      location: formValue?.entryPoint?.location ? formValue.entryPoint?.location : { type: "point", coordinates: [-127.86704491749371, 50.85383286629616] } // Todo - update to reflect actual location
+    };
+
+    console.log('Formatted Submission Value:', formattedValue);
+
+  
+    if (!this.isStepValid() || this.isProcessingPayment) return;
+  
+    this.isProcessingPayment = true;
+
+    try {
+      const submissionValue = this.formatFormForSubmission();
+    
+      const booking = await this.bookingService.createBooking(
+        submissionValue, 
+        this.cartItem.collectionId, 
+        this.cartItem.activityType, 
+        this.cartItem.activityId, 
+        submissionValue.startDate
+      );
+    
+      const bookingId = booking?.bookingId || booking?.globalId || booking?.booking?.[0]?.data?.globalId || null;
+      const sessionId = booking?.sessionId || booking?.booking?.[0]?.data?.sessionId || null;
+    
+      if (bookingId && sessionId) {
+        // This will redirect the user to the payment gateway
+        await this.initiateTransaction(bookingId, sessionId, this.form.get('primaryOccupant.email').value || this.user?.email || '');
+      } else {
+        throw new Error('Booking creation failed, no booking ID returned.');
+      }
+    } catch (error: any) {
+    if (error?.waitingRoom && this.cartItem) {
+      // Admission expired or invalidated — send user back to the waiting room
+      const params = new URLSearchParams({
+        collectionId: this.cartItem.collectionId,
+        activityType: this.cartItem.activityType,
+        activityId: this.cartItem.activityId,
+        startDate: this.cartItem.startDate,
+        returnUrl: '/checkout',
+      });
+      window.location.href = `/waitingroom.html?${params.toString()}`;
+      return;
+    }
+    
+    // Handle reservation policy validation errors (400)
+    if (error?.status === 400) {
+      const errorMessage = error?.error?.message || 'Your booking request could not be completed. Please check the booking details and try again.';
+      console.error('Booking validation error:', errorMessage);
+      alert(`Booking Error: ${errorMessage}`);
+      this.isProcessingPayment = false;
+      return;
+    }
+    
+    console.error('Error creating booking:', error);
+    alert(`There was an error creating your booking. Please try again later.`);
+    this.isProcessingPayment = false;
+  }
+}
+
+  formatFormForSubmission() {
+    const formValue = this.form.value;
+
+    const bookedAt = new Date().toISOString();
+    const formattedValue = {
+      startDate: formValue.dateRange[0],
+      endDate: formValue.dateRange[1],
+      productId: this.cartItem?.productId || null,
+      entryPoint: this.getFormattedAccessPointKey(formValue?.entryPoint),
+      exitPoint: this.getFormattedAccessPointKey(formValue?.exitPoint),
+      displayName: this.cartItem?.activityName || '',
+      timezone: 'America/Vancouver', // Todo - update to reflect activity timezone
+      bookedAt: bookedAt,
+      collectionId: this.cartItem?.collectionId || '',
+      activityId: this.cartItem?.activityId || '',
+      activityType: this.cartItem?.activityType || '',
+      feeInformation: {
+        registrationFees: 0, // Todo - update to reflect registration fees
+        transactionFees: 0, // Todo - update to reflect transaction fees
+        tax: this.getTaxes() || 0, // Todo - update to reflect tax calculation
+        total: this.getTotalCost(),
+      },
+      userId: this.user?.sub ? this.user.sub : 'guest',
+      partyInformation: {
+        adult: parseInt(formValue.occupants.totalAdult) || 0,
+        senior: parseInt(formValue.occupants.totalSenior) || 0,
+        youth: parseInt(formValue.occupants.totalYouth) || 0,
+        child: parseInt(formValue.occupants.totalChild) || 0,
+      },
+      rateClass: 'standard', // Todo - update to reflect activity rate class
+      namedOccupant: this.getNamedOccupantInformation(),
+      smsOptIn: Boolean(formValue?.smsOptIn),
+      vehicleInformation: this.getVehicleInformation(formValue),
+      equipmentInformation: formValue?.equipmentDetails || formValue?.additionalEquipment || '',
       bookingStatus: 'confirmed',
       location: formValue?.entryPoint?.location ? formValue.entryPoint?.location : { type: "point", coordinates: [-127.86704491749371, 50.85383286629616] } // Todo - update to reflect actual location
     };
@@ -170,12 +227,13 @@ export class PaymentStep5Component implements OnInit {
 
   getNamedOccupantInformation() {
     const userIsOccupant = this.form.get('userIsPrimaryOccupant').value;
+    const accountMobilePhone = this.user?.['custom:mobilePhone'] || this.user?.phone_number || '';
     const obj = {
       firstName: userIsOccupant ? this.user?.given_name || '' : this.form.get('primaryOccupant.firstName').value,
       lastName: userIsOccupant ? this.user?.family_name || '' : this.form.get('primaryOccupant.lastName').value,
       contactInfo: {
         email: userIsOccupant ? this.user?.email || '' : this.form.get('primaryOccupant.email').value,
-        mobilePhone: userIsOccupant ? this.user?.phone_number || '' : this.form.get('primaryOccupant.phoneNumber').value,
+        mobilePhone: userIsOccupant ? accountMobilePhone : this.form.get('primaryOccupant.phoneNumber').value,
         streetAddress: userIsOccupant ? this.user?.address?.streetAddress || '' : this.form.get('addressInfo.streetAddress').value,
         unitNumber: userIsOccupant ? this.user?.address?.unitNumber || '' : this.form.get('addressInfo.unitNumber').value,
         postalCode: userIsOccupant ? this.user?.address?.postalCode || '' : this.form.get('addressInfo.postalCode').value,
@@ -191,6 +249,23 @@ export class PaymentStep5Component implements OnInit {
       }
     }
     return obj;
+  }
+
+  private getVehicleInformation(formValue: any): any[] {
+    const equipmentInfo = formValue?.equipmentInfo || {};
+    const licensePlate = (equipmentInfo?.licensePlate || '').trim();
+    const registeredProvince = (equipmentInfo?.registeredProvince || '').trim();
+
+    if (!licensePlate && !registeredProvince) {
+      return [];
+    }
+
+    return [
+      {
+        licensePlate,
+        licensePlateRegistrationRegion: registeredProvince
+      }
+    ];
   }
 
   getTotalCost(): number {

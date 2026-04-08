@@ -5,14 +5,15 @@ import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../services/auth.service';
 import { CartService, CartItem } from '../services/cart.service';
+import { BookingService } from '../services/booking.service';
 import { StepperService } from './services/stepper.service';
 import { ProgressIndicatorComponent } from './components/progress-indicator/progress-indicator.component';
-import { ConfirmDetailsStep1Component } from './components/steps/confirm-details-step-1/confirm-details-step-1.component';
-import { PolicyReviewStep2Component } from './components/steps/policy-review-step-2/policy-review-step-2.component';
-import { CampingPartyStep3Component } from './components/steps/camping-party-step-3/camping-party-step-3.component';
-import { EquipmentStep4Component } from './components/steps/equipment-step-4/equipment-step-4.component';
-import { PaymentStep5Component } from './components/steps/payment-step-5/payment-step-5.component';
+import { ConfirmDetailsStepComponent } from './components/steps/confirm-details-step/confirm-details-step.component';
+import { VisitorDetailsStepComponent } from './components/steps/visitor-details-step/visitor-details-step.component';
+import { EquipmentStepComponent } from './components/steps/equipment-step/equipment-step.component';
+import { PaymentStepComponent } from './components/steps/payment-step/payment-step.component';
 import { AdmissionCountdownComponent } from '../components/admission-countdown/admission-countdown.component';
+import { FeatureFlagService } from '../services/feature-flag.service';
 
 @Component({
   selector: 'app-reservation-flow',
@@ -20,11 +21,10 @@ import { AdmissionCountdownComponent } from '../components/admission-countdown/a
     CommonModule,
     NgdsFormsModule,
     ProgressIndicatorComponent,
-    ConfirmDetailsStep1Component,
-    PolicyReviewStep2Component,
-    CampingPartyStep3Component,
-    EquipmentStep4Component,
-    PaymentStep5Component,
+    ConfirmDetailsStepComponent,
+    VisitorDetailsStepComponent,
+    EquipmentStepComponent,
+    PaymentStepComponent,
     AdmissionCountdownComponent,
     RouterModule
   ],
@@ -33,27 +33,16 @@ import { AdmissionCountdownComponent } from '../components/admission-countdown/a
 })
 export class ReservationFlowComponent implements OnInit, AfterContentChecked, OnDestroy {
 
-  cartItems: CartItem[] = []; 
-  currentCartItemIndex = 0; 
-  completedItemsData: any[] = []; 
+  cartItems: CartItem[] = [];
   public user: any = null;
   public form: UntypedFormGroup;
-
   public accessPointsSelectionList: any[] = [];
+  public currentBookingId: string | null = null;
+  public currentSessionId: string | null = null;
 
   get cartItem(): CartItem | null {
-    return this.cartItems[this.currentCartItemIndex] || null;
+    return this.cartItems[0] || null;
   }
-  
-  get isLastCartItem(): boolean {
-    return this.currentCartItemIndex === this.cartItems.length - 1;
-  }
-  
-  get totalCartItems(): number {
-    return this.cartItems.length;
-  }
-
-
 
   // Booking summary for stepper components
   public bookingSummary: any = {
@@ -74,7 +63,9 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
     public router: Router,
     public stepperService: StepperService,
     private cartService: CartService,
-    private authService: AuthService
+    private authService: AuthService,
+    private bookingService: BookingService,
+    private featureFlagService: FeatureFlagService
   ) {
     this.user = this.authService.getCurrentUser();
   }
@@ -84,15 +75,22 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
     this.initializeForCurrentItem();
   }
 
-
   private loadCartItems(): void {
-    // Load all the items from the cart service
     this.cartItems = this.cartService.items();
-    
+
     if (this.cartItems.length === 0) {
       this.router.navigate(['/']);
       return;
     }
+
+    // Reset completion status for all cart items when entering the flow
+    this.cartItems.forEach(item => {
+      item.detailsStepCompleted = false;
+      item.visitorDetailsStepCompleted = false;
+      item.equipmentStepCompleted = false;
+      item.paymentStepCompleted = false;
+      item.areAllStepsCompleted = false;
+    });
   }
 
   private initializeForCurrentItem(): void {
@@ -100,9 +98,8 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
     this.initializeFromCart(this.cartItem);
     this.loadAccessPointsForCurrentItem();
     this.updateBookingSummary();
-    if (this.currentCartItemIndex > 0) {
-      this.stepperService.goToStep(0);
-    }
+    // Always start at step 0 for single-item flow
+    this.stepperService.goToStep(0);
   }
 
   private async loadAccessPointsForCurrentItem(): Promise<void> {
@@ -128,9 +125,11 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
     // Create form from cart data
 
     this.form = new UntypedFormGroup({
+      acknowledgeDetails: new UntypedFormControl(false, [Validators.requiredTrue]),
       entryPoint: new UntypedFormControl(null),
       exitPoint: new UntypedFormControl(null),
       acknowledgePolicies: new UntypedFormControl(false, [Validators.requiredTrue]),
+      smsOptIn: new UntypedFormControl(false, { nonNullable: true }),
       
       dateRange: new UntypedFormControl([cartItem.startDate, cartItem.endDate], { nonNullable: true }),
       occupants: new UntypedFormGroup({
@@ -172,11 +171,17 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
  private checkAllStepsCompleted(): void {
   if (!this.cartItem) return;
 
-  const item = this.cartItems[this.currentCartItemIndex];
-  const allStepsCompleted = item.step1Completed && 
-                          item.step2Completed && 
-                          item.step3Completed && 
-                          item.step4Completed;
+  const item = this.cartItems[0];
+  
+  // Check base steps (Details, Visitor Details, Equipment)
+  let allStepsCompleted = item.detailsStepCompleted && 
+                          item.visitorDetailsStepCompleted && 
+                          item.equipmentStepCompleted;
+  
+  // If payment is enabled, also check payment step completion
+  if (this.featureFlagService.isEnabled('enablePayments')) {
+    allStepsCompleted = allStepsCompleted && item.paymentStepCompleted;
+  }
 
 
   this.cartService.updateCartItem(item.id, {
@@ -187,10 +192,14 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
   
 }
 
-onStepCompleted(completed: boolean): void {
+async onStepCompleted(completed: boolean): Promise<void> {
   if (!completed) return;
+  const formValue = this.form?.value || {};
   
   const currentStep = this.stepperService.currentStepIndex();
+  const isOnFinalStep = !this.stepperService.canGoNext();
+  const paymentsEnabled = this.featureFlagService.isEnabled('enablePayments');
+  
   
   if (this.cartItem?.id) {
     this.saveCurrentFormState(this.cartItem.id);
@@ -198,41 +207,192 @@ onStepCompleted(completed: boolean): void {
   
   this.checkAllStepsCompleted();
 
+  // Special handling for equipment step (step 2, 0-indexed)
+  // This is where we create the booking for both payment enabled/disabled scenarios
+  if (currentStep === 2 && this.cartItem) { 
+    try {
+      // Create booking for the cart item
+      const bookingResponse = await this.createBookingForItem(this.cartItem);
+      
+      const bookingId = bookingResponse?.bookingId || bookingResponse?.globalId || bookingResponse?.booking?.[0]?.data?.globalId;
+      const sessionId = bookingResponse?.sessionId || bookingResponse?.booking?.[0]?.data?.sessionId;
 
-    if (currentStep === 3) {
-      if (this.isLastCartItem) {
-        this.stepperService.goNext();
+      if (bookingId && sessionId) {
+        
+        this.currentBookingId = bookingId;
+        this.currentSessionId = sessionId;
+        
+        console.log('✅ Booking created successfully:', {
+          bookingId,
+          sessionId
+        });
       } else {
-        this.moveToNextCartItem();
+        throw new Error('Booking creation failed - no booking data returned');
       }
+      
+      const totalDue = Number(this.cartItem?.feeInformation?.total ?? 0);
+
+      // If payments are disabled (or nothing is owed), navigate directly to confirmation
+      if (!paymentsEnabled || totalDue <= 0) {
+        console.log('💰 Payments disabled - finalizing booking before confirmation');
+        if (!this.currentBookingId || !this.currentSessionId) {
+          throw new Error('Missing booking/session IDs for completion');
+        }
+        const completionPayload = this.getCompletionPayload(formValue, this.currentSessionId);
+        await this.bookingService.completeBooking(this.currentBookingId, completionPayload);
+        if (this.currentBookingId) {
+          window.location.assign(`/booking-confirmation/${this.currentBookingId}`);
+        }
+        return;
+      }
+      
+      // If payments are enabled, the stepper will advance to payment step
+      // The payment step will use this.currentBookingId and this.currentSessionId
+      const movedToPayment = this.stepperService.goNext();
+      if (!movedToPayment) {
+        // Fallback to target payment step index if current validation state blocks goNext.
+        this.stepperService.goToStep(3);
+      }
+      this.changeDetectorRef.detectChanges();
+      
+    } catch (error: any) {
+      console.error('❌ Booking creation failed:', error);
+      console.error('❌ Error details:', {
+        status: error?.status,
+        statusText: error?.statusText,
+        message: error?.error?.message,
+        error: error?.error,
+        fullError: error
+      });
+      
+      // Handle waiting room redirect
+      if (error?.waitingRoom && this.cartItem) {
+        const params = new URLSearchParams({
+          collectionId: this.cartItem.collectionId,
+          activityType: this.cartItem.activityType,
+          activityId: this.cartItem.activityId,
+          startDate: this.cartItem.startDate,
+          returnUrl: '/checkout',
+        });
+        window.location.href = `/waitingroom.html?${params.toString()}`;
+        return;
+      }
+      
+      // Handle validation errors
+      if (error?.status === 400) {
+        const errorMessage = error?.error?.message || 'Your booking request could not be completed. Please check the booking details and try again.';
+        alert(`Booking Error: ${errorMessage}`);
+        return;
+      }
+      
+      alert('There was an error creating your booking. Please try again later.');
+      return;
+    }
+  }
+
+  // If we're on the final step (payment step when payments enabled)
+  if (isOnFinalStep && paymentsEnabled) {
+    console.log('📍 On payment step (final step). Payment should redirect to gateway.');
+    // The payment step handles its own redirect to payment gateway
+    // After payment returns, transaction-status component handles navigation to confirmation
     this.changeDetectorRef.detectChanges();
   }
 }
-private saveCurrentItemData(): void {
-    const itemData = {
-      cartItemIndex: this.currentCartItemIndex,
-      cartItem: this.cartItem,
-      formData: this.form?.value,
-      completedAt: new Date().toISOString()
-    };
-    
-    this.completedItemsData[this.currentCartItemIndex] = itemData;
-    
-  }
-
-  private moveToNextCartItem(): void {
-    this.currentCartItemIndex++;
-    this.initializeForCurrentItem();
-  }
 
   onStepValidated(isValid: boolean): void {
     if(isValid) {
       this.changeDetectorRef.detectChanges();
     }
   }
+  async createBookingForItem(item: CartItem): Promise<any> {
+    const formValue = this.form?.value;
+    if (!formValue) {
+      throw new Error('Form data not available');
+    }
 
-  processPayment(): void {
- //payment later direct to bambora
+    const bookingData = {
+      startDate: item.startDate,
+      endDate: item.endDate,
+      productId: item.productId || null,
+      quantity: item.quantity || 1,
+      entryPoint: formValue.entryPoint || null,
+      exitPoint: formValue.exitPoint || null,
+      displayName: item.activityName,
+      timezone: 'America/Vancouver',
+      bookedAt: new Date().toISOString(),
+      collectionId: item.collectionId,
+      activityId: item.activityId,
+      activityType: item.activityType,
+      feeInformation: item.feeInformation,
+      userId: this.user?.sub || 'guest',
+      partyInformation: {
+        adult: item.occupants.totalAdult,
+        senior: item.occupants.totalSenior,
+        youth: item.occupants.totalYouth,
+        child: item.occupants.totalChild,
+      },
+      rateClass: 'standard',
+      namedOccupant: this.getNamedOccupantInfo(formValue),
+      smsOptIn: Boolean(formValue?.smsOptIn),
+      vehicleInformation: this.getVehicleInformation(formValue),
+      equipmentInformation: formValue?.equipmentDetails || formValue?.additionalEquipment || '',
+      bookingStatus: 'confirmed',
+      location: { type: 'point', coordinates: [-127.86704491749371, 50.85383286629616] }
+    };
+
+    console.log('Creating booking:', bookingData);
+
+    return await this.bookingService.createBooking(
+      bookingData,
+      item.collectionId,
+      item.activityType,
+      item.activityId,
+      item.startDate
+    );
+  }
+
+  private getNamedOccupantInfo(formValue: any): any {
+    const userIsOccupant = formValue.userIsPrimaryOccupant;
+    const accountMobilePhone = this.user?.['custom:mobilePhone'] || this.user?.phone_number || '';
+    return {
+      firstName: userIsOccupant ? this.user?.given_name || '' : formValue.primaryOccupant?.firstName || '',
+      lastName: userIsOccupant ? this.user?.family_name || '' : formValue.primaryOccupant?.lastName || '',
+      contactInfo: {
+        email: userIsOccupant ? this.user?.email || '' : formValue.primaryOccupant?.email || '',
+        mobilePhone: userIsOccupant ? accountMobilePhone : formValue.primaryOccupant?.phoneNumber || '',
+        streetAddress: formValue.addressInfo?.streetAddress || '',
+        city: formValue.addressInfo?.city || '',
+        postalCode: formValue.addressInfo?.postalCode || '',
+        province: formValue.addressInfo?.province || '',
+        country: formValue.addressInfo?.country || ''
+      }
+    };
+  }
+
+  private getVehicleInformation(formValue: any): any[] {
+    const equipmentInfo = formValue?.equipmentInfo || {};
+    const licensePlate = (equipmentInfo?.licensePlate || '').trim();
+    const registeredProvince = (equipmentInfo?.registeredProvince || '').trim();
+
+    if (!licensePlate && !registeredProvince) {
+      return [];
+    }
+
+    return [
+      {
+        licensePlate,
+        licensePlateRegistrationRegion: registeredProvince
+      }
+    ];
+  }
+
+  private getCompletionPayload(formValue: any, sessionId: string | null): any {
+    return {
+      sessionId: sessionId,
+      namedOccupant: this.getNamedOccupantInfo(formValue),
+      vehicleInformation: this.getVehicleInformation(formValue),
+      equipmentInformation: formValue?.equipmentDetails || formValue?.additionalEquipment || ''
+    };
   }
 
   completeReservation(): void {
@@ -252,35 +412,7 @@ private saveCurrentItemData(): void {
   ngOnDestroy(): void {
     this.stepperService.reset();
     this.changeDetectorRef.detach();
-  }
-
-
-onItemSwitched(newIndex: number): void {
-  if (newIndex < 0 || newIndex >= this.cartItems.length) {
-    return;
-  }
-  
-  if (newIndex === this.currentCartItemIndex) {
-    return;
-  }
-
-  if (this.form && this.cartItem?.id) {
-    this.saveCurrentFormState(this.cartItem.id);
-    this.saveCurrentItemData(); 
-  }
-  this.currentCartItemIndex = newIndex;
-  this.initializeForCurrentItem();
-
-  if (this.cartItem?.id) {
-    const savedState = this.loadFormStateForItem(this.cartItem.id);
-    if (savedState) {
-      this.form.patchValue(savedState);
     }
-  }
-
-  // Force change detection because without it everything sucks
-  this.changeDetectorRef.detectChanges();
-}
 
 private formStates = new Map<string | number, any>();
 

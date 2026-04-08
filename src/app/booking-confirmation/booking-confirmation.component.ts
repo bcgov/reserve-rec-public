@@ -58,13 +58,13 @@ export class BookingConfirmationComponent implements OnInit {
   async loadBooking(): Promise<void> {
     try {
       this.loadingService.addToFetchList(Constants.dataIds.BOOKING_DETAILS_RESULT);
-      // Fetch booking from API
-      const bookingData: any = await this.bookingService.getBookingByGlobalId(this.bookingId!, true);
-      this.booking = bookingData;
+      // Fetch booking from API (don't fetch access points since they're optional)
+      const bookingData: any = await this.bookingService.getBookingByGlobalId(this.bookingId!, false);
+      this.booking = bookingData?.data || bookingData;
 
       // Extract QR code if available
-      if (bookingData?.qrCode?.dataUrl) {
-        this.qrCodeDataUrl = bookingData.qrCode.dataUrl;
+      if (this.booking?.qrCode?.dataUrl) {
+        this.qrCodeDataUrl = this.booking.qrCode.dataUrl;
       }
 
       console.log('Booking data:', this.booking);
@@ -78,23 +78,23 @@ export class BookingConfirmationComponent implements OnInit {
   }
 
   getBookingNumber(): string {
-    return this.booking?.bookingId || this.queryParams['ref1'] || 'N/A';
+    return this.booking?.bookingId || this.booking?.globalId || this.queryParams['ref1'] || 'N/A';
   }
 
   getEmail(): string {
-    return this.booking?.data?.namedOccupant?.contactInfo?.email || this.queryParams['ref3'] || 'N/A';
+    return this.booking?.namedOccupant?.contactInfo?.email || this.queryParams['ref3'] || 'N/A';
   }
 
   getArrivalDate(): string {
-    return this.booking?.data?.startDate || 'N/A';
+    return this.booking?.startDate || 'N/A';
   }
 
   getDepartureDate(): string {
-    return this.booking?.data?.endDate || 'N/A';
+    return this.booking?.endDate || 'N/A';
   }
 
   getAreaName(): string {
-    return this.booking?.data?.displayName || 'N/A';
+    return this.booking?.displayName || 'N/A';
   }
 
   getCampsite(): string {
@@ -102,45 +102,79 @@ export class BookingConfirmationComponent implements OnInit {
   }
 
   getPartySize(): number {
-    if (!this.booking?.data?.partyInformation) return 0;
-    const party = this.booking.data.partyInformation;
+    const party = this.booking?.partyContext || this.booking?.partyInformation;
+    if (!party) return 0;
     return (party.adult || 0) + (party.senior || 0) + (party.youth || 0) + (party.child || 0);
   }
 
   getNights(): number {
-    if (!this.booking?.data?.startDate || !this.booking?.data?.endDate) return 0;
-    const start = new Date(this.booking.data.startDate);
-    const end = new Date(this.booking.data.endDate);
+    if (!this.booking?.startDate || !this.booking?.endDate) return 0;
+    const start = new Date(this.booking.startDate);
+    const end = new Date(this.booking.endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
 
   getEntryPoint(): string {
     // Try to get text from entryPoint object or just return the value
-    if (this.booking?.data?.entryPoint) {
-      if (typeof this.booking.data.entryPoint === 'object') {
-        return this.booking.data.entryPoint.text || this.booking.data.entryPoint.sk || 'Not specified';
+    if (this.booking?.entryPoint) {
+      if (typeof this.booking.entryPoint === 'object') {
+        return this.booking.entryPoint.text || this.booking.entryPoint.sk || 'Not specified';
       }
-      return this.booking.data.entryPoint;
+      return this.booking.entryPoint;
     }
     return 'Not specified';
   }
 
   getExitPoint(): string {
     // Try to get text from exitPoint object or just return the value
-    if (this.booking?.data?.exitPoint) {
-      if (typeof this.booking.data.exitPoint === 'object') {
-        return this.booking.data.exitPoint.text || this.booking.data.exitPoint.sk || 'Not specified';
+    if (this.booking?.exitPoint) {
+      if (typeof this.booking.exitPoint === 'object') {
+        return this.booking.exitPoint.text || this.booking.exitPoint.sk || 'Not specified';
       }
-      return this.booking.data.exitPoint;
+      return this.booking.exitPoint;
     }
     return 'Not specified';
   }
 
   getBookingType(): string {
-    return 'Backcountry';
+    const activityType = this.booking?.activityType;
+    if (!activityType) {
+      return 'Day use';
+    }
+    if (activityType.toLowerCase() === 'dayuse') {
+      return 'Day use';
+    }
+    return activityType;
   }
 
+  getPassCount(): number {
+    if (typeof this.booking?.quantity === 'number') {
+      return this.booking.quantity;
+    }
+    return this.getPartySize();
+  }
+
+  getNamedOccupant(): string {
+    const firstName = this.booking?.namedOccupant?.firstName || '';
+    const lastName = this.booking?.namedOccupant?.lastName || '';
+    const fullName = `${firstName} ${lastName}`.trim();
+    return fullName || 'Not provided';
+  }
+
+  getLicensePlate(): string {
+    const firstVehicle = Array.isArray(this.booking?.vehicleInformation)
+      ? this.booking.vehicleInformation[0]
+      : null;
+    return firstVehicle?.licensePlate || 'Not provided';
+  }
+
+  getLicensePlateRegistrationRegion(): string {
+    const firstVehicle = Array.isArray(this.booking?.vehicleInformation)
+      ? this.booking.vehicleInformation[0]
+      : null;
+    return firstVehicle?.licensePlateRegistrationRegion || '';
+  }
   viewConfirmationLetter(): void {
     // TODO: Implement confirmation letter generation
     console.log('View confirmation letter');
@@ -197,7 +231,7 @@ export class BookingConfirmationComponent implements OnInit {
   viewBooking(): void {
     // Navigate to booking details
     if (this.bookingId) {
-      this.router.navigate(['/my-bookings']);
+      this.router.navigate(['/booking', this.bookingId]);
     }
   }
 

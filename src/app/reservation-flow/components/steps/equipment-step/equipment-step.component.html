@@ -14,7 +14,7 @@
           <div class="row">
             <div class="col-md-6">
               <ngds-text-input
-                label="License Plate Number"
+                label="Plate Number"
                 [control]="form?.get('equipmentInfo')?.get('licensePlate')"
                 placeholder="Enter license plate number"
               >
@@ -24,51 +24,40 @@
               </ngds-text-input>
             </div>
             <div class="col-md-6">
-              <ngds-text-input
-                label="Province/State/Country"
-                [control]="form?.get('equipmentInfo')?.get('registeredProvince')"
-                placeholder="e.g., BC, California, Ontario, etc."
-              >
-                <div ngdsInputPrepend>
-                  <i class="fa-solid fa-map-location-dot ms-3"></i>
-                </div>
-              </ngds-text-input>
-            </div>
-          </div>
-        </div>
-
-        <!-- Horizontal Divider -->
-        <hr class="border-2 my-4">
-
-        <!-- Equipment Section -->
-        <div class="equipment-section">
-          <h4>Equipment (Optional)</h4>
-          <p class="text-muted">This information helps search and rescue teams find you in an emergency.</p>
-          <div class="row">
-            <div class="col-12">
               <div class="mb-3">
-                <label for="equipmentDetails" class="form-label">Equipment Details</label>
-                <textarea
-                  id="equipmentDetails"
-                  class="form-control"
-                  [formControl]="$any(form?.get('equipmentDetails'))"
-                  placeholder="Example: I will bring..."
-                  rows="4"
-                ></textarea>
+                <label for="registeredProvince" class="form-label">Province/State/Other</label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                  </span>
+                  <input
+                    id="registeredProvince"
+                    type="text"
+                    class="form-control"
+                    placeholder="Start typing to search..."
+                    [formControl]="$any(form?.get('equipmentInfo')?.get('registeredProvince'))"
+                    [typeahead]="provincesStates"
+                    [typeaheadOptionsLimit]="5"
+                    [typeaheadMinLength]="0"
+                  />
+                </div>
+                <small class="form-text text-muted">Select or type your province/state/other</small>
               </div>
             </div>
           </div>
         </div>
 
+      
+
         <!-- Navigation Buttons -->
         <div class="d-flex justify-content-between border-top pt-3 mt-5">
           <button
             type="button"
-            class="btn btn-link mb-3 border-0 bg-transparent"
+            class="btn btn-outline-primary mb-3"
             (click)="goToPrevious()"
           >
-            <i class="fa fa-arrow-circle-left" aria-hidden="true"></i>
-            Previous
+            <i class="fa-solid fa-chevron-left me-2"></i>
+            Back
           </button>
           <button
             type="button"
@@ -76,7 +65,7 @@
             [disabled]="!isStepValid()"
             (click)="goToNext()"
           >
-            Next
+            Continue
             <i class="fa-solid fa-chevron-right ms-2"></i>
           </button>
         </div>

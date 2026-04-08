@@ -7,9 +7,10 @@
 }
 
 .hero-section {
-  height: 384px;
+  min-height: 200px;
   display: flex;
   align-items: center;
+  background-repeat: no-repeat;
 }
 
 .passes-required {

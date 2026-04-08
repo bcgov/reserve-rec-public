@@ -6,6 +6,7 @@ import { FormBuilder, FormsModule, UntypedFormGroup } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 import { ProductService } from '../services/product.service';
 import { ProductDateService } from '../services/product-date.service';
+import { BookingService } from '../services/booking.service';
 import { Constants } from '../constants';
 import { CartService, CartItem } from '../services/cart.service';
 import { ToastService, ToastTypes } from '../services/toast.service';
@@ -50,6 +51,7 @@ export class FacilityDetailsComponent implements OnDestroy {
 
   private cartService = inject(CartService);
   private toastService = inject(ToastService);
+  private bookingService = inject(BookingService);
 
   constructor(
     private route: ActivatedRoute,
@@ -177,8 +179,8 @@ export class FacilityDetailsComponent implements OnDestroy {
       const minInv = resContext?.minDailyInventory;
       const maxInv = resContext?.maxDailyInventory;
       const reservationWindow = resContext?.temporalWindows?.reservationWindow;
-      const reservationWindowOpen = DateTime.fromISO(reservationWindow?.open);
-      const reservationWindowClose = DateTime.fromISO(reservationWindow?.close);
+      const reservationWindowOpen = this.parseDateTimeValue(reservationWindow?.open);
+      const reservationWindowClose = this.parseDateTimeValue(reservationWindow?.close);
       const currentDateTime = DateTime.now();
 
       // Not reservable, show no passes available right away
@@ -188,7 +190,7 @@ export class FacilityDetailsComponent implements OnDestroy {
         return;
       } else {
         // Check if today is within the reservation window
-        if (currentDateTime >= reservationWindowOpen && currentDateTime <= reservationWindowClose) {
+        if (reservationWindowOpen?.isValid && reservationWindowClose?.isValid && currentDateTime >= reservationWindowOpen && currentDateTime <= reservationWindowClose) {
           this.passesAvailable = true;
         } else {
           this.passesAvailable = false;
@@ -210,6 +212,23 @@ export class FacilityDetailsComponent implements OnDestroy {
 
   }
 
+  private parseDateTimeValue(value: unknown): DateTime {
+    if (typeof value === 'number') {
+      return DateTime.fromMillis(value);
+    }
+
+    if (typeof value === 'string') {
+      if (/^\d+$/.test(value)) {
+        return DateTime.fromMillis(Number(value));
+      }
+
+      return DateTime.fromISO(value);
+    }
+
+    return DateTime.invalid('Invalid temporal window value');
+  }
+
+
   // Get the correct icon for the activity type using Constants.activityTypes
   getIcon(activityType, activitySubType) {
     return Constants.activityTypes[activityType]?.subTypes[activitySubType]?.iconClass || 'fa-solid fa-person-hiking';
@@ -223,15 +242,31 @@ export class FacilityDetailsComponent implements OnDestroy {
     return 'https://bcparks.ca/find-a-park/';
   }
 
-  submit(): void {
+  async submit(): Promise<void> {
     const date = this.form.get('selectedDate').value;
     const visitors = Number(this.form.get('selectedVisitors').value);
+    const selectedProductValue = this.form.get('selectedProduct').value;
+    
+    // Extract productId from the selected product (format: "product::collectionId::activityType::activityId#productId")
+    let productId = null;
+    if (selectedProductValue) {
+      const sk = selectedProductValue.split('#')[1];
+      productId = sk || null;
+    }
 
+    if (!productId) {
+      this.toastService.addMessage('Please select a pass type', 'Error', ToastTypes.ERROR);
+      return;
+    }
+
+    // Add to cart - validation will happen when booking is created
     const cartItem: CartItem = {
       id: '',
       collectionId: this.selectedCollectionId || '',
       activityType: this.selectedActivityType || '',
       activityId: this.selectedActivityId || '',
+      productId: productId,
+      quantity: visitors,
       activityName: this.selectedActivityName || this.facility?.displayName || '',
       geoZoneName: this.facility?.displayName || '',
       dateRange: [date, date],
@@ -239,17 +274,17 @@ export class FacilityDetailsComponent implements OnDestroy {
       endDate: date,
       occupants: { totalAdult: visitors, totalSenior: 0, totalYouth: 0, totalChild: 0 },
       feeInformation: { registrationFees: 0, transactionFees: 0, tax: 0, total: 0 },
-      step1Completed: false,
-      step2Completed: false,
-      step3Completed: false,
-      step4Completed: false,
+      detailsStepCompleted: false,
+      visitorDetailsStepCompleted: false,
+      equipmentStepCompleted: false,
+      paymentStepCompleted: false,
       areAllStepsCompleted: false,
     };
 
     this.cartService.addToCart(cartItem);
     this.toastService.addMessage('Item added to cart', 'Success', ToastTypes.SUCCESS);
 
-    this.router.navigate(['/cart']).then(() => {
+    this.router.navigate(['/reservation-flow']).then(() => {
       window.scrollTo(0, 0);
       this.cdr.detectChanges();
     });

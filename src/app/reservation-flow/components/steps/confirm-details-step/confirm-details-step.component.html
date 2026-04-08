@@ -1,0 +1,89 @@
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-10 col-12">
+      
+      <!-- Info Alert -->
+      <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+        <i class="fa-solid fa-circle-info me-2"></i>
+        <div>Passes cannot be transferred or changed.</div>
+      </div>
+
+      <!-- Pass Details Card -->
+      <div class="card mb-4">
+        <div class="card-header bg-grey">
+          <h5 class="card-title mb-1 fw-bold">{{ cartItem?.geoZoneName }}</h5>
+          <p class="card-text text-muted mb-0">{{ cartItem?.activityName }}</p>
+        </div>
+        <div class="card-body">
+          <!-- Row 1: Arrival and Departure Dates -->
+          <div class="row mb-3">
+            <div class="col-md-6 mb-3 mb-md-0">
+              <div class="border rounded p-3">
+                <h6 class="text-muted mb-2 fw-semibold">Arrival Date</h6>
+                <p class="mb-0 fw-medium">{{ cartItem?.startDate | date:'fullDate' }}</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="border rounded p-3">
+                <h6 class="text-muted mb-2 fw-semibold">Departure Date</h6>
+                <p class="mb-0 fw-medium">{{ cartItem?.endDate | date:'fullDate' }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 2: Pass Type and Number of Passes -->
+          <div class="row">
+            <div class="col-md-6 mb-3 mb-md-0">
+              <div class="border rounded p-3">
+                <h6 class="text-muted mb-2 fw-semibold">Pass Type</h6>
+                <p class="mb-0 fw-medium">{{ cartItem?.activityType || 'Day Use' }}</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="border rounded p-3">
+                <h6 class="text-muted mb-2 fw-semibold">Passes</h6>
+                <p class="mb-0 fw-medium">{{ totalOccupants }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Acknowledgement Checkbox -->
+      <div class="form-check mb-4">
+        <input 
+          class="form-check-input" 
+          type="checkbox" 
+          [formControl]="$any(form?.get('acknowledgeDetails'))"
+          id="acknowledgeDetails"
+        >
+        <label class="form-check-label" for="acknowledgeDetails">
+          I acknowledge that this information is correct and agree to the terms of the booking.
+        </label>
+      </div>
+      
+       <!-- Navigation Section -->
+      <div class="d-flex justify-content-between border-top pt-3">
+        <button 
+          type="button" 
+          class="btn btn-link mb-3 border-0 bg-transparent"
+          (click)="goToCart()"
+        >
+          <i class="fa fa-arrow-circle-left" aria-hidden="true"></i>
+          Back to Cart
+        </button>
+        
+        <button 
+          type="button" 
+          class="btn btn-primary mb-3 border-0"
+          [disabled]="!cartItem?.detailsStepCompleted"
+          (click)="goToNext()"
+        >
+          Continue
+          <i class="fa-solid fa-chevron-right ms-2"></i>
+        </button>
+      </div>
+      
+    </div>
+  </div>
+</div>

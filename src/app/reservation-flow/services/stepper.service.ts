@@ -1,5 +1,6 @@
-import { Injectable, signal, WritableSignal } from '@angular/core';
+import { Injectable, signal, WritableSignal, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { FeatureFlagService } from '../../services/feature-flag.service';
 
 export interface StepConfig {
   id: string;
@@ -20,58 +21,60 @@ export interface CartItemProgress {
   providedIn: 'root'
 })
 export class StepperService {
+  private featureFlagService = inject(FeatureFlagService);
   private cartItemProgress: Map<string | number, CartItemProgress> = new Map<string | number, CartItemProgress>();
   private completedSteps: Map<string | number, Set<number>> = new Map<string | number, Set<number>>();
   private currentCartItemId: string | number | null = null;
   private isTransitioning = false;
 
-  private readonly steps: StepConfig[] = [
-    {
-      id: 'confirm-details',
-      title: 'Confirm Details',
-      description: 'Entry/exit points and activity details',
-      isCompleted: false,
-      isValid: false,
-      isActive: true,
-      canNavigateTo: true
-    },
-    {
-      id: 'policy-review',
-      title: 'Policy Review',
-      description: 'Review and accept policies',
-      isCompleted: false,
-      isValid: false,
-      isActive: false,
-      canNavigateTo: false
-    },
-    {
-      id: 'camping-party',
-      title: 'Camping Party',
-      description: 'Party details and occupants',
-      isCompleted: false,
-      isValid: false,
-      isActive: false,
-      canNavigateTo: false
-    },
-    {
-      id: 'equipment',
-      title: 'Equipment',
-      description: 'Equipment and additional needs',
-      isCompleted: false,
-      isValid: false,
-      isActive: false,
-      canNavigateTo: false
-    },
-    {
-      id: 'payment',
-      title: 'Review & Payment',
-      description: 'Final review and payment processing',
-      isCompleted: false,
-      isValid: false,
-      isActive: false,
-      canNavigateTo: false
+  private getStepsConfig(): StepConfig[] {
+    const baseSteps: StepConfig[] = [
+      {
+        id: 'confirm-details',
+        title: 'Details',
+        description: 'Entry/exit points and activity details',
+        isCompleted: false,
+        isValid: false,
+        isActive: true,
+        canNavigateTo: true
+      },
+      {
+        id: 'visitor-details',
+        title: 'Visitor Details',
+        description: 'Account information confirmation',
+        isCompleted: false,
+        isValid: false,
+        isActive: false,
+        canNavigateTo: false
+      },
+      {
+        id: 'equipment',
+        title: 'Equipment',
+        description: 'Vehicle and equipment information',
+        isCompleted: false,
+        isValid: false,
+        isActive: false,
+        canNavigateTo: false
+      }
+    ];
+
+    // Conditionally add payment step based on feature flag
+    if (this.featureFlagService.isEnabled('enablePayments')) {
+      baseSteps.push({
+        id: 'payment',
+        title: 'Payment',
+        description: 'Payment information and confirmation',
+        isCompleted: false,
+        isValid: false,
+        isActive: false,
+        canNavigateTo: false
+      });
     }
-  ];
+
+    return baseSteps;
+  }
+
+  private readonly steps: StepConfig[] = this.getStepsConfig();
 
   public currentStepIndex = signal(0);
   public stepsSignal: WritableSignal<StepConfig[]> = signal([...this.steps]);
@@ -225,7 +228,9 @@ export class StepperService {
   }
 
 reset(): void {
-  const resetSteps = this.steps.map((step, index) => ({
+  // Rebuild steps from config to ensure feature flags are respected
+  const currentSteps = this.getStepsConfig();
+  const resetSteps = currentSteps.map((step, index) => ({
     ...step,
     // Only show completed if the step is completed for current cart item
     isCompleted: this.currentCartItemId ? this.isStepCompletedForItem(this.currentCartItemId, index) : false,

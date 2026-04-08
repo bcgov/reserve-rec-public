@@ -16,11 +16,10 @@
     <div class="container-fluid border border-2 bg-white p-4">
 
     <app-progress-indicator
-      [totalItems]="totalCartItems"
-      [currentItemIndex]="currentCartItemIndex"
+      [totalItems]="1"
+      [currentItemIndex]="0"
       [currentItemName]="cartItem?.activityName"
       [queueItems]="cartItems"
-      (itemSwitched)="onItemSwitched($event)"
     >
     </app-progress-indicator>
       
@@ -29,61 +28,52 @@
         <!-- Single step container with exclusive display logic -->
         <ng-container [ngSwitch]="stepperService.currentStepIndex()">
           
-          <!-- Step 1: Confirm Details -->
+          <!-- Step 0: Details -->
           <div *ngSwitchCase="0" class="step-wrapper fade-in">
-            <app-confirm-details-step-1
+            <app-confirm-details-step
               [form]="form"
               [cartItem]="cartItem"
               [bookingSummary]="bookingSummary"
               (stepCompleted)="onStepCompleted($event)"
               (stepValidated)="onStepValidated($event)"
-            ></app-confirm-details-step-1>
+            ></app-confirm-details-step>
           </div>
           
-          <!-- Step 2: Policy Review -->
+          <!-- Step 1: Visitor Details -->
           <div *ngSwitchCase="1" class="step-wrapper fade-in">
-            <app-policy-review-step-2
+            <app-visitor-details-step
               [form]="form"
+              [user]="user"
               [cartItem]="cartItem"
               [bookingSummary]="bookingSummary"
               (stepCompleted)="onStepCompleted($event)"
               (stepValidated)="onStepValidated($event)"
-            ></app-policy-review-step-2>
+            ></app-visitor-details-step>
           </div>
           
-          <!-- Step 3: Camping Party -->
+          <!-- Step 2: Equipment -->
           <div *ngSwitchCase="2" class="step-wrapper fade-in">
-            <app-camping-party-step-3
+            <app-equipment-step
               [form]="form"
-              [user]="user"
               [cartItem]="cartItem"
               [bookingSummary]="bookingSummary"
               (stepCompleted)="onStepCompleted($event)"
               (stepValidated)="onStepValidated($event)"
-            ></app-camping-party-step-3>
+            ></app-equipment-step>
           </div>
           
-          <!-- Step 4: Equipment -->
+          <!-- Step 3: Payment (conditionally shown based on feature flag) -->
           <div *ngSwitchCase="3" class="step-wrapper fade-in">
-            <app-equipment-step-4
+            <app-payment-step
               [form]="form"
-              [cartItem]="cartItem"
-              [bookingSummary]="bookingSummary"
-              (stepCompleted)="onStepCompleted($event)"
-              (stepValidated)="onStepValidated($event)"
-            ></app-equipment-step-4>
-          </div>
-          
-          <!-- Step 5: Payment & Final Submission -->
-          <div *ngSwitchCase="4" class="step-wrapper fade-in">
-            <app-payment-step-5
-              [form]="form"
-              [cartItem]="cartItem"
-              [bookingSummary]="bookingSummary"
               [user]="user"
+              [cartItem]="cartItem"
+              [bookingSummary]="bookingSummary"
+              [bookingId]="currentBookingId"
+              [sessionId]="currentSessionId"
               (stepCompleted)="onStepCompleted($event)"
               (stepValidated)="onStepValidated($event)"
-            ></app-payment-step-5>
+            ></app-payment-step>
           </div>
           
           <!-- Fallback for any unexpected state -->

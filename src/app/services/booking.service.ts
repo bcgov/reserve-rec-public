@@ -98,6 +98,16 @@ export class BookingService {
     }
   }
 
+  async completeBooking(bookingId: string, completionData: any) {
+    try {
+      const res = (await lastValueFrom(this.apiService.post(`bookings/${bookingId}/complete`, completionData, {})))['data'];
+      return res;
+    } catch (error) {
+      this.loggerService.error(error);
+      throw error;
+    }
+  }
+
   cancelBooking(bookingId: string) {
     return this.apiService.delete(`bookings/${bookingId}`, {});
   }

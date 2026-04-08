@@ -183,12 +183,16 @@ class CDKProject {
     // Edge stack (us-east-1): WAF WebACL for CloudFront.
     // Must be created before distributionStack so the WAF ARN is in ca-central-1 SSM when
     // the distribution stack resolves it at deploy time.
-    const edgeStack = await this.addStack('waitingRoomEdgeStack', createWaitingRoomEdgeStack);
+    // Skipped when DEPLOY_EDGE_STACK=false (e.g. prod — us-east-1 CloudFormation blocked by SCP).
+    let edgeStack = null;
+    if (this.context?.DEPLOY_EDGE_STACK !== 'false') {
+      edgeStack = await this.addStack('waitingRoomEdgeStack', createWaitingRoomEdgeStack);
 
-    // Bind edge stack reference on scope so DistributionStack can access it (e.g. for future
-    // direct construct references with crossRegionReferences). The WAF ARN is passed via SSM.
-    if (edgeStack) {
-      this.waitingRoomEdgeStack = edgeStack;
+      // Bind edge stack reference on scope so DistributionStack can access it (e.g. for future
+      // direct construct references with crossRegionReferences). The WAF ARN is passed via SSM.
+      if (edgeStack) {
+        this.waitingRoomEdgeStack = edgeStack;
+      }
     }
 
     const distributionStack = await this.addStack('distributionStack', createDistributionStack);

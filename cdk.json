@@ -99,7 +99,8 @@
       "DEPLOYMENT_NAME": "prod",
       "AWS_REGION": "ca-central-1",
       "IS_OFFLINE": "false",
-      "FAIL_FAST": "false"
+      "FAIL_FAST": "false",
+      "DEPLOY_EDGE_STACK": "false"
     },
     "local": {
       "DEPLOYMENT_NAME": "local",

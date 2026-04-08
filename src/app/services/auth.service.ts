@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { Amplify } from "aws-amplify";
 import { ConfigService } from './config.service';
 import { Hub } from 'aws-amplify/utils';
-import { fetchAuthSession, signOut, signInWithRedirect, fetchUserAttributes } from 'aws-amplify/auth';
+import { fetchAuthSession, signOut, signInWithRedirect, fetchUserAttributes, sendUserAttributeVerificationCode } from 'aws-amplify/auth';
 import { LoggerService } from './logger.service';
 import { Router } from '@angular/router';
 
@@ -232,6 +232,30 @@ export class AuthService {
     else return;
     // Use Amplify's signInWithRedirect method to initiate the OAuth flow instead of custome method
     signInWithRedirect({ provider: { custom: idpName } });
+  }
+
+  // Check if the user's email is verified
+  async checkEmailVerification() {
+    try {
+      const attributes = await fetchUserAttributes();
+      const isVerified = attributes.email_verified === 'true';
+      return isVerified;
+    } catch (error) {
+      console.error('Error fetching attributes:', error);
+      return false;
+    }
+  }
+
+  // Resend the verification code to the user's email
+  async handleResendAttributeCodeToEmail() {
+    try {
+      const output = await sendUserAttributeVerificationCode({
+        userAttributeKey: 'email'
+      });
+      console.log('Verification code resent successfully', output);
+    } catch (error) {
+      console.error('Error resending attribute code:', error);
+    }
   }
 
 }

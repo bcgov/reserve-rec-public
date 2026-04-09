@@ -49,7 +49,8 @@ export const routes: Routes = [
   {
     path: 'cart',
     loadComponent: () => import('./cart/cart.component')
-      .then(mod => mod.CartComponent)
+      .then(mod => mod.CartComponent),
+    canActivate: [WaitingRoomGuard]
   },
   {
     path: 'checkout',
@@ -63,6 +64,7 @@ export const routes: Routes = [
       .then(mod => mod.FacilityDetailsComponent),
     resolve: { facility: FacilityResolver },
     runGuardsAndResolvers: 'always',
+    canActivate: [WaitingRoomGuard]
   },
   {
     path: 'find-booking',

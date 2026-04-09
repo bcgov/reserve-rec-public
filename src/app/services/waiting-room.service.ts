@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { ApiService } from './api.service';
 
@@ -13,7 +13,23 @@ export interface AdmissionContext {
 export class WaitingRoomService {
   private readonly STORAGE_KEY = 'wr_admission';
 
+  /** True when a Mode 2 (site-wide) queue is currently active. */
+  public mode2Active = signal<boolean>(false);
+
   constructor(private apiService: ApiService) {}
+
+  /** Called once at app startup to hydrate the mode2Active signal. */
+  async loadMode2Status(): Promise<void> {
+    try {
+      const res: any = await lastValueFrom(
+        this.apiService.get('waiting-room/mode2/status', {})
+      );
+      this.mode2Active.set(res?.data?.active === true);
+    } catch {
+      // Fail open — if the status check errors, don't block the whole app.
+      this.mode2Active.set(false);
+    }
+  }
 
   getAdmission(): AdmissionContext | null {
     try {

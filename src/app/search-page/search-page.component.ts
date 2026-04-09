@@ -22,15 +22,15 @@ export class SearchPageComponent implements OnInit, AfterViewChecked {
   public options = [
     {
       value: '/facility/bcparks_7/accessPoint/1',
-      display: 'Garibaldi Provincial Park - Rubble Creek'
-    },
-    {
-      value: '/facility/bcparks_7/accessPoint/2',
       display: 'Garibaldi Provincial Park - Cheakamus'
     },
     {
-      value: '/facility/bcparks_7/accessPoint/3',
+      value: '/facility/bcparks_7/accessPoint/2',
       display: 'Garibaldi Provincial Park - Diamond Head'
+    },
+    {
+      value: '/facility/bcparks_7/accessPoint/3',
+      display: 'Garibaldi Provincial Park - Rubble Creek'
     },
     {
       value: '/facility/bcparks_8/accessPoint/1',
@@ -42,11 +42,11 @@ export class SearchPageComponent implements OnInit, AfterViewChecked {
     },
     {
       value: '/facility/bcparks_8/accessPoint/3',
-      display: 'Golden Ears Provincial Park - West Canyon Trailhead'
+      display: 'Golden Ears Provincial Park - Gold Creek'
     },
     {
       value: '/facility/bcparks_8/accessPoint/4',
-      display: 'Golden Ears Provincial Park - Gold Creek'
+      display: 'Golden Ears Provincial Park - West Canyon Trailhead'
     },
     {
       value: '/facility/bcparks_363/accessPoint/1',

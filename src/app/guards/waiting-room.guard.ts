@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
-import { CanActivate } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, RouterStateSnapshot } from '@angular/router';
 import { CartService } from '../services/cart.service';
 import { WaitingRoomService } from '../services/waiting-room.service';
+
+const MODE2_FACILITY_KEY = 'MODE2#global#1';
 
 @Injectable({ providedIn: 'root' })
 export class WaitingRoomGuard implements CanActivate {
@@ -10,12 +12,29 @@ export class WaitingRoomGuard implements CanActivate {
     private waitingRoomService: WaitingRoomService
   ) {}
 
-  canActivate(): boolean {
+  canActivate(_route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
+    // --- Mode 2 (site-wide gate) ---
+    if (this.waitingRoomService.mode2Active()) {
+      if (this.waitingRoomService.hasValidAdmission(MODE2_FACILITY_KEY, '')) {
+        return true;
+      }
+      if (sessionStorage.getItem('wr_bypass_guard') === '1') {
+        sessionStorage.removeItem('wr_bypass_guard');
+        return true;
+      }
+      const today = new Date().toISOString().slice(0, 10);
+      window.location.href = this.waitingRoomService.buildWaitingRoomUrl(
+        'MODE2', 'global', '1', today, state.url
+      );
+      return false;
+    }
+
+    // --- Mode 1 (per-facility gate) ---
     const items = this.cartService.items();
     const waitingRoomItem = items.find(item => item.waitingRoomActive);
 
     if (!waitingRoomItem) {
-      return true; // No waiting room required for any cart item
+      return true;
     }
 
     const facilityKey = `${waitingRoomItem.collectionId}#${waitingRoomItem.activityType}#${waitingRoomItem.activityId}`;
@@ -25,13 +44,11 @@ export class WaitingRoomGuard implements CanActivate {
       return true;
     }
 
-    // Queue was closed — waiting room set this flag before redirecting here
     if (sessionStorage.getItem('wr_bypass_guard') === '1') {
       sessionStorage.removeItem('wr_bypass_guard');
       return true;
     }
 
-    // No valid admission — send user back to the waiting room
     window.location.href = this.waitingRoomService.buildWaitingRoomUrl(
       waitingRoomItem.collectionId,
       waitingRoomItem.activityType,

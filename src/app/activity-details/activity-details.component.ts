@@ -137,7 +137,8 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
         this.activityType || '',
         this.activityId || '',
         this.getStartDate() || '',
-        '/checkout'
+        '/checkout',
+        this.data?.geozone?.displayName || this.data?.displayName || ''
       );
       return;
     }

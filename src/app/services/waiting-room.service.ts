@@ -75,8 +75,9 @@ export class WaitingRoomService {
     }
   }
 
-  buildWaitingRoomUrl(collectionId: string, activityType: string, activityId: string, startDate: string, returnUrl: string): string {
-    const params = new URLSearchParams({ collectionId, activityType, activityId, startDate, returnUrl });
-    return `/waitingroom.html?${params.toString()}`;
+  buildWaitingRoomUrl(collectionId: string, activityType: string, activityId: string, startDate: string, returnUrl: string, facilityName?: string): string {
+    const p: Record<string, string> = { collectionId, activityType, activityId, startDate, returnUrl };
+    if (facilityName) p['facilityName'] = facilityName;
+    return `/waitingroom.html?${new URLSearchParams(p).toString()}`;
   }
 }

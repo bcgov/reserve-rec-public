@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, EventEmitter, inject, OnDestroy, Output } from '@angular/core';
+import { lastValueFrom } from 'rxjs';
 import { DateTime } from 'luxon';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -12,6 +13,7 @@ import { CartService, CartItem } from '../services/cart.service';
 import { ToastService, ToastTypes } from '../services/toast.service';
 import { AuthService } from '../services/auth.service';
 import { WaitingRoomService } from '../services/waiting-room.service';
+import { ApiService } from '../services/api.service';
 
 @Component({
   selector: 'app-facility-details',
@@ -54,6 +56,7 @@ export class FacilityDetailsComponent implements OnDestroy {
   private toastService = inject(ToastService);
   private bookingService = inject(BookingService);
   private waitingRoomService = inject(WaitingRoomService);
+  private apiService = inject(ApiService);
 
   constructor(
     private route: ActivatedRoute,
@@ -256,6 +259,31 @@ export class FacilityDetailsComponent implements OnDestroy {
     }
 
     const date = this.form.get('selectedDate').value;
+
+    // Check Mode 1 (facility-specific) waiting room for the selected date
+    if (this.selectedCollectionId && this.selectedActivityType && this.selectedActivityId && date) {
+      try {
+        const facilityKey = `${this.selectedCollectionId}#${this.selectedActivityType}#${this.selectedActivityId}`;
+        if (!this.waitingRoomService.hasValidAdmission(facilityKey, date)) {
+          const res = await lastValueFrom(this.apiService.get(
+            `activities/${this.selectedCollectionId}`,
+            { activityType: this.selectedActivityType, activityId: this.selectedActivityId, startDate: date }
+          ));
+          if (res?.['data']?.waitingRoomActive) {
+            window.location.href = this.waitingRoomService.buildWaitingRoomUrl(
+              this.selectedCollectionId,
+              this.selectedActivityType,
+              this.selectedActivityId,
+              date,
+              this.router.url
+            );
+            return;
+          }
+        }
+      } catch {
+        // Fail open — let the booking API enforce if the check fails
+      }
+    }
     const visitors = Number(this.form.get('selectedVisitors').value);
     const selectedProductValue = this.form.get('selectedProduct').value;
     

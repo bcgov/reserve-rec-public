@@ -11,6 +11,7 @@ import { Constants } from '../constants';
 import { CartService, CartItem } from '../services/cart.service';
 import { ToastService, ToastTypes } from '../services/toast.service';
 import { AuthService } from '../services/auth.service';
+import { WaitingRoomService } from '../services/waiting-room.service';
 
 @Component({
   selector: 'app-facility-details',
@@ -52,6 +53,7 @@ export class FacilityDetailsComponent implements OnDestroy {
   private cartService = inject(CartService);
   private toastService = inject(ToastService);
   private bookingService = inject(BookingService);
+  private waitingRoomService = inject(WaitingRoomService);
 
   constructor(
     private route: ActivatedRoute,
@@ -243,6 +245,16 @@ export class FacilityDetailsComponent implements OnDestroy {
   }
 
   async submit(): Promise<void> {
+    // Gate the booking action when Mode 2 is active and user lacks admission
+    if (this.waitingRoomService.mode2Active() &&
+        !this.waitingRoomService.hasValidAdmission('MODE2#global#1', '')) {
+      const today = new Date().toISOString().slice(0, 10);
+      window.location.href = this.waitingRoomService.buildWaitingRoomUrl(
+        'MODE2', 'global', '1', today, this.router.url
+      );
+      return;
+    }
+
     const date = this.form.get('selectedDate').value;
     const visitors = Number(this.form.get('selectedVisitors').value);
     const selectedProductValue = this.form.get('selectedProduct').value;

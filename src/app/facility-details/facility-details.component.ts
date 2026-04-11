@@ -275,7 +275,8 @@ export class FacilityDetailsComponent implements OnDestroy {
               this.selectedActivityType,
               this.selectedActivityId,
               date,
-              this.router.url
+              this.router.url,
+              this.facility?.displayName || ''
             );
             return;
           }

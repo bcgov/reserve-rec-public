@@ -87,11 +87,10 @@
   }
 
   function getFacilityDisplay(params) {
-    if (!params) return '';
-    var parts = [params.collectionId, params.activityType].filter(Boolean);
-    var label = parts.join(' / ');
-    if (params.startDate) label += ' — ' + params.startDate;
-    return label;
+    var p = new URLSearchParams(window.location.search);
+    var facilityName = p.get('facilityName');
+    if (facilityName) return facilityName;
+    return '';
   }
 
   function getReturnUrl() {

@@ -51,6 +51,8 @@ export class FacilityDetailsComponent implements OnDestroy {
   private selectedActivityType: string;
   private selectedActivityId: string;
   private selectedActivityName: string;
+  private selectedDateStr: string;
+  private waitingRoomActive = false;
 
   private cartService = inject(CartService);
   private toastService = inject(ToastService);
@@ -178,6 +180,22 @@ export class FacilityDetailsComponent implements OnDestroy {
     this.form.get('selectedDate').valueChanges.subscribe(async (date) => {
       if (!date) return;
 
+      this.selectedDateStr = typeof date === 'string' ? date : (date?.toISODate ? date.toISODate() : String(date));
+      this.waitingRoomActive = false;
+
+      // Check Mode 1 waiting room status for the selected date
+      if (this.selectedCollectionId && this.selectedActivityType && this.selectedActivityId) {
+        try {
+          const res = await lastValueFrom(this.apiService.get(
+            `activities/${this.selectedCollectionId}`,
+            { activityType: this.selectedActivityType, activityId: this.selectedActivityId, startDate: this.selectedDateStr }
+          ));
+          this.waitingRoomActive = res?.['data']?.waitingRoomActive === true;
+        } catch {
+          // Fail open — booking API enforces server-side
+        }
+      }
+
       const selectedDate = this.availableDates[date];
       const resContext = selectedDate.reservationContext;
       const isReservable = resContext?.isReservable;
@@ -258,31 +276,21 @@ export class FacilityDetailsComponent implements OnDestroy {
       return;
     }
 
-    const date = this.form.get('selectedDate').value;
+    const date = this.selectedDateStr || this.form.get('selectedDate').value;
 
-    // Check Mode 1 (facility-specific) waiting room for the selected date
-    if (this.selectedCollectionId && this.selectedActivityType && this.selectedActivityId && date) {
-      try {
-        const facilityKey = `${this.selectedCollectionId}#${this.selectedActivityType}#${this.selectedActivityId}`;
-        if (!this.waitingRoomService.hasValidAdmission(facilityKey, date)) {
-          const res = await lastValueFrom(this.apiService.get(
-            `activities/${this.selectedCollectionId}`,
-            { activityType: this.selectedActivityType, activityId: this.selectedActivityId, startDate: date }
-          ));
-          if (res?.['data']?.waitingRoomActive) {
-            window.location.href = this.waitingRoomService.buildWaitingRoomUrl(
-              this.selectedCollectionId,
-              this.selectedActivityType,
-              this.selectedActivityId,
-              date,
-              this.router.url,
-              this.facility?.displayName || ''
-            );
-            return;
-          }
-        }
-      } catch {
-        // Fail open — let the booking API enforce if the check fails
+    // Check Mode 1 (facility-specific) waiting room — status cached when date was selected
+    if (this.waitingRoomActive && this.selectedCollectionId && this.selectedActivityType && this.selectedActivityId && date) {
+      const facilityKey = `${this.selectedCollectionId}#${this.selectedActivityType}#${this.selectedActivityId}`;
+      if (!this.waitingRoomService.hasValidAdmission(facilityKey, date)) {
+        window.location.href = this.waitingRoomService.buildWaitingRoomUrl(
+          this.selectedCollectionId,
+          this.selectedActivityType,
+          this.selectedActivityId,
+          date,
+          this.router.url,
+          this.facility?.displayName || ''
+        );
+        return;
       }
     }
     const visitors = Number(this.form.get('selectedVisitors').value);

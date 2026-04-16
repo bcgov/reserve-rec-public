@@ -77,6 +77,10 @@
     }
   }
 
+  &.success-custom {
+    background-color: #F6FFF8;
+  }
+
   &.alert-info {
     background-color: #d1ecf1;
     border-color: #bee5eb;
@@ -95,8 +99,8 @@
   border-color: #0d47a1;
 
   &:hover {
-    background-color: #0d47a1;
-    border-color: #0d47a1;
+    background-color: #013366;
+    border-color: #013366;
     color: #ffffff;
   }
 }
@@ -119,6 +123,23 @@
     background-color: #6c757d;
     border-color: #6c757d;
     color: #ffffff;
+  }
+}
+
+.actions-dropdown {
+  min-width: 20rem !important;
+  
+  @media (max-width: 767px) {
+    min-width: 15rem !important;
+  }
+
+  .dropdown-item {
+    color: #0d47a1;
+
+    &:hover {
+      background-color: #e3f2fd;
+      color: #0d47a1;
+    }
   }
 }
 

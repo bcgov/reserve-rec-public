@@ -6,7 +6,7 @@
 
       <!-- Visitor Details Card -->
       <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
+        <div class="card-header bg-light">
           <h4 class="mb-0">Visitor Details</h4>
         </div>
         <div class="card-body">
@@ -19,24 +19,24 @@
           <!-- Account Information -->
           <div class="border rounded p-4 bg-light mb-4">
             <div class="row mb-3">
-              <div class="col-md-4">
+              <div class="col-md-6">
                 <strong>Name</strong>
                 <p class="mb-0">{{ user?.given_name || 'N/A' }} {{ user?.family_name || '' }}</p>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-6">
                 <strong>Email Address</strong>
                 <p class="mb-0">{{ user?.email || 'N/A' }}</p>
               </div>
             </div>
             <div class="row">
-              <div class="col-md-4">
+              <div class="col-md-6">
                 <strong>Home Address</strong>
                 <p class="mb-0">{{ user['custom:streetAddress'] || 'N/A' }}</p>
                 <p class="mb-0">{{ user['custom:city'] }}, {{ user['custom:province'] || '' }}</p>
                 <p class="mb-0">{{ user['custom:postalCode'] }}</p>
                 <p class="mb-0">{{ user['custom:country'] }}</p>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-6">
                 <strong>Phone Number</strong>
                 <p class="mb-0">Mobile: {{ user['custom:mobilePhone'] || 'N/A' }}</p>
                 <p class="mb-0">Secondary: {{ user['custom:secondaryNumber'] || 'N/A' }}</p>

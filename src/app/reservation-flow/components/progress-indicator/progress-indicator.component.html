@@ -91,8 +91,8 @@
             type="button"
             class="nav-link w-100 position-relative"
             [class.active]="step.isActive"
+            [class.completed]="isStepCompletedForCurrentItem(step, i)"
             [class.text-primary]="step.isActive"
-            [class]="getStepClasses(step)"
             (click)="onStepClick(i)"
           >
             <!-- Step Number and Title on same line, left-aligned -->

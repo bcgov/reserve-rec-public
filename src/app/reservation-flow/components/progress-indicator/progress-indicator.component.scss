@@ -2,12 +2,40 @@
 
 /* Minimal custom styles - mostly using Bootstrap */
 .nav-link {
-  border-radius: 0.375rem !important;
-  margin: 0 2px;
+  border-radius: 0 !important;
+  margin: 0 0.5rem !important; /* Add horizontal margin to create gaps */
+  padding: 0.75rem 1rem !important; /* Add consistent padding to maintain height */
   transition: all 0.2s ease;
+  border: none !important;
+  background-color: transparent !important;
+  position: relative;
 }
 
-.nav-link:hover:not(.disabled) {
+/* Create bottom border with pseudo-element at 75% width */
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 7.5%; /* Center the 85% border */
+  width: 85%;
+  height: 3px;
+  background-color: #dee2e6; /* Grey bottom border for default */
+  transition: background-color 0.2s ease;
+}
+
+.nav-link.active::after {
+  background-color: #013366; /* Blue bottom border for active */
+}
+
+.nav-link.completed::after {
+  background-color: #198754; /* Green bottom border for completed */
+}
+
+.nav-link i.fa-circle-check {
+  font-size: 27px !important; /* Make checkmark icon larger to match number size */
+}
+
+.nav-link:hover:not(.disabled):not(.completed) {
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }

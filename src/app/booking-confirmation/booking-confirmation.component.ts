@@ -94,7 +94,7 @@ export class BookingConfirmationComponent implements OnInit {
   }
 
   getAreaName(): string {
-    return this.booking?.displayName || 'N/A';
+    return this.booking?.facilityDisplayName || 'N/A';
   }
 
   getCampsite(): string {
@@ -146,6 +146,13 @@ export class BookingConfirmationComponent implements OnInit {
       return 'Day use';
     }
     return activityType;
+  }
+
+  getProductDisplayName(): string {
+    if (this.booking?.productDisplayName) {
+      return this.booking.productDisplayName;
+    }
+    return 'N/A';
   }
 
   getPassCount(): number {

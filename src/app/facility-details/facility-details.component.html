@@ -1,20 +1,9 @@
-<div class="container mb-5">
-
-	<!-- Breadcrumb -->
-	<nav aria-label="breadcrumb" class="my-4">
-		<ol class="breadcrumb bg-white">
-			<li class="breadcrumb-item"><a routerLink="/">Home</a></li>
-			<li class="breadcrumb-item active" aria-current="page">{{ facility?.displayName }}</li>
-		</ol>
-	</nav>
-
+<div class="container mt-5 px-4 mb-5">
+	<app-breadcrumb></app-breadcrumb>
+	
 	<!-- Hero block -->
 	<div class="row">
 		<div class="col">
-			<!-- Back button -->
-			<button class="btn btn-outline-primary btn-sm mb-4 p-2 px-3" (click)="goBack()">
-				<i class="fa-solid fa-circle-chevron-left me-1"></i> Back
-			</button>
 
 			<!-- Park/Facility name -->
 			<h1 class="text-primary mb-4">{{ facility?.displayName }}</h1>

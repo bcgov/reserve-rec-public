@@ -1,0 +1,23 @@
+// Minimal custom styles - using Bootstrap theme utilities
+
+.breadcrumb {
+  background-color: transparent;
+  padding: 0;
+  margin-bottom: 1rem;
+}
+
+// Hide Bootstrap's default separator
+.custom-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+  display: none;
+}
+
+// Custom separator styling
+.breadcrumb-separator {
+  display: inline-block;
+  padding: 0 0.5rem;
+  color: #6c757d;
+  
+  i {
+    font-size: 0.75rem;
+  }
+}

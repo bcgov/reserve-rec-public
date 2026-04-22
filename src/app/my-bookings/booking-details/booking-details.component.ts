@@ -1,39 +1,32 @@
 import { Component, OnInit } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { ApiService } from '../../services/api.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
-import { BookingMapComponent } from '../../booking-map/booking-map.component';
 import { AuthService } from '../../services/auth.service';
-import { Utils } from '../../utils/utils';
+import { BreadcrumbComponent } from '../../shared/breadcrumb/breadcrumb.component';
+import { BookingUtils } from '../../utils/booking-utils';
 
 @Component({
   selector: 'app-booking-details',
   templateUrl: './booking-details.component.html',
   styleUrls: ['./booking-details.component.scss'],
-  imports: [CommonModule, BookingMapComponent, RouterModule],
+  imports: [CommonModule, RouterModule, BreadcrumbComponent],
 })
 export class BookingDetailsComponent implements OnInit {
   booking: any = null;
-  transaction: any = null;
-  mapObj: any = null;
   user: any = null;
-  startDate = '';
-  endDate = '';
-  bookedDate = '';
-  viewMap = true;
-  zoomValue = 12;
   loading = true;
+  error: string | null = null;
+  qrCodeDataUrl: string | null = null;
 
+  constructor(
+    private apiService: ApiService,
+    private route: ActivatedRoute,
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
-  
-constructor(
-  private apiService: ApiService,
-  private route: ActivatedRoute,
-  private authService: AuthService,
-  private router: Router
-) {}
   async ngOnInit() {
     try {
       const bookingId = this.route.snapshot.paramMap.get('id');
@@ -44,24 +37,11 @@ constructor(
       }
       
       const res: any = await lastValueFrom(this.apiService.get(`bookings/${bookingId}`, queryParams));
-
-      // Fetch transaction details
-      const transactionId = res.data?.clientTransactionId;
-      const transactionRes: any = await lastValueFrom(this.apiService.get(`transactions/${transactionId}`, queryParams));
-      this.transaction = transactionRes.data;
-
       this.booking = res.data;
 
-      // Add calculated fields to the booking object
-      this.booking.nights = this.calculateNights(this.booking.startDate, this.booking.endDate);
-      this.booking.totalParty = this.formatParty(this.booking.partyInformation);
-      
-      // Only create map object if we have location data
-      if (this.booking.coordinates || this.booking.location) {
-        this.mapObj = Utils.formatMapCoords(this.booking);
-      } else {
-        console.warn('No map data available for this booking');
-        this.mapObj = null;
+      // Extract QR code if available
+      if (this.booking?.qrCode?.dataUrl) {
+        this.qrCodeDataUrl = this.booking.qrCode.dataUrl;
       }
       
       this.user = this.authService.getCurrentUser();
@@ -74,34 +54,91 @@ constructor(
       this.loading = false;
     } catch (error) {
       console.error('Failed to fetch booking details:', error);
+      this.error = 'Failed to load booking details';
+      this.loading = false;
     }
   }
 
-  formatParty(partyInfo: Record<string, number>) {
-    if (!partyInfo || typeof partyInfo !== 'object') {
-      console.warn('Invalid partyInfo:', partyInfo);
-      return 0;
-    }
-    
-    const partyKeys = Object.keys(partyInfo);
-    let totalParty = 0;
-    for (const partyKey of partyKeys) {
-      totalParty += partyInfo[partyKey];
-    }
-    return totalParty;
+  getBookingNumber(): string {
+    return BookingUtils.getBookingNumber(this.booking);
   }
 
-  calculateNights(start: string, end: string): number {
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    const diffTime = endDate.getTime() - startDate.getTime();
-    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+  getArrivalDate(): string {
+    return BookingUtils.getArrivalDate(this.booking);
   }
 
-  navigate(bookingId: string): void {
-    this.router.navigate(
-      ['/account/bookings/cancel', bookingId], {}
-    );
+  getDepartureDate(): string {
+    return BookingUtils.getDepartureDate(this.booking);
+  }
+
+  getFacilityName(): string {
+    return BookingUtils.getFacilityName(this.booking);
+  }
+
+  getGeozoneName(): string {
+    return BookingUtils.getGeozoneName(this.booking);
+  }
+
+  getBookingType(): string {
+    return BookingUtils.getBookingType(this.booking);
+  }
+
+  getProductDisplayName(): string {
+    return BookingUtils.getProductDisplayName(this.booking);
+  }
+
+  getPassCount(): number {
+    return BookingUtils.getPassCount(this.booking);
+  }
+
+  getPartySize(): number {
+    return BookingUtils.getPartySize(this.booking);
+  }
+
+  getNamedOccupant(): string {
+    return BookingUtils.getNamedOccupant(this.booking);
+  }
+
+  getLicensePlate(): string {
+    return BookingUtils.getLicensePlate(this.booking);
+  }
+
+  getLicensePlateRegistrationRegion(): string {
+    return BookingUtils.getLicensePlateRegistrationRegion(this.booking);
+  }
+
+  getStatus(): string {
+    return this.booking?.status || 'confirmed';
+  }
+
+  isCancelled(): boolean {
+    return this.getStatus() === 'cancelled';
+  }
+
+  downloadQRCode(): void {
+    if (!this.qrCodeDataUrl) {
+      console.warn('No QR code available to download');
+      return;
+    }
+
+    if (!this.qrCodeDataUrl.startsWith('data:image/png;base64,')) {
+      console.error('Invalid QR code data URL format');
+      return;
+    }
+
+    const link = document.createElement('a');
+    link.href = this.qrCodeDataUrl;
+    const safeBookingId = (this.getBookingNumber() || 'unknown').replace(/[^a-zA-Z0-9-]/g, '');
+    link.download = `booking-qr-${safeBookingId}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  cancelBooking(): void {
+    const bookingId = this.route.snapshot.paramMap.get('id');
+    if (bookingId) {
+      this.router.navigate(['/account/bookings/cancel', bookingId]);
+    }
   }
 }

@@ -1,7 +1,7 @@
-import { ChangeDetectorRef, Component, EventEmitter, inject, OnDestroy, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, inject, OnDestroy, OnInit, Output } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { DateTime } from 'luxon';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, UntypedFormGroup } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
@@ -14,17 +14,17 @@ import { ToastService, ToastTypes } from '../services/toast.service';
 import { AuthService } from '../services/auth.service';
 import { WaitingRoomService } from '../services/waiting-room.service';
 import { ApiService } from '../services/api.service';
+import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
 
 @Component({
   selector: 'app-facility-details',
   host: { class: 'h-100' },
-  imports: [CommonModule, FormsModule, RouterLink, NgdsFormsModule],
+  imports: [CommonModule, FormsModule, NgdsFormsModule, BreadcrumbComponent],
   templateUrl: './facility-details.component.html',
-  styleUrl: './facility-details.component.scss'
+  styleUrls: ['./facility-details.component.scss']
 })
-export class FacilityDetailsComponent implements OnDestroy {
+export class FacilityDetailsComponent implements OnInit, OnDestroy {
   @Output() formValue: EventEmitter<any> = new EventEmitter<any>();
-
   public emailVerified = false;
   public emailVerificationLoaded = false;
   
@@ -134,10 +134,12 @@ export class FacilityDetailsComponent implements OnDestroy {
       const relatedProducts = (await this.productService.getProductsByActivity(collectionId, activityType, activityId))?.items || [];
       this.loadingProducts = false;
 
-      this.availableProducts = relatedProducts.map(product => {
+      this.availableProducts = relatedProducts
+          .filter(product => product?.productId !== undefined && product?.productId !== null)
+          .map(product => {
             return {
               display: product?.displayName,
-              value: `${product?.pk}#${product?.sk}`
+              value: `${product?.pk}#${product?.productId}`
             }
           });
       
@@ -147,11 +149,11 @@ export class FacilityDetailsComponent implements OnDestroy {
       if (!product) return;
       
       const pk = product.split('#')[0];
-      const sk = product.split('#')[1];
+      const selectedProductId = product.split('#')[1];
       const collectionId = pk.split('::')[1];
       const activityType = pk.split('::')[2];
       const activityId = pk.split('::')[3];
-      const productId = sk.split('::')[0];
+      const productId = selectedProductId || null;
 
       this.loadingDates = true;
       const dates = (await this.productDateService.getProductDates(
@@ -299,8 +301,8 @@ export class FacilityDetailsComponent implements OnDestroy {
     // Extract productId from the selected product (format: "product::collectionId::activityType::activityId#productId")
     let productId = null;
     if (selectedProductValue) {
-      const sk = selectedProductValue.split('#')[1];
-      productId = sk || null;
+      const selectedProductId = selectedProductValue.split('#')[1];
+      productId = selectedProductId || null;
     }
 
     if (!productId) {
@@ -335,13 +337,6 @@ export class FacilityDetailsComponent implements OnDestroy {
 
     this.router.navigate(['/reservation-flow']).then(() => {
       window.scrollTo(0, 0);
-      this.cdr.detectChanges();
-    });
-  }
-
-  // Method to navigate back to the previous page
-  goBack() {
-    this.router.navigate(['/']).then(() => {
       this.cdr.detectChanges();
     });
   }

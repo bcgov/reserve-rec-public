@@ -1,17 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { BookingService } from '../services/booking.service';
 import { LoadingService } from '../services/loading.service';
 import { QrPrintService } from '../services/qr-print.service';
 import { Constants } from '../constants';
+import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
 
 @Component({
   selector: 'app-booking-confirmation',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, BreadcrumbComponent],
   templateUrl: './booking-confirmation.component.html',
-  styleUrl: './booking-confirmation.component.scss'
+  styleUrls: ['./booking-confirmation.component.scss']
 })
 export class BookingConfirmationComponent implements OnInit {
   bookingId: string | null = null;
@@ -44,9 +45,6 @@ export class BookingConfirmationComponent implements OnInit {
       this.bookingId = ref1BookingId;
     }
 
-    console.log('Booking ID:', this.bookingId);
-    console.log('Query Params:', this.queryParams);
-
     if (this.bookingId) {
       await this.loadBooking();
     } else {
@@ -66,8 +64,6 @@ export class BookingConfirmationComponent implements OnInit {
       if (this.booking?.qrCode?.dataUrl) {
         this.qrCodeDataUrl = this.booking.qrCode.dataUrl;
       }
-
-      console.log('Booking data:', this.booking);
     } catch (error) {
       console.error('Error loading booking:', error);
       this.error = 'Failed to load booking details';
@@ -184,7 +180,6 @@ export class BookingConfirmationComponent implements OnInit {
   }
   viewConfirmationLetter(): void {
     // TODO: Implement confirmation letter generation
-    console.log('View confirmation letter');
   }
 
   downloadQRCode(): void {
@@ -252,6 +247,5 @@ export class BookingConfirmationComponent implements OnInit {
 
   viewReceipt(): void {
     // TODO: Implement receipt view
-    console.log('View receipt');
   }
 }

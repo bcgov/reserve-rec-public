@@ -8,7 +8,9 @@ import { AuthService } from '../../services/auth.service';
 import { ConfirmationModalComponent, ModalRowSpec } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { CancelService } from '../../services/cancel.service';
-// import { Utils } from '../../utils/utils';
+import { ToastService, ToastTypes } from '../../services/toast.service';
+import { FeatureFlagService } from '../../services/feature-flag.service';
+import { BookingUtils } from '../../utils/booking-utils';
 
 @Component({
   selector: 'app-booking-cancel',
@@ -28,6 +30,8 @@ export class BookingCancelComponent implements OnInit {
   viewMap = true;
   zoomValue = 12;
   loading = true;
+  cancelling = false;
+  paymentsEnabled = false;
   public adultRate = 2;
   public youthRate = 0;
   public gstRate = 0.05;
@@ -39,55 +43,79 @@ constructor(
   private authService: AuthService,
   private cancelService: CancelService,
   private router: Router,
-  private modalService: BsModalService
+  private modalService: BsModalService,
+  private toastService: ToastService,
+  private featureFlagService: FeatureFlagService
 ) {}
   async ngOnInit() {
     try {
+      // Check if payments are enabled
+      this.paymentsEnabled = this.featureFlagService.isEnabled('enablePayments');
+      
       const bookingId = this.route.snapshot.paramMap.get('id');
       const res: any = await lastValueFrom(this.apiService.get(`bookings/${bookingId}`));
       
       this.booking = res.data;
-      console.log('this.booking', this.booking);
-      
-      this.booking.nights = this.calculateNights(this.booking.startDate, this.booking.endDate);
-      this.booking.totalParty = this.formatParty(this.booking.partyInformation);
-      // this.mapObj = Utils.formatMapCoords(this.booking);
+      this.booking.nights = this.calculateTotalNights();
+      this.booking.totalParty = BookingUtils.formatParty(this.booking.partyContext || {});
       this.userId = this.authService.getCurrentUser();
 
-      // if(this.user.sub != this.booking.user){
-      //   console.error('User does not match booking user');
-      //   this.router.navigate(['/']); 
-      //   return;
-      // }
       this.loading = false;
     } catch (error) {
       console.error('Failed to fetch booking cancel:', error);
     }
   }
 
-  formatParty(partyInfo: Record<string, number>) {
-    const partyKeys = Object.keys(partyInfo)
-    let totalParty = 0;
-    for (const partyKey of partyKeys) {
-      totalParty += partyInfo[partyKey];
-    }
-    return totalParty;
+  getGeozoneName(): string {
+    return BookingUtils.getGeozoneName(this.booking);
   }
 
-  calculateNights(start: string, end: string): number {
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    const diffTime = endDate.getTime() - startDate.getTime();
-    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+  getFacilityName(): string {
+    return BookingUtils.getFacilityName(this.booking);
+  }
+
+  getArrivalDate(): string {
+    return BookingUtils.getArrivalDate(this.booking);
+  }
+
+  getDepartureDate(): string {
+    return BookingUtils.getDepartureDate(this.booking);
+  }
+
+  getBookingNumber(): string {
+    return BookingUtils.getBookingNumber(this.booking);
+  }
+
+  getProductDisplayName(): string {
+    return BookingUtils.getProductDisplayName(this.booking);
+  }
+
+  getPassCount(): number {
+    return BookingUtils.getPassCount(this.booking);
+  }
+
+  getPartySize(): number {
+    return BookingUtils.getPartySize(this.booking);
+  }
+
+  getNamedOccupant(): string {
+    return BookingUtils.getNamedOccupant(this.booking);
+  }
+
+  getLicensePlate(): string {
+    return BookingUtils.getLicensePlate(this.booking);
+  }
+
+  getLicensePlateRegistrationRegion(): string {
+    return BookingUtils.getLicensePlateRegistrationRegion(this.booking);
   }
 
   getAdultOccupants(): number {
-    return parseInt(this.booking.partyInformation.adult || 0) + parseInt(this.booking.partyInformation.senior || 0);
+    return BookingUtils.getAdultOccupants(this.booking);
   }
 
   getYouthOccupants(): number {
-    return parseInt(this.booking.partyInformation.youth || 0) + parseInt(this.booking.partyInformation.children || 0);
+    return BookingUtils.getYouthOccupants(this.booking);
   }
 
   getNightlyAdultCost(): number {
@@ -130,7 +158,7 @@ constructor(
 
   onConfirmRefund() {
     const bookingNumber = this.booking?.bookingId;
-    const displayName = this.booking?.displayName;
+    const displayName = this.booking?.geozoneDisplayName || this.booking?.collectionId || 'Unknown';
     const startDate = this.booking?.startDate;
     const endDate = this.booking?.endDate;
 
@@ -145,16 +173,20 @@ constructor(
       { label: 'Transaction number', value: this.booking.clientTransactionId },
       { label: 'Park name', value: displayName},
       { label: 'Start date', value: startDate },
-      { label: 'End date', value: endDate },
-      { label: 'Refunded total', value: `$${this.getTotalCost().toFixed(2)}` }
+      { label: 'End date', value: endDate }
     ];
+
+    // Add refund information only if payments are enabled
+    if (this.paymentsEnabled) {
+      details.push({ label: 'Refunded total', value: `$${this.getTotalCost().toFixed(2)}` });
+    }
 
     // Show the modal with the confirmation details.
     const modalRef = this.modalService.show(ConfirmationModalComponent, {
       initialState: {
-        title: 'Confirm cancel and refund',
+        title: this.paymentsEnabled ? 'Confirm cancel and refund' : 'Confirm cancellation',
         details,
-        confirmText: 'Cancel & refund',
+        confirmText: this.paymentsEnabled ? 'Cancel & refund' : 'Cancel booking',
         cancelText: 'Back',
         confirmClass: 'btn btn-danger',
         cancelClass: 'btn btn-outline-secondary'
@@ -163,12 +195,21 @@ constructor(
 
     // Listen for confirmation and cancellation events from the modal.
     const modalContent = modalRef.content as ConfirmationModalComponent;
-    modalContent.confirmButton.subscribe(() => {
-      this.cancelService.cancelBooking(this.booking.bookingId, {
-        reason: 'Cancelled by user via self-serve'
-      });
-      modalRef.hide();
-      this.router.navigate([`/account/bookings/${this.booking.bookingId}`]);
+    modalContent.confirmButton.subscribe(async () => {
+      try {
+        this.cancelling = true;
+        await this.cancelService.cancelBooking(this.booking.bookingId, {
+          reason: 'Cancelled by user via self-serve'
+        });
+        modalRef.hide();
+        this.toastService.addMessage('Booking cancelled successfully', 'Success', ToastTypes.SUCCESS);
+        this.router.navigate([`/account/bookings/${this.booking.bookingId}`]);
+      } catch (error) {
+        console.error('Failed to cancel booking:', error);
+        this.toastService.addMessage('Failed to cancel booking. Please try again.', 'Error', ToastTypes.ERROR);
+        this.cancelling = false;
+        modalRef.hide();
+      }
     });
     modalContent.cancelButton.subscribe(() => {
       modalRef.hide();

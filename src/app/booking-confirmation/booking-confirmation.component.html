@@ -1,21 +1,11 @@
 <div class="container-fluid">
   <div class="row justify-content-center">
-    <div class="col-lg-10 col-12">
+    <div class="col-lg-10 col-12 mt-5 px-4 mb-5">
       
       <!-- Breadcrumb -->
-      <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item">
-            <a [routerLink]="['/']" class="text-decoration-none">Home</a>
-          </li>
-          <li class="breadcrumb-item">
-            <a [routerLink]="['/cart']" class="text-decoration-none">Cart</a>
-          </li>
-          <li class="breadcrumb-item active" aria-current="page">Checkout</li>
-        </ol>
-      </nav>
-
-      <h2 class="text-dark fw-bold mb-4">Checkout</h2>
+      <app-breadcrumb></app-breadcrumb>
+      
+      <h2 class="fw-bold mb-4 text-primary">Booking Confirmation</h2>
 
       <!-- Loading State -->
       <div *ngIf="loading" class="text-center py-5">
@@ -32,13 +22,13 @@
       </div>
 
       <!-- Success Content -->
-      <div *ngIf="!loading && !error && booking">
+      <div *ngIf="!loading && !error && booking" class="ps-lg-5 ps-md-4">
         
         <!-- Success Message -->
-        <div class="alert border border-success success-custom mb-4 text-dark" role="alert">
+        <div class="alert alert-success border border-success mb-4" role="alert">
           <div class="d-flex align-items-center mb-2">
             <i class="fa-solid fa-circle-check me-3 fs-4 text-success"></i>
-            <strong>Thank you for booking with BC Parks!</strong>
+            <strong>Success! You're all set!</strong>
           </div>
           <p class="mb-3">
             Print or screenshot your day-use pass before you arrive at the park, as mobile internet connectivity can be unreliable. You will need it to show to BC Parks staff when requested.
@@ -57,7 +47,7 @@
                   aria-expanded="false">
                   Actions
                 </button>
-                <ul class="dropdown-menu actions-dropdown">
+                <ul class="dropdown-menu" style="min-width: 20rem;">
                   <li>
                     <button type="button" class="dropdown-item" (click)="downloadQRCode()" [disabled]="!qrCodeDataUrl">
                       Download QR code
@@ -75,8 +65,8 @@
         </div>
 
         <!-- Booking Card -->
-        <div class="booking-card mb-4">
-          <div class="card-header">
+        <div class="card border rounded mb-4">
+          <div class="card-header bg-booking-header">
             <h4 class="mb-0">{{ getAreaName() }}</h4>
             <p class="text-muted mb-0">{{  getBookingType() }}</p>
           </div>
@@ -85,15 +75,15 @@
             <!-- Arrival / Departure -->
             <div class="row g-3 mb-3">
               <div class="col-md-6">
-                <div class="booking-detail">
-                  <p class="detail-label">Arrival</p>
-                  <div class="detail-value">{{ getArrivalDate() | date:'fullDate' }}</div>
+                <div class="mb-3">
+                  <p class="text-muted small fw-semibold mb-1">Arrival</p>
+                  <div>{{ getArrivalDate() | date:'fullDate' }}</div>
                 </div>
               </div>
               <div class="col-md-6">
-                <div class="booking-detail">
-                  <p class="detail-label">Departure</p>
-                  <div class="detail-value">{{ getDepartureDate() | date:'fullDate' }}</div>
+                <div class="mb-3">
+                  <p class="text-muted small fw-semibold mb-1">Departure</p>
+                  <div>{{ getDepartureDate() | date:'fullDate' }}</div>
                 </div>
               </div>
             </div>
@@ -101,15 +91,15 @@
             <!-- Pass Type / Passes -->
             <div class="row g-3 mb-3">
               <div class="col-md-6">
-                <div class="booking-detail">
-                  <p class="detail-label">Pass type</p>
-                  <div class="detail-value">{{ getProductDisplayName() }}</div>
+                <div class="mb-3">
+                  <p class="text-muted small fw-semibold mb-1">Pass type</p>
+                  <div>{{ getProductDisplayName() }}</div>
                 </div>
               </div>
               <div class="col-md-6">
-                <div class="booking-detail">
-                  <p class="detail-label">Passes</p>
-                  <div class="detail-value">{{ getPassCount() }}</div>
+                <div class="mb-3">
+                  <p class="text-muted small fw-semibold mb-1">Passes</p>
+                  <div>{{ getPassCount() }}</div>
                 </div>
               </div>
             </div>
@@ -119,15 +109,15 @@
             <!-- Named Occupant / License Plate -->
             <div class="row g-3 mb-3">
               <div class="col-md-6">
-                <div class="booking-detail">
-                  <p class="detail-label">Named occupant</p>
-                  <div class="detail-value">{{ getNamedOccupant() }}</div>
+                <div class="mb-3">
+                  <p class="text-muted small fw-semibold mb-1">Named occupant</p>
+                  <div>{{ getNamedOccupant() }}</div>
                 </div>
               </div>
               <div class="col-md-6">
-                <div class="booking-detail">
-                  <p class="detail-label">License plate</p>
-                  <div class="detail-value">
+                <div class="mb-3">
+                  <p class="text-muted small fw-semibold mb-1">License plate</p>
+                  <div>
                     {{ getLicensePlate() }}<span *ngIf="getLicensePlateRegistrationRegion()">, {{ getLicensePlateRegistrationRegion() }}</span>
                   </div>
                 </div>
@@ -136,17 +126,17 @@
 
             <hr class="my-4" />
 
-            <div class="booking-detail">
-              <p class="detail-label">Confirmation number</p>
-              <div class="detail-value fw-bold">{{ getBookingNumber() }}</div>
+            <div>
+              <p class="text-muted small fw-semibold mb-1">Confirmation number</p>
+              <div class="fw-bold">{{ getBookingNumber() }}</div>
             </div>
           </div>
         </div>
 
-        <div class="booking-card mb-4">
+        <div class="card border rounded mb-4">
           <div class="card-body">
-            <div class="booking-detail mb-3">
-              <p class="detail-label mb-2">Day-use pass QR code</p>
+            <div class="mb-3">
+              <p class="text-muted small fw-semibold mb-2">Day-use pass QR code</p>
             </div>
 
             <div *ngIf="qrCodeDataUrl; else qrUnavailable" class="text-center">

@@ -1,0 +1,30 @@
+<div *ngIf="breadcrumbs.length > 1">
+ 
+  <!-- Breadcrumb Navigation -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb custom-breadcrumb">
+      <ng-container *ngFor="let breadcrumb of breadcrumbs; let last = last; let first = first">
+        <li class="breadcrumb-item" [class.active]="last" [attr.aria-current]="last ? 'page' : null">
+          <a 
+            *ngIf="!last" 
+            [routerLink]="[breadcrumb.url]" 
+            class="text-decoration-none">
+            {{ breadcrumb.label }}
+          </a>
+          <span *ngIf="last">{{ breadcrumb.label }}</span>
+        </li>
+        <li *ngIf="!last" class="breadcrumb-separator">
+          <i class="fa-solid fa-chevron-right"></i>
+        </li>
+      </ng-container>
+    </ol>
+  </nav>
+   <!-- Back Button -->
+  <div class="mb-3">
+    <button class="btn btn-outline-primary" (click)="goBack()">
+      <i class="fa-solid fa-circle-chevron-left me-2"></i>
+      Back
+    </button>
+  </div>
+
+</div>

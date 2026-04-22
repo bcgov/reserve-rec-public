@@ -1,5 +1,16 @@
-.search-map {
-  width: 100%;
-  display: inline-block;
-  height: 350px;
+.booking-card-link {
+  transition: transform 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    
+    .booking-card {
+      box-shadow: 0 4px 12px rgba(1, 51, 102, 0.15);
+    }
+  }
+}
+
+.booking-card {
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
 }

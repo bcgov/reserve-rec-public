@@ -2,13 +2,7 @@
 <div class="bg-container bg-grey">
   <div class="container">
     <!-- Breadcrumbs -->
-    <div class="d-flex my-2 align-items-center">
-      <a class="btn btn-link text-decoration-none" (click)="navigate()">Home</a>
-      <i class="fa-regular fa-chevron-right mx-1 my-2"></i>
-      <a class="btn btn-link text-decoration-none" routerLink="/cart">Cart</a>
-      <i class="fa-regular fa-chevron-right mx-1 my-2"></i>
-      <div class="mx-2 my-2">Checkout</div>
-    </div>
+    <app-breadcrumb></app-breadcrumb>
     
     <h1 class="text-primary my-4">Checkout</h1>
     <app-admission-countdown class="mb-3 d-block"></app-admission-countdown>

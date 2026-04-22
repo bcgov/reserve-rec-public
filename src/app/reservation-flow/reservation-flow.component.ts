@@ -14,6 +14,7 @@ import { EquipmentStepComponent } from './components/steps/equipment-step/equipm
 import { PaymentStepComponent } from './components/steps/payment-step/payment-step.component';
 import { AdmissionCountdownComponent } from '../components/admission-countdown/admission-countdown.component';
 import { FeatureFlagService } from '../services/feature-flag.service';
+import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
 
 @Component({
   selector: 'app-reservation-flow',
@@ -26,7 +27,8 @@ import { FeatureFlagService } from '../services/feature-flag.service';
     EquipmentStepComponent,
     PaymentStepComponent,
     AdmissionCountdownComponent,
-    RouterModule
+    RouterModule,
+    BreadcrumbComponent
   ],
   templateUrl: './reservation-flow.component.html',
   styleUrl: './reservation-flow.component.scss'
@@ -201,10 +203,6 @@ async onStepCompleted(completed: boolean): Promise<void> {
   const paymentsEnabled = this.featureFlagService.isEnabled('enablePayments');
   
   
-  if (this.cartItem?.id) {
-    this.saveCurrentFormState(this.cartItem.id);
-  }
-  
   this.checkAllStepsCompleted();
 
   // Special handling for equipment step (step 2, 0-indexed)
@@ -310,14 +308,17 @@ async onStepCompleted(completed: boolean): Promise<void> {
       throw new Error('Form data not available');
     }
 
+    const normalizedProductId = this.normalizeProductId(item.productId);
+    const bookingDetails = this.getBookingFormDetails(formValue);
+
     const bookingData = {
       startDate: item.startDate,
       endDate: item.endDate,
-      productId: item.productId || null,
+      productId: normalizedProductId,
       quantity: item.quantity || 1,
       entryPoint: formValue.entryPoint || null,
       exitPoint: formValue.exitPoint || null,
-      displayName: item.activityName,
+      facilityDisplayName: item.geoZoneName,
       timezone: 'America/Vancouver',
       bookedAt: new Date().toISOString(),
       collectionId: item.collectionId,
@@ -332,10 +333,10 @@ async onStepCompleted(completed: boolean): Promise<void> {
         child: item.occupants.totalChild,
       },
       rateClass: 'standard',
-      namedOccupant: this.getNamedOccupantInfo(formValue),
+      namedOccupant: bookingDetails.namedOccupant,
       smsOptIn: Boolean(formValue?.smsOptIn),
-      vehicleInformation: this.getVehicleInformation(formValue),
-      equipmentInformation: formValue?.equipmentDetails || formValue?.additionalEquipment || '',
+      vehicleInformation: bookingDetails.vehicleInformation,
+      equipmentInformation: bookingDetails.equipmentInformation,
       bookingStatus: 'confirmed',
       location: { type: 'point', coordinates: [-127.86704491749371, 50.85383286629616] }
     };
@@ -351,21 +352,58 @@ async onStepCompleted(completed: boolean): Promise<void> {
     );
   }
 
+  private normalizeProductId(productId?: string): string | null {
+    if (!productId) {
+      return null;
+    }
+
+    return productId.split('::')[0] || null;
+  }
+
+  private getBookingFormDetails(formValue: any): {
+    namedOccupant: any;
+    vehicleInformation: any[];
+    equipmentInformation: string;
+  } {
+    return {
+      namedOccupant: this.getNamedOccupantInfo(formValue),
+      vehicleInformation: this.getVehicleInformation(formValue),
+      equipmentInformation: formValue?.equipmentDetails || formValue?.additionalEquipment || ''
+    };
+  }
+
   private getNamedOccupantInfo(formValue: any): any {
     const userIsOccupant = formValue.userIsPrimaryOccupant;
-    const accountMobilePhone = this.user?.['custom:mobilePhone'] || this.user?.phone_number || '';
+    const profile = this.getUserProfileDefaults();
+    const primaryOccupant = formValue.primaryOccupant || {};
+    const addressInfo = formValue.addressInfo || {};
+
     return {
-      firstName: userIsOccupant ? this.user?.given_name || '' : formValue.primaryOccupant?.firstName || '',
-      lastName: userIsOccupant ? this.user?.family_name || '' : formValue.primaryOccupant?.lastName || '',
+      firstName: userIsOccupant ? profile.firstName : primaryOccupant.firstName || '',
+      lastName: userIsOccupant ? profile.lastName : primaryOccupant.lastName || '',
       contactInfo: {
-        email: userIsOccupant ? this.user?.email || '' : formValue.primaryOccupant?.email || '',
-        mobilePhone: userIsOccupant ? accountMobilePhone : formValue.primaryOccupant?.phoneNumber || '',
-        streetAddress: formValue.addressInfo?.streetAddress || '',
-        city: formValue.addressInfo?.city || '',
-        postalCode: formValue.addressInfo?.postalCode || '',
-        province: formValue.addressInfo?.province || '',
-        country: formValue.addressInfo?.country || ''
+        email: userIsOccupant ? profile.email : primaryOccupant.email || '',
+        mobilePhone: userIsOccupant ? profile.mobilePhone : primaryOccupant.phoneNumber || '',
+        streetAddress: addressInfo.streetAddress || '',
+        city: addressInfo.city || '',
+        postalCode: addressInfo.postalCode || '',
+        province: addressInfo.province || '',
+        country: addressInfo.country || ''
       }
+    };
+  }
+
+  private getUserProfileDefaults(): {
+    firstName: string;
+    lastName: string;
+    email: string;
+    mobilePhone: string;
+  } {
+    return {
+      firstName: this.user?.given_name || '',
+      lastName: this.user?.family_name || '',
+      email: this.user?.email || '',
+      mobilePhone: this.user?.['custom:mobilePhone'] || this.user?.phone_number || ''
     };
   }
 
@@ -387,11 +425,13 @@ async onStepCompleted(completed: boolean): Promise<void> {
   }
 
   private getCompletionPayload(formValue: any, sessionId: string | null): any {
+    const bookingDetails = this.getBookingFormDetails(formValue);
+
     return {
       sessionId: sessionId,
-      namedOccupant: this.getNamedOccupantInfo(formValue),
-      vehicleInformation: this.getVehicleInformation(formValue),
-      equipmentInformation: formValue?.equipmentDetails || formValue?.additionalEquipment || ''
+      namedOccupant: bookingDetails.namedOccupant,
+      vehicleInformation: bookingDetails.vehicleInformation,
+      equipmentInformation: bookingDetails.equipmentInformation
     };
   }
 
@@ -412,19 +452,5 @@ async onStepCompleted(completed: boolean): Promise<void> {
   ngOnDestroy(): void {
     this.stepperService.reset();
     this.changeDetectorRef.detach();
-    }
-
-private formStates = new Map<string | number, any>();
-
-private saveCurrentFormState(itemId?: string | number): void {
-  if (!itemId || !this.form) return;
-
-  const formState = this.form.getRawValue(); // Get all form values including disabled controls
-  this.formStates.set(itemId, formState);
-}
-
-private loadFormStateForItem(itemId: string | number): any {
-  const savedState = this.formStates.get(itemId);
-  return savedState;
-}
+  }
 }

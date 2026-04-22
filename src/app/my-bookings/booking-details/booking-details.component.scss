@@ -1,10 +1,6 @@
-.search-map {
-  width: 100%;
-  display: inline-block;
-  height: 350px;
-}
-
-.badge-pill {
-  font-size: 16px;
-  border-radius: 25px;
+// Responsive adjustments for mobile
+@media (max-width: 768px) {
+  .dropdown-menu {
+    min-width: 15rem !important;
+  }
 }

@@ -19,7 +19,11 @@ export const routes: Routes = [
   {
     path: 'account/bookings/:id',
     loadComponent: () => import('./my-bookings/booking-details/booking-details.component')
-      .then(m => m.BookingDetailsComponent)
+      .then(m => m.BookingDetailsComponent),
+    data: { 
+      breadcrumb: 'Booking Details',
+      parentBreadcrumb: { label: 'My Bookings', url: '/my-bookings' }
+    }
   },
   {
     path: 'account/bookings/cancel/:id',
@@ -39,7 +43,8 @@ export const routes: Routes = [
   {
     path: 'booking-confirmation/:bookingId',
     loadComponent: () => import('./booking-confirmation/booking-confirmation.component')
-      .then(mod => mod.BookingConfirmationComponent)
+      .then(mod => mod.BookingConfirmationComponent),
+    data: { breadcrumb: 'Booking Confirmation' }
   },
   {
     path: 'booking/:id',
@@ -50,13 +55,15 @@ export const routes: Routes = [
     path: 'cart',
     loadComponent: () => import('./cart/cart.component')
       .then(mod => mod.CartComponent),
-    canActivate: [WaitingRoomGuard]
+    canActivate: [WaitingRoomGuard],
+    data: { skipBreadcrumb: true }
   },
   {
     path: 'checkout',
     loadComponent: () => import('./reservation-flow/reservation-flow.component')
       .then(mod => mod.ReservationFlowComponent),
-    canActivate: [CheckoutGuard, WaitingRoomGuard]
+    canActivate: [CheckoutGuard, WaitingRoomGuard],
+    data: { breadcrumb: 'Checkout' }
   },
   {
     path: 'facility/:collectionId/:facilityType/:facilityId',
@@ -64,7 +71,8 @@ export const routes: Routes = [
       .then(mod => mod.FacilityDetailsComponent),
     resolve: { facility: FacilityResolver },
     runGuardsAndResolvers: 'always',
-    canActivate: [WaitingRoomGuard]
+    canActivate: [WaitingRoomGuard],
+    data: { breadcrumb: 'Facility Details' }
   },
   {
     path: 'find-booking',
@@ -81,7 +89,8 @@ export const routes: Routes = [
     loadComponent: () => import('./my-bookings/my-bookings.component')
       .then(mod => mod.MyBookingsComponent),
     canActivate: [UserGuard],
-    resolve: { user: UserResolver }
+    resolve: { user: UserResolver },
+    data: { breadcrumb: 'My Bookings' }
   },
   {
     path: 'payment-retry',
@@ -92,7 +101,8 @@ export const routes: Routes = [
     path: 'reservation-flow',
     loadComponent: () => import('./reservation-flow/reservation-flow.component')
       .then(mod => mod.ReservationFlowComponent),
-    canActivate: [CheckoutGuard, WaitingRoomGuard]
+    canActivate: [CheckoutGuard, WaitingRoomGuard],
+    data: { breadcrumb: 'Checkout' }
   },
   {
     path: 'results',

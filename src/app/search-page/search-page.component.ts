@@ -20,38 +20,17 @@ export class SearchPageComponent implements OnInit, AfterViewChecked {
   public form;
 
   public options = [
-    {
-      value: '/facility/bcparks_7/accessPoint/1',
-      display: 'Garibaldi Provincial Park - Cheakamus'
-    },
-    {
-      value: '/facility/bcparks_7/accessPoint/2',
-      display: 'Garibaldi Provincial Park - Diamond Head'
-    },
-    {
-      value: '/facility/bcparks_7/accessPoint/3',
-      display: 'Garibaldi Provincial Park - Rubble Creek'
-    },
-    {
-      value: '/facility/bcparks_8/accessPoint/1',
-      display: 'Golden Ears Provincial Park - Alouette Lake Boat Launch'
-    },
-    {
-      value: '/facility/bcparks_8/accessPoint/2',
-      display: 'Golden Ears Provincial Park - Alouette Lake South Beach Day-Use Area'
-    },
-    {
-      value: '/facility/bcparks_8/accessPoint/3',
-      display: 'Golden Ears Provincial Park - Gold Creek'
-    },
-    {
-      value: '/facility/bcparks_8/accessPoint/4',
-      display: 'Golden Ears Provincial Park - West Canyon Trailhead'
-    },
-    {
-      value: '/facility/bcparks_363/accessPoint/1',
-      display: 'Joffre Lakes Provincial Park - Joffre Lakes'
-    },
+    { value: null, display: 'Garibaldi Provincial Park', disabled: true },
+    { value: '/facility/bcparks_7/accessPoint/1', display: 'Cheakamus' },
+    { value: '/facility/bcparks_7/accessPoint/2', display: 'Diamond Head' },
+    { value: '/facility/bcparks_7/accessPoint/3', display: 'Rubble Creek' },
+    { value: null, display: 'Golden Ears Provincial Park', disabled: true },
+    { value: '/facility/bcparks_8/accessPoint/1', display: 'Alouette Lake Boat Launch' },
+    { value: '/facility/bcparks_8/accessPoint/2', display: 'Alouette Lake South Beach Day-Use Area' },
+    { value: '/facility/bcparks_8/accessPoint/3', display: 'Gold Creek' },
+    { value: '/facility/bcparks_8/accessPoint/4', display: 'West Canyon Trailhead' },
+    { value: null, display: 'Joffre Lakes Provincial Park', disabled: true },
+    { value: '/facility/bcparks_363/accessPoint/1', display: 'Joffre Lakes' },
   ];
 
   constructor(

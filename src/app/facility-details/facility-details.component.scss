@@ -1,3 +1,13 @@
+.background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 45em;
+  z-index: -999;
+  background-color: #f2f0ec;
+}
+
 .section-underline {
   height: 3px;
   border: none; 
@@ -7,7 +17,7 @@
 }
 
 .hero-section {
-  min-height: 200px;
+  min-height: 384px;
   display: flex;
   align-items: center;
   background-repeat: no-repeat;
@@ -21,4 +31,11 @@
 .disable-btn[disabled] {
   opacity: 1;
   color: #C7C7C7 !important;
+}
+
+// Stops a very, very long picklist from being a giant obelisk on the page
+::ng-deep ngds-picklist-input .dropdown-menu {
+  max-height: 300px;
+  min-width: stretch;
+  overflow-y: auto;
 }

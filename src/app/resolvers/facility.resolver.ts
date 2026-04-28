@@ -10,7 +10,7 @@ export class FacilityResolver implements Resolve<any> {
     const collectionId = route.paramMap.get('collectionId');
     const facilityType = route.paramMap.get('facilityType');
     const facilityId = route.paramMap.get('facilityId');
-    const facility = await this.facilityService.getFacility(collectionId, facilityType, facilityId, true);
+    const facility = await this.facilityService.getFacility(collectionId, facilityType, facilityId, true, true);
     return facility?.items?.[0] || facility;
   }
 }

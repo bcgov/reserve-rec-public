@@ -7,7 +7,6 @@ import { FormBuilder, FormsModule, UntypedFormGroup } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 import { ProductService } from '../services/product.service';
 import { ProductDateService } from '../services/product-date.service';
-import { BookingService } from '../services/booking.service';
 import { Constants } from '../constants';
 import { CartService, CartItem } from '../services/cart.service';
 import { ToastService, ToastTypes } from '../services/toast.service';
@@ -30,11 +29,13 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
   
   public form: UntypedFormGroup;
   public facilityOpen = true;
-  public passesAvailable = true;
+  public passesAvailable = false;
   public loadingProducts = false;
   public loadingDates = false;
+  public loadingPasses = false;
   
   public facility;
+  public geozone;
   
   public relatedActivities: any[] = [];
   public availableActivities: any = [];
@@ -56,7 +57,6 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
 
   private cartService = inject(CartService);
   private toastService = inject(ToastService);
-  private bookingService = inject(BookingService);
   private waitingRoomService = inject(WaitingRoomService);
   private apiService = inject(ApiService);
 
@@ -70,10 +70,13 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
     private authService: AuthService
   ) {
     this.facility = this.route.snapshot.data['facility'];
-    this.relatedActivities = this.facility?.activities || []
-
+    this.geozone = this.facility.geozones[0];
     if (!this.facility?.isOpen) this.facilityOpen = false;
 
+    // If this facility has activities, add them to relatedActivities for first dropdown ("Activity")
+    this.relatedActivities = this.facility?.activities || []
+
+    // Map each activity related to the facility as dropdown items
     this.availableActivities = this.relatedActivities.map(activity => {
       return {
         display: activity?.displayName,
@@ -82,11 +85,28 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.initializeForm();
   }
 
   async ngOnInit() {
+    // Initialize the form first so the template can bind immediately
+    this.initializeForm();
+
+    // Check if the user is logged in - if so, check email verification
+    // otherwise the facility is "closed" to them
+    if (this.authService.getCurrentUser()) {
       await this.checkUserEmailVerification();
+    } else {
+      this.facilityOpen = false;
+    }
+
+
+    // If there's only one activity, auto-select it and pre-load its products
+    if (this.availableActivities.length === 1) {
+      const activity = this.availableActivities[0].value;
+      // Set the control value without emitting so the valueChanges subscription doesn't fire a duplicate call
+      this.form.get('selectedActivity').setValue(activity, { emitEvent: false });
+      await this.setFormProduct(activity);
+    }
   }
 
   private initializeForm() {
@@ -115,36 +135,52 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     });
 
+    // When the user chooses/changes the activity, we need to retrieve the products related
     this.form.get('selectedActivity').valueChanges.subscribe(async (activity) => {
-      if (!activity) return;
-      
-      const pk = activity.split('#')[0];
-      const sk = activity.split('#')[1];
-      const collectionId = pk.split('::')[1];
-      const activityType = sk.split('::')[0];
-      const activityId = sk.split('::')[1];
-
-      this.selectedCollectionId = collectionId;
-      this.selectedActivityType = activityType;
-      this.selectedActivityId = activityId;
-      this.selectedActivityName = this.availableActivities.find(a => a.value === activity)?.display || '';
-
-      this.loadingProducts = true;
-      this.availableProducts = [];
-      const relatedProducts = (await this.productService.getProductsByActivity(collectionId, activityType, activityId))?.items || [];
-      this.loadingProducts = false;
-
-      this.availableProducts = relatedProducts
-          .filter(product => product?.productId !== undefined && product?.productId !== null)
-          .map(product => {
-            return {
-              display: product?.displayName,
-              value: `${product?.pk}#${product?.productId}`
-            }
-          });
-      
+      this.setFormProduct(activity);
     });
     
+    // When the user chooses their product, we need to then retrieve the productDates
+    this.setFormProductDates();
+
+    // When the user selects their date, then we can provide the passes available
+    this.setFormPassesAvailable();
+  }
+
+  async setFormProduct(activity) {
+    // When the user chooses/changes the activity, we need to retrieve the products related
+    if (!activity) return;
+    
+    const pk = activity.split('#')[0];
+    const sk = activity.split('#')[1];
+    const collectionId = pk.split('::')[1];
+    const activityType = sk.split('::')[0];
+    const activityId = sk.split('::')[1];
+
+    this.selectedCollectionId = collectionId;
+    this.selectedActivityType = activityType;
+    this.selectedActivityId = activityId;
+    this.selectedActivityName = this.availableActivities.find(a => a.value === activity)?.display || '';
+
+    this.loadingProducts = true;
+    this.availableProducts = [];
+
+    // The related product pk/sk is made up from the selected activity's pk/sk
+    const relatedProducts = (await this.productService.getProductsByActivity(collectionId, activityType, activityId))?.items || [];
+    this.loadingProducts = false;
+
+    // Populate the "Pass type" dropdown with each product
+    this.availableProducts = relatedProducts
+        .filter(product => product?.productId !== undefined && product?.productId !== null)
+        .map(product => {
+          return {
+            display: product?.displayName,
+            value: `${product?.pk}#${product?.productId}`
+          }
+        });
+  }
+
+  setFormProductDates() {
     this.form.get('selectedProduct').valueChanges.subscribe(async (product) => {
       if (!product) return;
       
@@ -156,6 +192,9 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
       const productId = selectedProductId || null;
 
       this.loadingDates = true;
+
+      // The productDates are found using the product's pk/sk and providing the available dates
+      // which is between now and two days in the future
       const dates = (await this.productDateService.getProductDates(
         collectionId,
         activityType,
@@ -178,7 +217,9 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
 
       this.availableDates = availableDatesMap;
     });
+  }
 
+  setFormPassesAvailable() {
     this.form.get('selectedDate').valueChanges.subscribe(async (date) => {
       if (!date) return;
 
@@ -199,7 +240,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
       }
 
       const selectedDate = this.availableDates[date];
-      const resContext = selectedDate.reservationContext;
+      const resContext = selectedDate?.reservationContext;
       const isReservable = resContext?.isReservable;
       const minInv = resContext?.minDailyInventory;
       const maxInv = resContext?.maxDailyInventory;
@@ -234,7 +275,6 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
 
 
     });
-
   }
 
   private parseDateTimeValue(value: unknown): DateTime {
@@ -257,14 +297,6 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
   // Get the correct icon for the activity type using Constants.activityTypes
   getIcon(activityType, activitySubType) {
     return Constants.activityTypes[activityType]?.subTypes[activitySubType]?.iconClass || 'fa-solid fa-person-hiking';
-  }
-
-  // Send the user to the bcparks find-a-park using their query url?
-  facilityUrl() {
-    // const baseUrl = 'https://bcparks.ca/find-a-park/?q=';
-    // const query = encodeURIComponent(this.facility?.displayName || '');
-    // return `${baseUrl}${query}`;
-    return 'https://bcparks.ca/find-a-park/';
   }
 
   async submit(): Promise<void> {

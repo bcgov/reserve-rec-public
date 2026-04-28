@@ -4,58 +4,63 @@
 	<!-- Hero block -->
 	<div class="row">
 		<div class="col">
+			<div class="background"></div>
 
 			<!-- Park/Facility name -->
 			<h1 class="text-primary mb-4">{{ facility?.displayName }}</h1>
 
 			<!-- Tags -->
 			<div class="mb-3">
-				<span class="badge text-black border border-1 rounded-1 border-primary fw-normal bg-tertiary p-2 mb-3">Day-use pass
+				<span class="badge text-black border border-1 rounded-2 border-primary fw-normal bg-tertiary p-2 mb-3">Day-use pass
 					required</span>
 			</div>
 
 			<!-- Location & Status -->
 			<div class="d-flex flex-column gap-1 mb-4">
-				<div class="d-flex align-items-center gap-2 mb-4 ms-1">
-					<i class="fa-jelly fa-regular fa-location-dot fa-2xl text-primary" style="min-width: 2.75rem"></i>
+				<div class="d-flex align-items-center gap-2 mb-4">
+					<i class="fa-jelly fa-regular fa-location-dot fa-xl text-primary mx-1"></i>
 					<span>{{ facility?.region || facility?.displayName }}</span>
 				</div>
 				<div class="d-flex align-items-center gap-2 mb-5 mt-2">
-					<i
-						*ngIf="facility?.isOpen"
-						class="fa-sharp-duotone fa-solid fa-circle-dot fa-2xl text-success"
-						style="min-width: 3rem">
-					</i>
-					<i
-						*ngIf="!facility?.isOpen"
-						class="fa-sharp-duotone fa-solid fa-circle-dot fa-2xl text-danger"
-						style="min-width: 3.1rem">
-					</i>
-					<span>{{ facility?.isOpen ? "Open" : "Closed" }}, <a href="#" class="text-secondary">check advisory</a></span>
+					@if (facility?.isOpen) {
+						<img
+							src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiByeD0iMTIiIGZpbGw9IiMwMDMzNjYiLz4KPHJlY3QgeD0iNS44MjAzMSIgeT0iNS44MTY0MSIgd2lkdGg9IjEyLjM2MzYiIGhlaWdodD0iMTIuMzYzNiIgcng9IjYuMTgxODIiIGZpbGw9IiNBN0QyRkYiLz4KPC9zdmc+Cg=="
+							alt=""
+							class="me-1"
+						>
+					}
+					@if (facility?.isClosed) {
+						<img
+							src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiByeD0iMTIiIGZpbGw9IiNEODI5MkYiLz4KPHJlY3QgeD0iNS44MjAzMSIgeT0iNS44MTY0MSIgd2lkdGg9IjEyLjM2MzYiIGhlaWdodD0iMTIuMzYzNiIgcng9IjYuMTgxODIiIGZpbGw9IiNGMEI0QjYiLz4KPC9zdmc+Cg=="
+							alt=""
+							class="me-1"
+						>
+					}
+					<span>{{ facility?.isOpen ? "Open" : "Closed" }}, <a [href]="geozone?.parkLink + '#advisories'" target="_blank" class="text-secondary">check advisory</a></span>
 				</div>
 			</div>
 
 			<!-- Hero image -->
 			<div 
-				*ngIf="facility?.imageUrl"
+				*ngIf="geozone?.imageUrl"
 				class="hero-section text-white text-center py-5 mb-5"
-				[ngStyle]="{'background-image': 'url(' + facility?.imageUrl + ')', 'background-size': 'cover', 'background-position': 'center'}">
+				[ngStyle]="{'background-image': 'url(' + geozone?.imageUrl + ')', 'background-size': 'cover', 'background-position': 'center'}">
 			</div>
 		</div>
 	</div>
 
 	<!-- Park information -->
 	<section class="row mb-5">
-		<div class="col-12 mx-auto">
+		<div class="col-lg-8 mx-auto">
 			<h2 class="text-primary">Park information</h2>
 			<hr class="section-underline mb-5">
-			<p class="mb-4">{{ facility?.description }}</p>
+			<p class="mb-4">{{ geozone?.description }}</p>
 			<div class="mt-2">
 				<a
-					[href]="facilityUrl()"
+					[href]="geozone?.parkLink" target="_blank"
 					target="_blank"
 					rel="noopener noreferrer"
-					class="btn btn-outline-primary col-lg-auto col-12 fw-bold rounded-1 px-4"
+					class="btn btn-outline-primary col-lg-auto col-12 fw-bold rounded-2 py-3 px-4"
 				>
 					View park page
 				</a>
@@ -69,7 +74,7 @@
 			<h3 class="section-heading mb-4">Park and facility operating dates</h3>
 
 			<!-- Passes required box -->
-			<div class="passes-required text-dark rounded-1 border border-1 p-3 mb-5">
+			<div class="passes-required text-dark rounded-2 border border-1 p-3 mb-5">
 				<p class="fw-bold mb-1">Passes required</p>
 				<p class="mb-0">March 20, 2026 - September 15, 2026</p>
 			</div>
@@ -125,7 +130,7 @@
 							<ngds-date-input
 								[class]="'text-white rounded-1'"
 								[control]="this.form.get('selectedDate')"
-								[label]="'Date of visit'"
+								[label]="'Day of visit'"
 								[placeholder]="loadingDates ? 'Loading...' : 'Select a date'"
 								[dateFormat]="'yyyy-LL-dd'"
 								[dateDisplayFormat]="'EEEE, LLLL d, yyyy'"
@@ -147,7 +152,7 @@
 							[control]="this.form.get('selectedVisitors')"
 							[selectionListItems]="availableVisitorsAllowed"
 							[label]="'Number of passes'"
-							[placeholder]="passesAvailable ? 'Number of passes' : 'Unavailable'"
+							[placeholder]="passesAvailable ? 'Select number of passes' : 'Unavailable'"
 							[disabled]="!this.form.get('selectedProduct').value || this.availableProducts.length === 0 || !passesAvailable"
 							></ngds-picklist-input>
 					</div>

@@ -31,8 +31,10 @@ export class VisitorDetailsStepComponent implements OnInit {
   ngOnInit(): void {
     this.smsOptIn = Boolean(this.form?.get('smsOptIn')?.value);
 
-    // Mark step as always valid since we're just displaying info
+    // Step is always valid since this screen is informational.
+    // Completion is handled by the parent flow when Continue is clicked.
     this.stepperService.markStepValid(1, true);
+    this.stepValidated.emit(true);
   }
   
   formatAddress(): string {

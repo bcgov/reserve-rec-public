@@ -26,6 +26,7 @@
               [geozoneName]="booking.geozoneName"
               [facilityName]="booking.facilityName"
               [productName]="booking.productName"
+              [activityType]="booking.activityType"
               [formattedDate]="booking.formattedDate"
               [isCancelled]="booking.isCancelled">
             </app-bookings-main-card>
@@ -44,6 +45,7 @@
               [geozoneName]="booking.geozoneName"
               [facilityName]="booking.facilityName"
               [productName]="booking.productName"
+              [activityType]="booking.activityType"
               [formattedDate]="booking.formattedDate"
               [isCancelled]="booking.isCancelled">
             </app-bookings-main-card>
@@ -53,7 +55,7 @@
 
       <!-- Cancelled Bookings Section -->
       <section *ngIf="cancelledBookings.length > 0" class="mb-5">
-        <h2 class="mb-4 text-secondary">Cancelled</h2>
+        <h2 class="mb-4 text-primary">Cancelled</h2>
         <div class="row g-4">
           <div class="col-md-6" *ngFor="let booking of cancelledBookings">
             <app-bookings-main-card
@@ -62,6 +64,7 @@
               [geozoneName]="booking.geozoneName"
               [facilityName]="booking.facilityName"
               [productName]="booking.productName"
+              [activityType]="booking.activityType"
               [formattedDate]="booking.formattedDate"
               [isCancelled]="booking.isCancelled">
             </app-bookings-main-card>
@@ -71,7 +74,7 @@
 
       <!-- Other Bookings Section (Debugging) -->
       <section *ngIf="otherBookings.length > 0" class="mb-5">
-        <h2 class="mb-4 text-warning">Other (Debug)</h2>
+        <h2 class="mb-4 text-primary">Other (Debug)</h2>
         <div class="alert alert-warning mb-3" role="alert">
           <i class="fa-solid fa-triangle-exclamation me-2"></i>
           These bookings don't fit the expected categories and may need attention.
@@ -84,6 +87,7 @@
               [geozoneName]="booking.geozoneName"
               [facilityName]="booking.facilityName"
               [productName]="booking.productName"
+              [activityType]="booking.activityType"
               [formattedDate]="booking.formattedDate"
               [isCancelled]="booking.isCancelled">
             </app-bookings-main-card>

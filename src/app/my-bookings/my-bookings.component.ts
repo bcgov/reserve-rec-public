@@ -110,6 +110,7 @@ export class MyBookingsComponent implements OnInit {
         geozoneName: BookingUtils.getGeozoneName(item),
         facilityName: BookingUtils.getFacilityName(item),
         productName: BookingUtils.getProductDisplayName(item),
+        activityType: BookingUtils.getBookingType(item),
         startDate: item.startDate,
         endDate: item.endDate,
         formattedDate: this.formatDateRange(item.startDate, item.endDate),
@@ -141,14 +142,14 @@ export class MyBookingsComponent implements OnInit {
   formatDateRange(startDate: string, endDate: string): string {
     const start = DateTime.fromISO(startDate);
     const end = DateTime.fromISO(endDate);
+    const checkInTime = start.toFormat('h:mm a');
     
     if (start.hasSame(end, 'day')) {
       // Same day pass
-      const formattedDate = start.toFormat('MMMM d, yyyy');
-      return `${formattedDate} (All day)`;
+      return `${start.toFormat('MMMM d, yyyy')} - ${checkInTime}`;
     } else {
       // Multi-day pass
-      return `${start.toFormat('MMM d, yyyy')} - ${end.toFormat('MMM d, yyyy')}`;
+      return `${start.toFormat('MMM d, yyyy')} - ${end.toFormat('MMM d, yyyy')} - ${checkInTime}`;
     }
   }
 }

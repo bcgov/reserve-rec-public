@@ -4,7 +4,6 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 import { StepperService } from '../../../services/stepper.service';
 import { CartItem } from '../../../../services/cart.service';
-import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -24,7 +23,7 @@ export class ConfirmDetailsStepComponent implements OnInit, OnChanges, OnDestroy
   
   private formSubscription: Subscription | null = null;
   
-  constructor(private router: Router, private stepperService: StepperService) {}
+  constructor(private stepperService: StepperService) {}
   
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['cartItem']) {
@@ -79,17 +78,13 @@ export class ConfirmDetailsStepComponent implements OnInit, OnChanges, OnDestroy
     if (!this.cartItem) {
       this.stepperService.markStepValid(0, false);
       this.stepValidated.emit(false);
-      if (this.cartItem) {
-        this.cartItem.detailsStepCompleted = false;
-      }
       return;
     }
       
     // Check if user has acknowledged the booking details
     const acknowledgeDetails = this.form?.get('acknowledgeDetails')?.value;
     const isValid = !!acknowledgeDetails;
-      
-    this.cartItem.detailsStepCompleted = isValid;
+
     this.stepperService.markStepValid(0, isValid);
     this.stepValidated.emit(isValid);
   }
@@ -99,9 +94,5 @@ export class ConfirmDetailsStepComponent implements OnInit, OnChanges, OnDestroy
       this.stepCompleted.emit(true);
       this.stepperService.goNext();
     }
-  }
-  
-  goToCart(): void {
-    this.router.navigate(['/cart']);
   }
 }

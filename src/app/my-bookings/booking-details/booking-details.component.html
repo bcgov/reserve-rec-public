@@ -2,9 +2,17 @@
       
   <!-- Breadcrumb -->
   <app-breadcrumb></app-breadcrumb>
+  
+     <!-- Back Button -->
+  <div class="mb-3">
+    <button class="btn btn-outline-primary" (click)="goBack()">
+      <i class="fa-solid fa-circle-chevron-left me-2"></i>
+      Back
+    </button>
+  </div>
 
       <!-- Park Name -->
-      <h1 class="text-primary fw-bold mb-1" *ngIf="booking">
+      <h1 class="fw-bold mb-1 text-body-emphasis" *ngIf="booking">
         {{ getGeozoneName() }}
       </h1>
       <p class="text-muted mb-4">{{ getFacilityName() }}</p>
@@ -25,17 +33,9 @@
 
       <!-- Success Content -->
       <div *ngIf="!loading && !error && booking">
-        
-        <!-- Status Alert (if cancelled) -->
-        <div *ngIf="isCancelled()" class="alert alert-warning mb-4" role="alert">
-          <div class="d-flex align-items-center">
-            <i class="fa-solid fa-exclamation-circle me-3 fs-4"></i>
-            <strong>This booking has been cancelled</strong>
-          </div>
-        </div>
-        
+
         <!-- Actions Section -->
-        <div class="mb-4 p-0">
+        <div *ngIf="!isCancelled()" class="mb-4 p-0">
           <div class="row">
             <div class="col-lg-2 col-md-3 col-12">
               <div class="dropdown d-grid">
@@ -64,8 +64,8 @@
         </div>
 
         <!-- Info Section -->
-        <div class="alert alert-info border border-primary mb-4 p-4">
-          <i class="fa-regular fa-circle-info"></i> <strong> Changes cannot be made to this booking.</strong>
+        <div class="alert alert-info border border-primary mb-4 p-4 text-dark">
+          <i class="fa-regular fa-circle-info text-primary"></i> <strong> Changes cannot be made to this booking.</strong>
         </div>
 
         <!-- Booking Card -->
@@ -73,22 +73,27 @@
           <div class="col-lg-9 col-12">
             <div class="card border rounded mb-4">
           <div class="card-header bg-booking-header">
-            <b class="mb-0">{{ getGeozoneName() }}</b>
+            <b class="mb-0 text-body-emphasis">{{ getGeozoneName() }}</b>
             <p class="text-muted mb-0">{{ getFacilityName() }}</p>
           </div>
 
           <div class="card-body">
+            <div *ngIf="isCancelled()" class="alert alert-danger mb-4" role="alert">
+              <i class="fa-solid fa-circle-exclamation me-2"></i>
+              This booking has been cancelled.
+            </div>
+
             <!-- Arrival / Departure -->
             <div class="row g-3 mb-3">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <p class="text-muted small fw-semibold mb-1">Arrival</p>
+                  <p class="small fw-semibold mb-1 text-body-emphasis">Arrival</p>
                   <div>{{ getArrivalDate() | date:'fullDate' }}</div>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <p class="text-muted small fw-semibold mb-1">Departure</p>
+                  <p class="small fw-semibold mb-1 text-body-emphasis">Departure</p>
                   <div>{{ getDepartureDate() | date:'fullDate' }}</div>
                 </div>
               </div>
@@ -98,13 +103,13 @@
             <div class="row g-3 mb-3">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <p class="text-muted small fw-semibold mb-1">Pass type</p>
+                  <p class="small fw-semibold mb-1 text-body-emphasis">Pass type</p>
                   <div> <i class="fa-regular fa-map-marker-alt text-muted fa-sm"></i> {{ getProductDisplayName() }}</div>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <p class="text-muted small fw-semibold mb-1">Passes</p>
+                  <p class="small fw-semibold mb-1 text-body-emphasis">Passes</p>
                   <div><i class="fa-regular fa-tickets-simple text-muted fa-sm"></i> {{ getPassCount() }}</div>
                 </div>
               </div>
@@ -116,13 +121,13 @@
             <div class="row g-3 mb-3">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <p class="text-muted small fw-semibold mb-1">Visitor</p>
+                  <p class="small fw-semibold mb-1 text-body-emphasis">Visitor</p>
                   <div>{{ getNamedOccupant() }}</div>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <p class="text-muted small fw-semibold mb-1">License plate</p>
+                  <p class="small fw-semibold mb-1 text-body-emphasis">License plate</p>
                   <div>
                     {{ getLicensePlate() }}<span *ngIf="getLicensePlateRegistrationRegion()">, {{ getLicensePlateRegistrationRegion() }}</span>
                   </div>
@@ -134,7 +139,7 @@
 
             <!-- Confirmation Number -->
             <div>
-              <p class="text-muted small fw-semibold mb-1">Confirmation number</p>
+              <p class="small fw-semibold mb-1 text-body-emphasis">Confirmation number</p>
               <div class="fw-bold">{{ getBookingNumber() }}</div>
             </div>
           </div>
@@ -145,7 +150,7 @@
         <!-- QR Code Card -->
         <div class="row">
           <div class="col-lg-9 col-12">
-            <div class="card border rounded mb-4" *ngIf="qrCodeDataUrl">
+            <div class="card border rounded mb-4" *ngIf="!isCancelled() && qrCodeDataUrl">
               <div class="card-body">
                 <div class="text-center">
               <div>
@@ -179,7 +184,7 @@
         <!-- No QR Code Message -->
         <div class="row">
           <div class="col-lg-9 col-12">
-                <div class="alert alert-info" *ngIf="!qrCodeDataUrl">
+                <div class="alert alert-info" *ngIf="!isCancelled() && !qrCodeDataUrl">
               <i class="fa-solid fa-info-circle me-2"></i>
               QR code is not available for this booking.
             </div>

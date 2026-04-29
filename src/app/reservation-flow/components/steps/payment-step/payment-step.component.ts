@@ -64,11 +64,6 @@ export class PaymentStepComponent implements OnInit {
     const isValid = this.isStepValid();
     this.stepperService.markStepValid(3, isValid); // Step 3 (0-indexed) - payment is 4th step
     this.stepValidated.emit(isValid);
-    
-    // Mark step as completed in cart item
-    if (this.cartItem && isValid) {
-      this.cartItem.paymentStepCompleted = true;
-    }
   }
   
   async processPayment(): Promise<void> {
@@ -166,12 +161,13 @@ export class PaymentStepComponent implements OnInit {
 
   formatFormForSubmission() {
     const formValue = this.form.value;
+    const normalizedProductId = this.normalizeProductId(this.cartItem?.productId);
 
     const bookedAt = new Date().toISOString();
     const formattedValue = {
       startDate: formValue.dateRange[0],
       endDate: formValue.dateRange[1],
-      productId: this.cartItem?.productId || null,
+      productId: normalizedProductId,
       entryPoint: this.getFormattedAccessPointKey(formValue?.entryPoint),
       exitPoint: this.getFormattedAccessPointKey(formValue?.exitPoint),
       displayName: this.cartItem?.activityName || '',
@@ -209,6 +205,14 @@ export class PaymentStepComponent implements OnInit {
     }
 
     return formattedValue;
+  }
+
+  private normalizeProductId(productId?: string): string | null {
+    if (!productId) {
+      return null;
+    }
+
+    return productId.split('::')[0] || null;
   }
 
   getFormattedAccessPointKey(accessPoint){

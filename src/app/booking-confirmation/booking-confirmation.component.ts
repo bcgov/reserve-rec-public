@@ -6,6 +6,7 @@ import { LoadingService } from '../services/loading.service';
 import { QrPrintService } from '../services/qr-print.service';
 import { Constants } from '../constants';
 import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
+import { BookingUtils } from '../utils/booking-utils';
 
 @Component({
   selector: 'app-booking-confirmation',
@@ -74,23 +75,29 @@ export class BookingConfirmationComponent implements OnInit {
   }
 
   getBookingNumber(): string {
-    return this.booking?.bookingId || this.booking?.globalId || this.queryParams['ref1'] || 'N/A';
+    if (this.booking) {
+      return BookingUtils.getBookingNumber(this.booking);
+    }
+    return this.queryParams['ref1'] || 'N/A';
   }
 
   getEmail(): string {
-    return this.booking?.namedOccupant?.contactInfo?.email || this.queryParams['ref3'] || 'N/A';
+    if (this.booking) {
+      return BookingUtils.getEmail(this.booking);
+    }
+    return this.queryParams['ref3'] || 'N/A';
   }
 
   getArrivalDate(): string {
-    return this.booking?.startDate || 'N/A';
+    return BookingUtils.getArrivalDate(this.booking);
   }
 
   getDepartureDate(): string {
-    return this.booking?.endDate || 'N/A';
+    return BookingUtils.getDepartureDate(this.booking);
   }
 
   getAreaName(): string {
-    return this.booking?.facilityDisplayName || 'N/A';
+    return BookingUtils.getFacilityName(this.booking);
   }
 
   getCampsite(): string {
@@ -98,85 +105,47 @@ export class BookingConfirmationComponent implements OnInit {
   }
 
   getPartySize(): number {
-    const party = this.booking?.partyContext || this.booking?.partyInformation;
-    if (!party) return 0;
-    return (party.adult || 0) + (party.senior || 0) + (party.youth || 0) + (party.child || 0);
+    return BookingUtils.getPartySize(this.booking);
   }
 
   getNights(): number {
-    if (!this.booking?.startDate || !this.booking?.endDate) return 0;
-    const start = new Date(this.booking.startDate);
-    const end = new Date(this.booking.endDate);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return BookingUtils.getNights(this.booking);
   }
 
   getEntryPoint(): string {
-    // Try to get text from entryPoint object or just return the value
-    if (this.booking?.entryPoint) {
-      if (typeof this.booking.entryPoint === 'object') {
-        return this.booking.entryPoint.text || this.booking.entryPoint.sk || 'Not specified';
-      }
-      return this.booking.entryPoint;
-    }
-    return 'Not specified';
+    return BookingUtils.getEntryPoint(this.booking);
   }
 
   getExitPoint(): string {
-    // Try to get text from exitPoint object or just return the value
-    if (this.booking?.exitPoint) {
-      if (typeof this.booking.exitPoint === 'object') {
-        return this.booking.exitPoint.text || this.booking.exitPoint.sk || 'Not specified';
-      }
-      return this.booking.exitPoint;
-    }
-    return 'Not specified';
+    return BookingUtils.getExitPoint(this.booking);
   }
 
   getBookingType(): string {
-    const activityType = this.booking?.activityType;
-    if (!activityType) {
-      return 'Day use';
-    }
-    if (activityType.toLowerCase() === 'dayuse') {
-      return 'Day use';
-    }
-    return activityType;
+    return BookingUtils.getBookingType(this.booking);
   }
 
   getProductDisplayName(): string {
-    if (this.booking?.productDisplayName) {
-      return this.booking.productDisplayName;
-    }
-    return 'N/A';
+    return BookingUtils.getProductDisplayName(this.booking);
   }
 
   getPassCount(): number {
-    if (typeof this.booking?.quantity === 'number') {
-      return this.booking.quantity;
-    }
-    return this.getPartySize();
+    return BookingUtils.getPassCount(this.booking);
   }
 
   getNamedOccupant(): string {
-    const firstName = this.booking?.namedOccupant?.firstName || '';
-    const lastName = this.booking?.namedOccupant?.lastName || '';
-    const fullName = `${firstName} ${lastName}`.trim();
-    return fullName || 'Not provided';
+    return BookingUtils.getNamedOccupant(this.booking);
+  }
+  
+  getGeozoneName(): string {
+    return BookingUtils.getGeozoneName(this.booking);
   }
 
   getLicensePlate(): string {
-    const firstVehicle = Array.isArray(this.booking?.vehicleInformation)
-      ? this.booking.vehicleInformation[0]
-      : null;
-    return firstVehicle?.licensePlate || 'Not provided';
+    return BookingUtils.getLicensePlate(this.booking);
   }
 
   getLicensePlateRegistrationRegion(): string {
-    const firstVehicle = Array.isArray(this.booking?.vehicleInformation)
-      ? this.booking.vehicleInformation[0]
-      : null;
-    return firstVehicle?.licensePlateRegistrationRegion || '';
+    return BookingUtils.getLicensePlateRegistrationRegion(this.booking);
   }
   viewConfirmationLetter(): void {
     // TODO: Implement confirmation letter generation

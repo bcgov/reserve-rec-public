@@ -41,13 +41,13 @@
             <div class="col-lg-2 col-md-3 col-12 rounded-0">
               <div class="dropdown d-grid">
                 <button
-                  class="btn btn-outline-primary dropdown-toggle btn-lg"
+                  class="btn btn-outline-primary dropdown-toggle btn-lg btn-actions-toggle"
                   type="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false">
                   Actions
                 </button>
-                <ul class="dropdown-menu" style="min-width: 20rem;">
+                <ul class="dropdown-menu dropdown-menu-actions" style="min-width: 20rem;">
                   <li>
                     <button type="button" class="dropdown-item" (click)="downloadQRCode()" [disabled]="!qrCodeDataUrl">
                       Download QR code
@@ -67,7 +67,7 @@
         <!-- Booking Card -->
         <div class="card border rounded mb-4">
           <div class="card-header bg-booking-header">
-            <h4 class="mb-0">{{ getAreaName() }}</h4>
+            <h4 class="mb-0">{{ getGeozoneName() }}</h4>
             <p class="text-muted mb-0">{{  getBookingType() }}</p>
           </div>
 
@@ -93,13 +93,13 @@
               <div class="col-md-6">
                 <div class="mb-3">
                   <p class="text-muted small fw-semibold mb-1">Pass type</p>
-                  <div>{{ getProductDisplayName() }}</div>
+                  <div><i class="fa-regular fa-map-marker-alt text-muted fa-sm"></i> {{ getProductDisplayName() }}</div>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
                   <p class="text-muted small fw-semibold mb-1">Passes</p>
-                  <div>{{ getPassCount() }}</div>
+                  <div><i class="fa-regular fa-tickets-simple text-muted fa-sm"></i> {{ getPassCount() }}</div>
                 </div>
               </div>
             </div>
@@ -110,7 +110,7 @@
             <div class="row g-3 mb-3">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <p class="text-muted small fw-semibold mb-1">Named occupant</p>
+                  <p class="text-muted small fw-semibold mb-1">Visitor</p>
                   <div>{{ getNamedOccupant() }}</div>
                 </div>
               </div>

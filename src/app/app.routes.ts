@@ -28,7 +28,11 @@ export const routes: Routes = [
   {
     path: 'account/bookings/cancel/:id',
     loadComponent: () => import('./my-bookings/bookings-cancel/booking-cancel.component')
-      .then(m => m.BookingCancelComponent)
+      .then(m => m.BookingCancelComponent),
+    data: {
+      breadcrumb: 'Cancel Booking',
+      parentBreadcrumb: { label: 'My Bookings', url: '/my-bookings' }
+    }
   },
   {
     path: 'account-details',

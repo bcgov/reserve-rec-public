@@ -13,6 +13,7 @@ export class BookingMainCardComponent {
   @Input() geozoneName!: string;
   @Input() facilityName!: string;
   @Input() productName!: string;
+  @Input() activityType!: string;
   @Input() formattedDate!: string;
   @Input() isCancelled = false;
 

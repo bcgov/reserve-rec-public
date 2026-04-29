@@ -7,7 +7,7 @@
     <h1 class="text-primary my-4">Checkout</h1>
     <app-admission-countdown class="mb-3 d-block"></app-admission-countdown>
     
-    <div class="container-fluid border border-2 bg-white p-4">
+    <div class="container-fluid bg-white p-4">
 
     <app-progress-indicator
       [totalItems]="1"
@@ -18,7 +18,7 @@
     </app-progress-indicator>
       
       <!-- Step Content Container -->
-      <div class="container-fluid border border-2 bg-grey p-4">
+      <div class="container-fluid bg-grey p-4">
         <!-- Single step container with exclusive display logic -->
         <ng-container [ngSwitch]="stepperService.currentStepIndex()">
           
@@ -80,6 +80,66 @@
           
         </ng-container>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Cancel Booking Confirmation Modal -->
+<div #cancelBookingModal class="modal fade" id="cancelBookingModal" tabindex="-1" aria-labelledby="cancelBookingModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        
+        <button type="button" class="btn btn-link position-absolute top-0 end-0 m-2 text-decoration-none text-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>
+      </div>
+      <div class="modal-body">
+        <h6>Are you sure you want to cancel this booking?</h6>
+        Selcting "Yes" will return this booking. This will make the booking available to the public.
+      </div>
+      <div class="modal-footer border-0 d-flex justify-content-between">
+        <button type="button" class="btn btn-outline-primary btn-min-width" data-bs-dismiss="modal">No</button>
+        <button type="button" class="btn btn-primary btn-min-width" (click)="confirmCancelBooking()">Yes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Full Width Navigation Bar -->
+<div class="w-100 bg-light-blue-nav border-top fixed-bottom">
+  <div class="container">
+    <div class="d-flex justify-content-between py-3">
+      <!-- Cancel Booking on first step, Back button on subsequent steps -->
+      <button 
+        *ngIf="!showBackButton()"
+        type="button" 
+        class="btn btn-outline-primary"
+        (click)="openCancelModal()"
+      >
+        <i class="fa-solid fa-xmark me-2"></i>
+        Cancel Booking
+      </button>
+      
+      <button 
+        *ngIf="showBackButton()"
+        type="button" 
+        class="btn btn-outline-secondary"
+        (click)="goBack()"
+      >
+        <i class="fa-solid fa-chevron-left me-2"></i>
+        Back
+      </button>
+      
+      <button 
+        type="button" 
+        class="btn btn-primary"
+        [class.bg-disabled]="!canProceed()"
+        [class.text-disabled]="!canProceed()"
+        [class.border-disabled]="!canProceed()"
+        [disabled]="!canProceed()"
+        (click)="proceedToNext()"
+      >
+        {{ getNextButtonLabel() }}
+      </button>
     </div>
   </div>
 </div>

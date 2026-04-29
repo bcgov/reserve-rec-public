@@ -329,6 +329,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
     }
     const visitors = Number(this.form.get('selectedVisitors').value);
     const selectedProductValue = this.form.get('selectedProduct').value;
+    const selectedProductName = this.availableProducts.find(product => product.value === selectedProductValue)?.display || '';
     
     // Extract productId from the selected product (format: "product::collectionId::activityType::activityId#productId")
     let productId = null;
@@ -343,6 +344,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
     }
 
     // Add to cart - validation will happen when booking is created
+    const selectedProductDate = this.availableDates[date];
     const cartItem: CartItem = {
       id: '',
       collectionId: this.selectedCollectionId || '',
@@ -351,6 +353,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
       productId: productId,
       quantity: visitors,
       activityName: this.selectedActivityName || this.facility?.displayName || '',
+      productName: selectedProductName,
       geoZoneName: this.facility?.displayName || '',
       dateRange: [date, date],
       startDate: date,
@@ -362,6 +365,8 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
       equipmentStepCompleted: false,
       paymentStepCompleted: false,
       areAllStepsCompleted: false,
+      checkInAnchor: selectedProductDate?.reservationContext?.checkInAnchor ?? selectedProductDate?.reservationContext?.temporalAnchors?.checkInTime,
+      checkOutAnchor: selectedProductDate?.reservationContext?.checkOutAnchor ?? selectedProductDate?.reservationContext?.temporalAnchors?.checkOutTime,
     };
 
     this.cartService.addToCart(cartItem);

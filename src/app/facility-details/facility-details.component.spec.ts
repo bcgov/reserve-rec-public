@@ -13,7 +13,7 @@ class MockSearchMapComponent {
   @Input() _dataSignal: Signal<any[]>;
   @Input() displayGeozones = false;
 }
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, provideRouter } from '@angular/router';
 import { ConfigService } from '../services/config.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
@@ -31,7 +31,24 @@ describe('FacilityDetailsComponent', () => {
         provideRouter([{ path: 'facility/:orcs/:facilityType/:identifier', component: FacilityDetailsComponent }]),
         provideHttpClient(),
         provideHttpClientTesting(),
-        provideToastr()
+        provideToastr(),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            root: {
+              children: []
+            },
+            snapshot: {
+              data: {
+                facility: {
+                  geozones: [],
+                  isOpen: true,
+                  activities: []
+                }
+              }
+            }
+          }
+        }
       ]
     })
       .overrideComponent(FacilityDetailsComponent, {

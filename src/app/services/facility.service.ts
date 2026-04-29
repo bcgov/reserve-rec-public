@@ -5,6 +5,7 @@ import { ApiService } from './api.service';
 import { DataService } from './data.service';
 import { LoadingService } from './loading.service';
 import { LoggerService } from './logger.service';
+import { ToastService, ToastTypes } from './toast.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,9 +17,10 @@ export class FacilityService {
     private loggerService: LoggerService,
     private apiService: ApiService,
     private loadingService: LoadingService,
+    private toastService: ToastService
   ) { }
 
-  async getFacility(collectionId: string, facilityType?: string, facilityId?: string, getActivities = false) {
+  async getFacility(collectionId: string, facilityType?: string, facilityId?: string, getActivities = false, getGeozones = false) {
     const queryParams = {};
     if (facilityType) {
       queryParams['facilityType'] = facilityType;
@@ -28,6 +30,9 @@ export class FacilityService {
     }
     if (getActivities) {
       queryParams['fetchActivities'] = true;
+    }
+    if (getGeozones) {
+      queryParams['fetchGeozones'] = true;
     }
 
     try {
@@ -39,7 +44,20 @@ export class FacilityService {
     } catch (error) {
       this.loadingService.removeFromFetchList(Constants.dataIds.FACILITY_DETAILS_RESULT);
       this.loggerService.error(error);
+      const errorMessage = 
+        (error as any)?.error?.msg ||
+        (error as any)?.error?.error ||
+        (error as any)?.error?.Message ||
+        (error as any)?.message ||
+        'Unknown error';
+      this.toastService.addMessage(
+        errorMessage,
+        `Facility failed to get`,
+        ToastTypes.ERROR
+      );
+      return null;
     }
+    
   }
 
   async getAccessPoints(collectionId) {
@@ -60,7 +78,18 @@ export class FacilityService {
     } catch (error) {
       this.loadingService.removeFromFetchList(Constants.dataIds.ACTIVITY_ACCESS_POINTS);
       this.loggerService.error(error);
-      return [];
+      const errorMessage = 
+        (error as any)?.error?.msg ||
+        (error as any)?.error?.error ||
+        (error as any)?.error?.Message ||
+        (error as any)?.message ||
+        'Unknown error';
+      this.toastService.addMessage(
+        errorMessage,
+        `Facility failed to get`,
+        ToastTypes.ERROR
+      );
+      return null;
     }
   }
 }

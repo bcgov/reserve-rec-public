@@ -46,22 +46,3 @@
 </div>
 
 <!-- Navigation Buttons -->
-<div class="d-flex justify-content-between border-top pt-3">
-  <button
-    type="button"
-    class="btn btn-outline-primary mb-3"
-    (click)="goToPrevious()"
-  >
-    <i class="fa-solid fa-chevron-left me-2"></i>
-    Back
-  </button>
-  <button
-    type="button"
-    class="btn btn-primary mb-3"
-    [disabled]="!isStepValid()"
-    (click)="goToNext()"
-  >
-    Continue
-    <i class="fa-solid fa-chevron-right ms-2"></i>
-  </button>
-</div>

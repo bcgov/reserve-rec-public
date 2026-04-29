@@ -112,7 +112,7 @@ export class BookingDetailsComponent implements OnInit {
   }
 
   isCancelled(): boolean {
-    return this.getStatus() === 'cancelled';
+    return BookingUtils.isCancelled(this.booking);
   }
 
   downloadQRCode(): void {
@@ -141,4 +141,9 @@ export class BookingDetailsComponent implements OnInit {
       this.router.navigate(['/account/bookings/cancel', bookingId]);
     }
   }
+  
+  goBack(): void {
+    this.router.navigate(['/my-bookings']);
+  }
+  
 }

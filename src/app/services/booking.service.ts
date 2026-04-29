@@ -40,6 +40,8 @@ export class BookingService {
       activityType: activityType,
       activityId: activityId,
       startDate: startDate,
+      productId: bookingData.productId,
+      quantity: bookingData.quantity,
     };
     try {
       this.dataService.clearItemValue(Constants.dataIds.CREATE_BOOKING_RESULT);

@@ -1,16 +1,17 @@
 <a [routerLink]="['/account/bookings', bookingId]" class="text-decoration-none text-dark d-block h-100 booking-card-link" [attr.aria-label]="ariaLabel || 'View booking details'">
-  <div class="card border-primary bg-info bg-opacity-10 h-100 p-3 booking-card" [class.opacity-75]="isCancelled">
-    <div class="py-2">
-      <strong class="text-primary">{{geozoneName}}</strong> 
+  <div class="card h-100 p-3 booking-card" [class.opacity-75]="isCancelled">
+    <div class="mb-2">
+      <strong class="text-primary">{{ geozoneName }}</strong>
     </div>
-    <div class="py-2">
-      {{facilityName}}
+    <div class="text-muted mb-3">
+      {{ productName }}
     </div>
-    <div class="py-2">
-      {{productName}}
+    <div class="text-body-emphasis mb-2">
+      {{ activityType }}
     </div>
-    <div class="py-2">
-      {{formattedDate}}
+    <div *ngIf="isCancelled" class="text-danger fw-bold mb-2">Cancelled</div>
+    <div class="text-body-emphasis">
+      {{ formattedDate }}
     </div>
   </div>
 </a>

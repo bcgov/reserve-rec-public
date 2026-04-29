@@ -6,6 +6,8 @@
 @use 'ngx-toastr/toastr';
 
 :root {
+  --rr-light-blue: #2464A4;
+  --rr-primary-dark: #003366;
   --amplify-components-button-primary-background-color: rgba(1, 51, 102, 1);
   --amplify-components-button-primary-hover-background-color: rgba(0, 40, 85, 1);
   --amplify-components-tabs-item-active-color: rgba(1, 51, 102, 1);
@@ -39,7 +41,62 @@ app-root {
   min-height: 100vh;
 }
 
+body.booking-cancel-action-mode app-footer {
+  display: none !important;
+}
+
 // Custom booking card header background
 .bg-booking-header {
   background-color: #F2F2F2 !important;
+  color: #000;
 }
+
+// Light blue background for navigation sections
+.bg-light-blue-nav {
+  background-color: #ECF6FF;
+}
+
+// Custom disabled button styling
+.bg-disabled {
+  background-color: #F2F2F2 !important;
+}
+
+.text-disabled {
+  color: #C7C7C7 !important;
+}
+
+.border-disabled {
+  border-color: #656565 !important;
+}
+
+// Medium grey border utility
+.border-medium-grey {
+  border-color: #656565 !important;
+}
+
+.btn-min-width {
+  min-width: 100px;
+}
+
+// Reusable action/dropdown/button utilities for reservation flow and booking pages
+.btn-actions-toggle {
+  &.show,
+  &:active,
+  &:focus {
+    background-color: var(--rr-light-blue);
+    border-color: var(--rr-light-blue);
+    color: #fff;
+  }
+}
+
+.dropdown-menu-actions .dropdown-item {
+  color: var(--rr-light-blue);
+
+  &:hover,
+  &:focus,
+  &.active,
+  &:active {
+    color: var(--rr-primary-dark);
+  }
+}
+

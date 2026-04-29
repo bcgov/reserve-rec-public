@@ -74,6 +74,7 @@ export class EquipmentStepComponent implements OnInit {
   validateStep(): void {
     const isValid = this.isStepValid();
     this.stepperService.markStepValid(2, isValid);
+
     this.stepValidated.emit(isValid);
   }
   

@@ -15,6 +15,8 @@ import { PaymentStepComponent } from './components/steps/payment-step/payment-st
 import { AdmissionCountdownComponent } from '../components/admission-countdown/admission-countdown.component';
 import { FeatureFlagService } from '../services/feature-flag.service';
 import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
+import { ViewChild, ElementRef } from '@angular/core';
+import * as bootstrap from 'bootstrap';
 
 @Component({
   selector: 'app-reservation-flow',
@@ -203,6 +205,25 @@ async onStepCompleted(completed: boolean): Promise<void> {
   const paymentsEnabled = this.featureFlagService.isEnabled('enablePayments');
   
   
+  if (this.cartItem) {
+    switch (currentStep) {
+      case 0:
+        this.cartItem.detailsStepCompleted = true;
+        break;
+      case 1:
+        this.cartItem.visitorDetailsStepCompleted = true;
+        break;
+      case 2:
+        this.cartItem.equipmentStepCompleted = true;
+        break;
+      case 3:
+        this.cartItem.paymentStepCompleted = true;
+        break;
+      default:
+        break;
+    }
+  }
+
   this.checkAllStepsCompleted();
 
   // Special handling for equipment step (step 2, 0-indexed)
@@ -449,8 +470,93 @@ async onStepCompleted(completed: boolean): Promise<void> {
     this.changeDetectorRef.detectChanges();
   }
 
+  // Navigation bar methods
+  cancelBooking(): void {
+    // Now handled by modal
+    this.openCancelModal();
+  }
+
+  goBack(): void {
+    this.stepperService.goPrevious();
+  }
+
+  showBackButton(): boolean {
+    return this.stepperService.currentStepIndex() > 0;
+  }
+
+  canProceed(): boolean {
+    return this.stepperService.getCurrentStep().isValid;
+  }
+
+  proceedToNext(): void {
+    if (!this.canProceed()) return;
+    
+    const currentStep = this.stepperService.currentStepIndex();
+    
+    // Step 0 just advances the stepper
+    if (currentStep === 0) {
+      if (this.cartItem) {
+        this.cartItem.detailsStepCompleted = true;
+      }
+      this.stepperService.goNext();
+      return;
+    }
+    
+    // Step 1 (Visitor Details) - mark completed and advance
+    if (currentStep === 1) {
+      if (this.cartItem) {
+        this.cartItem.visitorDetailsStepCompleted = true;
+      }
+      this.stepperService.goNext();
+      return;
+    }
+    
+    // Step 2 (Equipment) and beyond trigger booking creation logic
+    this.onStepCompleted(true);
+  }
+
+  getNextButtonLabel(): string {
+    const paymentsEnabled = this.featureFlagService.isEnabled('enablePayments');
+    const currentStep = this.stepperService.currentStepIndex();
+    
+    // Determine what the last step is based on payments
+    const lastStepIndex = paymentsEnabled ? 3 : 2;
+    
+    if (currentStep === lastStepIndex) {
+      return 'Complete Booking';
+    }
+    
+    return 'Continue';
+  }
+
   ngOnDestroy(): void {
     this.stepperService.reset();
     this.changeDetectorRef.detach();
+  }
+
+  @ViewChild('cancelBookingModal', { static: false }) cancelBookingModal?: ElementRef;
+  private cancelModalInstance: any;
+
+  openCancelModal(): void {
+    if (!this.cancelModalInstance && this.cancelBookingModal) {
+      this.cancelModalInstance = new bootstrap.Modal(this.cancelBookingModal.nativeElement);
+    }
+    if (this.cancelModalInstance) {
+      this.cancelModalInstance.show();
+    } else {
+      // fallback for static template
+      const modalEl = document.getElementById('cancelBookingModal');
+      if (modalEl) {
+        this.cancelModalInstance = new bootstrap.Modal(modalEl);
+        this.cancelModalInstance.show();
+      }
+    }
+  }
+
+  confirmCancelBooking(): void {
+    if (this.cancelModalInstance) {
+      this.cancelModalInstance.hide();
+    }
+    this.router.navigate(['/cart']);
   }
 }

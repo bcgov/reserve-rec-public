@@ -2,6 +2,8 @@
  * Utility class for booking-related helper methods.
  * Provides consistent data access and formatting across booking components.
  */
+import { DateTime } from 'luxon';
+
 export class BookingUtils {
   
   /**
@@ -33,10 +35,55 @@ export class BookingUtils {
   }
 
   /**
+   * Get booking status in normalized form
+   */
+  static getStatus(booking: any): string {
+    return (booking?.status || booking?.bookingStatus || '').toLowerCase();
+  }
+
+  /**
+   * Check whether booking is cancelled
+   */
+  static isCancelled(booking: any): boolean {
+    return BookingUtils.getStatus(booking) === 'cancelled';
+  }
+
+  /**
+   * Get formatted arrival/check-in time
+   */
+  static getArrivalTime(booking: any): string {
+    const checkInAnchor =
+      booking?.checkInAnchor ||
+      booking?.reservationContext?.checkInAnchor ||
+      booking?.reservationContext?.temporalAnchors?.checkInTime;
+
+    return BookingUtils.formatBookingTime(checkInAnchor, booking?.startDate);
+  }
+
+  /**
+   * Get formatted departure/check-out time
+   */
+  static getDepartureTime(booking: any): string {
+    const checkOutAnchor =
+      booking?.checkOutAnchor ||
+      booking?.reservationContext?.checkOutAnchor ||
+      booking?.reservationContext?.temporalAnchors?.checkOutTime;
+
+    return BookingUtils.formatBookingTime(checkOutAnchor, booking?.endDate);
+  }
+
+  /**
    * Get the booking number/ID
    */
   static getBookingNumber(booking: any): string {
     return booking?.bookingId || booking?.globalId || 'N/A';
+  }
+
+  /**
+   * Get named occupant email
+   */
+  static getEmail(booking: any): string {
+    return booking?.namedOccupant?.contactInfo?.email || 'N/A';
   }
 
   /**
@@ -60,10 +107,7 @@ export class BookingUtils {
   static getBookingType(booking: any): string {
     const activityType = booking?.activityType;
     if (!activityType) {
-      return 'Day use';
-    }
-    if (activityType.toLowerCase() === 'dayuse') {
-      return 'Day use';
+      return 'Day-use pass';
     }
     return activityType;
   }
@@ -85,6 +129,49 @@ export class BookingUtils {
     const party = booking?.partyContext || booking?.partyInformation;
     if (!party) return 0;
     return (party.adult || 0) + (party.senior || 0) + (party.youth || 0) + (party.child || 0);
+  }
+
+  /**
+   * Calculate booking length in nights
+   */
+  static getNights(booking: any): number {
+    const startDate = booking?.startDate;
+    const endDate = booking?.endDate;
+
+    if (!startDate || !endDate) {
+      return 0;
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  /**
+   * Get entry point display text
+   */
+  static getEntryPoint(booking: any): string {
+    if (booking?.entryPoint) {
+      if (typeof booking.entryPoint === 'object') {
+        return booking.entryPoint.text || booking.entryPoint.sk || 'Not specified';
+      }
+      return booking.entryPoint;
+    }
+    return 'Not specified';
+  }
+
+  /**
+   * Get exit point display text
+   */
+  static getExitPoint(booking: any): string {
+    if (booking?.exitPoint) {
+      if (typeof booking.exitPoint === 'object') {
+        return booking.exitPoint.text || booking.exitPoint.sk || 'Not specified';
+      }
+      return booking.exitPoint;
+    }
+    return 'Not specified';
   }
 
   /**
@@ -149,5 +236,46 @@ export class BookingUtils {
       return `${youthCount} Youth`;
     }
     return '0';
+  }
+
+  private static formatBookingTime(timeValue: unknown, fallbackDate?: string): string {
+    const dt = BookingUtils.parseDateTime(timeValue, fallbackDate);
+    if (!dt) {
+      return '';
+    }
+    return dt.toFormat('h:mm a');
+  }
+
+  private static parseDateTime(value: unknown, fallbackDate?: string): DateTime | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      const fromMillis = DateTime.fromMillis(value);
+      return fromMillis.isValid ? fromMillis : null;
+    }
+
+    if (typeof value === 'string' && value.trim().length > 0) {
+      const trimmed = value.trim();
+
+      const fromIso = DateTime.fromISO(trimmed);
+      if (fromIso.isValid) {
+        return fromIso;
+      }
+
+      const fromHourMinute = DateTime.fromFormat(trimmed, 'H:mm');
+      if (fromHourMinute.isValid) {
+        return fromHourMinute;
+      }
+
+      const fromHourMinuteAmPm = DateTime.fromFormat(trimmed, 'h:mm a');
+      if (fromHourMinuteAmPm.isValid) {
+        return fromHourMinuteAmPm;
+      }
+    }
+
+    if (fallbackDate) {
+      const fromFallback = DateTime.fromISO(fallbackDate);
+      return fromFallback.isValid ? fromFallback : null;
+    }
+
+    return null;
   }
 }

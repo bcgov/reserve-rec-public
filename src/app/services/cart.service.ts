@@ -5,6 +5,7 @@ export interface CartItem {
   geoZoneName: string;
   activityId: string;
   activityName: string;
+  productName?: string;
   collectionId: string;
   activityType: string;
   productId?: string;
@@ -31,6 +32,8 @@ export interface CartItem {
   areAllStepsCompleted: boolean;
   entryPoint?: { pk: string; sk: string };
   exitPoint?: { pk: string; sk: string };
+  checkInAnchor?: string | number;
+  checkOutAnchor?: string | number;
   waitingRoomActive?: boolean;
 }
 

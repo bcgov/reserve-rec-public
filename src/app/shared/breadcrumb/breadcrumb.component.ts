@@ -37,17 +37,7 @@ export class BreadcrumbComponent implements OnInit {
       });
   }
 
-  goBack(): void {
-    // Navigate to the previous breadcrumb (second to last)
-    if (this.breadcrumbs.length > 1) {
-      const previousBreadcrumb = this.breadcrumbs[this.breadcrumbs.length - 2];
-      this.router.navigate([previousBreadcrumb.url]);
-    } else {
-      // If only Home breadcrumb, navigate to home
-      this.router.navigate(['/']);
-    }
-  }
-
+  
   private buildBreadcrumbs(
     route: ActivatedRoute,
     url = '',

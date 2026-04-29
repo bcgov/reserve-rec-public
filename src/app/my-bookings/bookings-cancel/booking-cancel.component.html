@@ -2,245 +2,222 @@
   <div class="spinner-border" role="status"></div>
 </div>
 
-<div *ngIf="!loading">
-  <div class="container mt-5 mb-3">
-    <a [routerLink]="['/account/bookings', getBookingNumber()]" class="btn btn-link p-0">
-      &lt; Back to My Bookings Details
-    </a>
-  </div>
+<div *ngIf="!loading && booking" class="container mt-5 px-4 mb-5 cancel-page-container" [class.with-action-bar]="showActionBar()">
+  <app-breadcrumb></app-breadcrumb>
 
-  <div class="container mt-5" *ngIf="booking">
-    <!-- Page Heading -->
-    <h1 class="mb-4">{{ paymentsEnabled ? 'Cancellation and Refund' : 'Cancel Booking' }}</h1>
-  </div>
-
-  <!-- Render appropriate template based on feature flag -->
-  <ng-container *ngIf="booking">
-    <ng-container *ngTemplateOutlet="paymentsEnabled ? paymentsEnabledTemplate : paymentsDisabledTemplate"></ng-container>
-  </ng-container>
-</div>
-
-<!-- Template when payments are ENABLED -->
-<ng-template #paymentsEnabledTemplate>
-  <div class="container mt-3">
-    <div class="row">
-      <div class="col-lg-9 col-12">
-        <div class="card border rounded mb-4">
-          <div class="card-header bg-booking-header">
-            <h4>{{ getGeozoneName() }}</h4>
-            <p class="text-muted mb-0">{{ getFacilityName() }}</p>
-          </div>
-
-          <div class="card-body">
-            <div class="mb-4">
-              <h5>Are you sure you want to <span class="text-danger">cancel</span> your booking?</h5>
-              <p class="text-muted">Cancelling this booking may be subject to cancellation fees as per our cancellation policy.</p>
-            </div>
-
-            <div class="mb-3">
-              <strong>Booking dates:</strong>
-              <div class="text-muted">
-                {{ getArrivalDate() | date: 'EEE, MMM d, yyyy' }} - {{ getDepartureDate() | date: 'EEE, MMM d, yyyy' }}
+  <!-- Page heading -->
+  <h1 class="fw-bold mb-1 text-primary">Cancel entire booking</h1>
+  <p class="text-muted mb-4">{{ getGeozoneName() }}</p>
+  <ng-container *ngIf="isBookingCancelled()">
+            <div class="card bg-success-subtle border-success-subtle mb-4 col-10 mx-auto">
+              <div class="card-header bg-success-subtle border-0 text-body-emphasis fw-semibold">
+                <i class="fa-solid fa-circle-check me-2 text-success"></i>
+                <span>Your Booking is cancelled.</span>
+              </div>
+              <div class="card-body">
+                <p class="mb-4">Thank you for cancelling your booking. This gives others the chance to visit the park. We hope to see you soon!</p>
+                <div class="d-flex justify-content-end">
+                  <a [routerLink]="['/my-bookings']" class="btn btn-outline-primary">Return to bookings</a>
+                </div>
               </div>
             </div>
+  </ng-container>
+  <div class="row">
+    <div class="col-10 mx-auto">
 
-            <div class="mb-4">
-              <strong>Refund details:</strong>
-              <table class="w-100 mt-2">
-                <thead>
-                  <tr>
-                    <th scope="col" class="small text-muted fw-normal">Line item</th>
-                    <th scope="col" class="small text-muted fw-normal text-end">Tax included</th>
-                    <th scope="col" class="small text-muted fw-normal text-end">Base cost</th>
-                    <th scope="col" class="small text-muted fw-normal text-end">Quantity</th>
-                    <th scope="col" class="small text-muted fw-normal text-end">Refund total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>
-                      <div class="mb-2">
-                        Nightly camping fee
-                      </div>
-                      <div class="text-muted ms-3">
-                        <div *ngIf="getAdultOccupants() > 0" class="mb-2">
-                          {{getAdultOccupants()}} x Adult/Senior nightly rate ({{adultRate | currency: 'CAD' :
-                          'symbol-narrow'}}/night)
-                        </div>
-                        <div *ngIf="getYouthOccupants() > 0" class="mb-2">
-                          {{getYouthOccupants()}} x Youth nightly rate ({{youthRate | currency: 'CAD' :
-                          'symbol-narrow'}}/night)
-                        </div>
-                      </div>
-                    </td>
-                    <td class="text-muted text-end">
-                      <i class="fa-solid fa-check"></i>
-                    </td>
-                    <td class="text-end">
-                      {{getNightlyAdultCost() + getNightlyYouthCost() | currency: 'CAD' : 'symbol-narrow'}}
-                    </td>
-                    <td class="text-end">
-                      {{calculateTotalNights()}}
-                    </td>
-                    <td class="text-end">
-                      {{getTotalCost() | currency: 'CAD' : 'symbol-narrow'}}
-                    </td>
-                  </tr>
-                </tbody>
-                <tfoot class="table-group-divider border-top border-secondary border-opacity-25">
-                  <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td class="small text-end">
-                      <div class="mt-3 mb-1">
-                        Subtotal
-                      </div>
-                    </td>
-                    <td class="small text-end">{{getTotalCost() | currency: 'CAD' : 'symbol-narrow'}}</td>
-                  </tr>
-                  <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td class="small text-end">
-                      <div class="mb-1">
-                        GST
-                      </div>
-                    <td class="small text-end">n/a</td>
-                  </tr>
-                  <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td class="text-secondary fw-bold text-end">
-                      <div class="mb-1">
-                        Refund total
-                      </div>
-                    </td>
-                    <td class="text-secondary fw-bold text-end">+{{getTotalCost() | currency: 'CAD' : 'symbol-narrow'}}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td class="small text-end">
-                      <div class="mb-1">
-                        <em>(Inclusive GST)</em>
-                      </div>
-                    </td>
-                    <td class="small text-end"><em>({{calculateInclusiveGST() | currency: 'CAD' :
-                        'symbol-narrow'}})</em></td>
-                  </tr>
-                </tfoot>
-              </table>
+      <!-- Shared card: header + switched body -->
+      <div class="card border rounded mb-4">
+        <div class="card-header bg-booking-header">
+          <b class="text-body-emphasis d-block">{{ getGeozoneName() }}</b>
+          <p class="text-muted mb-0">{{ getActivityType() }}</p>
+        </div>
+        <div class="card-body">
+          <ng-container *ngIf="isBookingCancelled()"> 
+          <div class="alert alert-danger mb-4" role="alert">
+              <i class="fa-solid fa-circle-exclamation me-2"></i>
+              This reservation has been cancelled.
             </div>
+            </ng-container>
 
-            <div class="d-flex gap-3 mt-4">
-              <button class="btn btn-danger" (click)="onConfirmRefund()" [disabled]="cancelling">
-                <span *ngIf="cancelling" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                {{ cancelling ? 'Cancelling...' : 'Yes, Cancel Booking' }}
-              </button>
-              <a [routerLink]="['/account/bookings', getBookingNumber()]" class="btn btn-outline-secondary">No, Go Back</a>
-            </div>
-          </div>
+          <ng-container *ngTemplateOutlet="paymentsEnabled ? paymentsEnabledBody : paymentsDisabledBody"></ng-container>
         </div>
       </div>
+
+      <!-- Acknowledgement Checkbox -->
+      <div *ngIf="!isBookingCancelled()" class="mb-4 p-3 border border-2 rounded border-medium-grey bg-light-blue-nav">
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="acknowledgeCancel"
+            (change)="acknowledgeCancel = $any($event.target).checked"
+          >
+          <label class="form-check-label" for="acknowledgeCancel">
+            I acknowledge that I want to cancel the above booking in full.
+          </label>
+        </div>
+      </div>
+
     </div>
+  </div>
+</div>
+
+<!-- Full width action bar (visible only while cancellation is available) -->
+<div *ngIf="showActionBar()" class="w-100 bg-light-blue-nav border-top fixed-bottom cancel-action-bar">
+  <div class="container">
+    <div class="d-flex justify-content-between py-3">
+      <a [routerLink]="['/account/bookings', getBookingNumber()]" class="btn btn-outline-primary">
+        Cancel
+      </a>
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        [class.bg-disabled]="!acknowledgeCancel"
+        [class.text-disabled]="!acknowledgeCancel"
+        [class.border-disabled]="!acknowledgeCancel"
+        [disabled]="!acknowledgeCancel || cancelling"
+        (click)="onConfirmRefund()"
+      >
+        <span *ngIf="cancelling" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        {{ cancelling ? 'Cancelling...' : 'Okay' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Card body: payments ENABLED (refund table) -->
+<ng-template #paymentsEnabledBody>
+  <div class="mb-4">
+    <h5>Are you sure you want to <span class="text-danger">cancel</span> your booking?</h5>
+    <p class="text-muted">Cancelling this booking may be subject to cancellation fees as per our cancellation policy.</p>
+  </div>
+
+  <div class="mb-3">
+    <strong>Booking dates:</strong>
+    <div class="text-muted">
+      {{ getArrivalDate() | date: 'EEE, MMM d, yyyy' }} - {{ getDepartureDate() | date: 'EEE, MMM d, yyyy' }}
+    </div>
+  </div>
+
+  <div class="mb-4">
+    <strong>Refund details:</strong>
+    <table class="w-100 mt-2">
+      <thead>
+        <tr>
+          <th scope="col" class="small text-muted fw-normal">Line item</th>
+          <th scope="col" class="small text-muted fw-normal text-end">Tax included</th>
+          <th scope="col" class="small text-muted fw-normal text-end">Base cost</th>
+          <th scope="col" class="small text-muted fw-normal text-end">Quantity</th>
+          <th scope="col" class="small text-muted fw-normal text-end">Refund total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="mb-2">Nightly camping fee</div>
+            <div class="text-muted ms-3">
+              <div *ngIf="getAdultOccupants() > 0" class="mb-2">
+                {{getAdultOccupants()}} x Adult/Senior nightly rate ({{adultRate | currency:'CAD':'symbol-narrow'}}/night)
+              </div>
+              <div *ngIf="getYouthOccupants() > 0" class="mb-2">
+                {{getYouthOccupants()}} x Youth nightly rate ({{youthRate | currency:'CAD':'symbol-narrow'}}/night)
+              </div>
+            </div>
+          </td>
+          <td class="text-muted text-end"><i class="fa-solid fa-check"></i></td>
+          <td class="text-end">{{getNightlyAdultCost() + getNightlyYouthCost() | currency:'CAD':'symbol-narrow'}}</td>
+          <td class="text-end">{{calculateTotalNights()}}</td>
+          <td class="text-end">{{getTotalCost() | currency:'CAD':'symbol-narrow'}}</td>
+        </tr>
+      </tbody>
+      <tfoot class="table-group-divider border-top border-secondary border-opacity-25">
+        <tr>
+          <td></td><td></td><td></td>
+          <td class="small text-end"><div class="mt-3 mb-1">Subtotal</div></td>
+          <td class="small text-end">{{getTotalCost() | currency:'CAD':'symbol-narrow'}}</td>
+        </tr>
+        <tr>
+          <td></td><td></td><td></td>
+          <td class="small text-end"><div class="mb-1">GST</div></td>
+          <td class="small text-end">n/a</td>
+        </tr>
+        <tr>
+          <td></td><td></td><td></td>
+          <td class="text-secondary fw-bold text-end"><div class="mb-1">Refund total</div></td>
+          <td class="text-secondary fw-bold text-end">+{{getTotalCost() | currency:'CAD':'symbol-narrow'}}</td>
+        </tr>
+        <tr>
+          <td></td><td></td><td></td>
+          <td class="small text-end"><div class="mb-1"><em>(Inclusive GST)</em></div></td>
+          <td class="small text-end"><em>({{calculateInclusiveGST() | currency:'CAD':'symbol-narrow'}})</em></td>
+        </tr>
+      </tfoot>
+    </table>
   </div>
 </ng-template>
 
-<!-- Template when payments are DISABLED -->
-<ng-template #paymentsDisabledTemplate>
-  <div class="container mt-3">
-    <div class="row">
-      <div class="col-lg-9 col-12">
-        <div class="card border rounded mb-4">
-          <div class="card-header bg-booking-header">
-            <h4>{{ getGeozoneName() }}</h4>
-            <p class="text-muted mb-0">{{ getFacilityName() }}</p>
-          </div>
+<!-- Card body: payments DISABLED (booking detail fields) -->
+<ng-template #paymentsDisabledBody>
+  <!-- Arrival / Departure -->
+  <div class="row g-3 mb-3">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <p class="small fw-semibold mb-1 text-body-emphasis">Arrival</p>
+        <div>{{ getArrivalDate() | date:'fullDate' }}</div>
+        <p *ngIf="getArrivalTime()" class="mb-0 mt-1 text-muted small">Check-in: {{ getArrivalTime() }}</p>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="mb-3">
+        <p class="small fw-semibold mb-1 text-body-emphasis">Departure</p>
+        <div>{{ getDepartureDate() | date:'fullDate' }}</div>
+        <p *ngIf="getDepartureTime()" class="mb-0 mt-1 text-muted small">Check-out: {{ getDepartureTime() }}</p>
+      </div>
+    </div>
+  </div>
 
-          <div class="card-body">
-            <div class="mb-4">
-              <h5>Are you sure you want to <span class="text-danger">cancel</span> your booking?</h5>
-              <p class="text-muted">Your booking will be cancelled immediately.</p>
-            </div>
+  <!-- Pass Type / Passes -->
+  <div class="row g-3 mb-3">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <p class="small fw-semibold mb-1 text-body-emphasis">Pass type</p>
+        <div><i class="fa-regular fa-map-marker-alt text-muted fa-sm"></i> {{ getProductDisplayName() }}</div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="mb-3">
+        <p class="small fw-semibold mb-1 text-body-emphasis">Passes</p>
+        <div><i class="fa-regular fa-tickets-simple text-muted fa-sm"></i> {{ getPassCount() }}</div>
+      </div>
+    </div>
+  </div>
 
-            <!-- Arrival / Departure -->
-            <div class="row g-3 mb-3">
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <p class="text-muted small fw-semibold mb-1">Arrival</p>
-                  <div>{{ getArrivalDate() | date:'fullDate' }}</div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <p class="text-muted small fw-semibold mb-1">Departure</p>
-                  <div>{{ getDepartureDate() | date:'fullDate' }}</div>
-                </div>
-              </div>
-            </div>
+  <hr class="my-4" />
 
-            <!-- Pass Type / Passes -->
-            <div class="row g-3 mb-3">
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <p class="text-muted small fw-semibold mb-1">Pass type</p>
-                  <div> <i class="fa-regular fa-map-marker-alt text-muted fa-sm"></i> {{ getProductDisplayName() }}</div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <p class="text-muted small fw-semibold mb-1">Passes</p>
-                  <div><i class="fa-regular fa-tickets-simple text-muted fa-sm"></i> {{ getPassCount() }}</div>
-                </div>
-              </div>
-            </div>
-
-            <hr class="my-4" />
-
-            <!-- Named Occupant / License Plate -->
-            <div class="row g-3 mb-3">
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <p class="text-muted small fw-semibold mb-1">Visitor</p>
-                  <div>{{ getNamedOccupant() }}</div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <p class="text-muted small fw-semibold mb-1">License plate</p>
-                  <div>
-                    {{ getLicensePlate() }}<span *ngIf="getLicensePlateRegistrationRegion()">, {{ getLicensePlateRegistrationRegion() }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <hr class="my-4" />
-
-            <!-- Confirmation Number -->
-            <div>
-              <p class="text-muted small fw-semibold mb-1">Confirmation number</p>
-              <div class="fw-bold">{{ getBookingNumber() }}</div>
-            </div>
-
-            <hr class="my-4" />
-
-            <!-- Action Buttons -->
-            <div class="d-flex gap-3 mt-4">
-              <button class="btn btn-danger" (click)="onConfirmRefund()" [disabled]="cancelling">
-                <span *ngIf="cancelling" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                {{ cancelling ? 'Cancelling...' : 'Yes, Cancel Booking' }}
-              </button>
-              <a [routerLink]="['/account/bookings', getBookingNumber()]" class="btn btn-outline-secondary">No, Go Back</a>
-            </div>
-          </div>
+  <!-- Visitor / License Plate -->
+  <div class="row g-3 mb-3">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <p class="small fw-semibold mb-1 text-body-emphasis">Visitor</p>
+        <div>{{ getNamedOccupant() }}</div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="mb-3">
+        <p class="small fw-semibold mb-1 text-body-emphasis">License plate</p>
+        <div>
+          {{ getLicensePlate() }}<span *ngIf="getLicensePlateRegistrationRegion()">, {{ getLicensePlateRegistrationRegion() }}</span>
         </div>
       </div>
     </div>
+  </div>
+
+  <hr class="my-4" />
+
+  <!-- Confirmation Number -->
+  <div>
+    <p class="small fw-semibold mb-1 text-body-emphasis">Confirmation number</p>
+    <div class="fw-bold">{{ getBookingNumber() }}</div>
   </div>
 </ng-template>

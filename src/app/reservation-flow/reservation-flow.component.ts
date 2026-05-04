@@ -557,6 +557,6 @@ async onStepCompleted(completed: boolean): Promise<void> {
     if (this.cancelModalInstance) {
       this.cancelModalInstance.hide();
     }
-    this.router.navigate(['/cart']);
+    window.location.assign('/');
   }
 }

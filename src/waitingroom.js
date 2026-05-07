@@ -14,6 +14,7 @@
   let reconnectAttempts = 0;
   let wsToken = null;          // JWT cached for WebSocket reconnects
   let isAdmitted = false;
+  let isQueueClosed = false;   // suppresses reconnect after server pushes 'queueClosed'
   let joinParams = null;
   let isMode2 = false;         // true when handling full-site Mode 2 queue
 
@@ -210,7 +211,7 @@
 
     ws.onclose = function (event) {
       console.debug('[WaitingRoom] WebSocket closed', event.code);
-      if (!isAdmitted) scheduleReconnect();
+      if (!isAdmitted && !isQueueClosed) scheduleReconnect();
     };
 
     ws.onerror = function () {
@@ -256,6 +257,16 @@
         isAdmitted = true;
         if (ws) { ws.close(); ws = null; }
         handleAdmission();
+        break;
+
+      case 'queueClosed':
+        // Admin force-closed the queue. Stop reconnecting and proceed to the
+        // booking flow (mirrors the join-time 410 path and the initial
+        // status === 'closed' branch).
+        isQueueClosed = true;
+        if (ws) { ws.close(); ws = null; }
+        if (!isMode2) sessionStorage.setItem('wr_bypass_guard', '1');
+        window.location.href = getReturnUrl();
         break;
 
       default:

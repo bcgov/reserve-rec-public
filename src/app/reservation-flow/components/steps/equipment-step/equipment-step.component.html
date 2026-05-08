@@ -4,14 +4,14 @@
     <h4 class="mb-0">Equipment</h4>
   </div>
   <div class="card-body">
-    <h5 class="mb-3">Vehicle Information</h5>
+    <h5 class="mb-3">Vehicle information</h5>
     <p class="text-muted mb-4">Please enter the following details of the vehicle you'll be travelling in. You can change this after the booking.</p>
 
     <!-- Vehicle Information Form -->
     <div class="row">
       <div class="col-md-6">
         <ngds-text-input
-          label="Plate Number"
+          label="Plate number"
           [control]="form?.get('equipmentInfo')?.get('licensePlate')"
           placeholder="Enter license plate number"
         >
@@ -22,7 +22,7 @@
       </div>
       <div class="col-md-6">
         <div class="mb-3">
-          <label for="registeredProvince" class="form-label">Province/State/Other</label>
+          <label for="registeredProvince" class="form-label">Province, state or territory</label>
           <div class="input-group">
             <span class="input-group-text">
               <i class="fa-solid fa-map-location-dot"></i>
@@ -38,7 +38,7 @@
               [typeaheadMinLength]="0"
             />
           </div>
-          <small class="form-text text-muted">Select or type your province/state/other</small>
+          <small class="form-text text-muted">Select or type your province, state or territory</small>
         </div>
       </div>
     </div>

@@ -5,7 +5,7 @@
       <!-- Visitor Details Card -->
       <div class="card mb-4">
         <div class="card-header bg-booking-header">
-          <h4 class="mb-0">Visitor Details</h4>
+          <h4 class="mb-0">Visitor details</h4>
         </div>
         <div class="card-body">
           <!-- Explanation Text -->
@@ -22,20 +22,20 @@
                 <p class="mb-0">{{ user?.given_name || 'N/A' }} {{ user?.family_name || '' }}</p>
               </div>
               <div class="col-md-6">
-                <strong>Email Address</strong>
+                <strong>Email address</strong>
                 <p class="mb-0">{{ user?.email || 'N/A' }}</p>
               </div>
             </div>
             <div class="row">
               <div class="col-md-6">
-                <strong>Home Address</strong>
+                <strong>Home address</strong>
                 <p class="mb-0">{{ user['custom:streetAddress'] || 'N/A' }}</p>
                 <p class="mb-0">{{ user['custom:city'] }}, {{ user['custom:province'] || '' }}</p>
                 <p class="mb-0">{{ user['custom:postalCode'] }}</p>
                 <p class="mb-0">{{ user['custom:country'] }}</p>
               </div>
               <div class="col-md-6">
-                <strong>Phone Number</strong>
+                <strong>Phone number</strong>
                 <p class="mb-0">Mobile: {{ user['custom:mobilePhone'] || 'N/A' }}</p>
                 <p class="mb-0">Secondary: {{ user['custom:secondaryNumber'] || 'N/A' }}</p>
               </div>
@@ -44,7 +44,7 @@
 
           <!-- Text Message Reminders -->
           <div class="rounded p-4 bg-white">
-            <h5 class="mb-3">Text Message Reminders Opt-in</h5>
+            <h5 class="mb-3">Text message reminders opt-in</h5>
             <div class="form-check p-3 rounded bg-light">
               <input
                 class="form-check-input"

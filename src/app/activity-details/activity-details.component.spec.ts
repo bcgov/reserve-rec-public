@@ -18,6 +18,7 @@ import { ConfigService } from '../services/config.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideToastr } from 'ngx-toastr';
+import { BsModalService } from 'ngx-bootstrap/modal';
 
 describe('ActivityDetailsComponent', () => {
   let component: ActivityDetailsComponent;
@@ -31,7 +32,8 @@ describe('ActivityDetailsComponent', () => {
         provideRouter([{ path: 'activity/:orcs/:activityType/:identifier', component: ActivityDetailsComponent }]),
         provideHttpClient(),
         provideHttpClientTesting(),
-        provideToastr()
+        provideToastr(),
+        { provide: BsModalService, useValue: { show: () => ({}) } }
       ]
     })
       .overrideComponent(ActivityDetailsComponent, {

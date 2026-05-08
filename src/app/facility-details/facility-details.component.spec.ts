@@ -18,6 +18,7 @@ import { ConfigService } from '../services/config.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideToastr } from 'ngx-toastr';
+import { BsModalService } from 'ngx-bootstrap/modal';
 
 describe('FacilityDetailsComponent', () => {
   let component: FacilityDetailsComponent;
@@ -32,6 +33,7 @@ describe('FacilityDetailsComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideToastr(),
+        { provide: BsModalService, useValue: { show: () => ({}) } },
         {
           provide: ActivatedRoute,
           useValue: {

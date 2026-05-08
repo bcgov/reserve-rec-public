@@ -484,6 +484,13 @@ async onStepCompleted(completed: boolean): Promise<void> {
     return this.stepperService.currentStepIndex() > 0;
   }
 
+  getBackButtonLabel(): string {
+    const idx = this.stepperService.currentStepIndex();
+    if (idx <= 0) return 'Back';
+    const previousTitle = this.stepperService.getSteps()[idx - 1]?.title;
+    return previousTitle ? `Back to ${previousTitle.toLowerCase()}` : 'Back';
+  }
+
   canProceed(): boolean {
     return this.stepperService.getCurrentStep().isValid;
   }
@@ -523,9 +530,9 @@ async onStepCompleted(completed: boolean): Promise<void> {
     const lastStepIndex = paymentsEnabled ? 3 : 2;
     
     if (currentStep === lastStepIndex) {
-      return 'Complete Booking';
+      return 'Finish';
     }
-    
+
     return 'Continue';
   }
 

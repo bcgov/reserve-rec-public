@@ -40,7 +40,7 @@ export class StepperService {
       },
       {
         id: 'visitor-details',
-        title: 'Visitor Details',
+        title: 'Visitor details',
         description: 'Account information confirmation',
         isCompleted: false,
         isValid: false,

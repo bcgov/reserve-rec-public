@@ -119,14 +119,14 @@
         Cancel Booking
       </button>
       
-      <button 
+      <button
         *ngIf="showBackButton()"
-        type="button" 
+        type="button"
         class="btn btn-outline-secondary"
         (click)="goBack()"
       >
         <i class="fa-solid fa-chevron-left me-2"></i>
-        Back
+        {{ getBackButtonLabel() }}
       </button>
       
       <button 

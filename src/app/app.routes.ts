@@ -48,7 +48,7 @@ export const routes: Routes = [
     path: 'booking-confirmation/:bookingId',
     loadComponent: () => import('./booking-confirmation/booking-confirmation.component')
       .then(mod => mod.BookingConfirmationComponent),
-    data: { breadcrumb: 'Booking Confirmation' }
+    data: { breadcrumb: 'Checkout' }
   },
   {
     path: 'booking/:id',

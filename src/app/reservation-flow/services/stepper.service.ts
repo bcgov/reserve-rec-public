@@ -109,17 +109,18 @@ export class StepperService {
     if (this.isTransitioning || !this.canGoNext()) {
       return false;
     }
-    
+
     this.isTransitioning = true;
     this.markStepCompleted(this.currentStepIndex());
     this.currentStepIndex.set(this.currentStepIndex() + 1);
     this.updateStepNavigation();
     this.updateCurrentStep();
-    
+    this.scrollToTop();
+
     setTimeout(() => {
       this.isTransitioning = false;
     }, 50);
-    
+
     return true;
   }
 
@@ -127,16 +128,17 @@ export class StepperService {
     if (this.isTransitioning || !this.canGoPrevious()) {
       return false;
     }
-    
+
     this.isTransitioning = true;
     this.currentStepIndex.set(this.currentStepIndex() - 1);
     this.updateStepNavigation();
     this.updateCurrentStep();
-    
+    this.scrollToTop();
+
     setTimeout(() => {
       this.isTransitioning = false;
     }, 50);
-    
+
     return true;
   }
 
@@ -144,23 +146,34 @@ export class StepperService {
     if (this.isTransitioning) {
       return false;
     }
-    
+
     const steps = [...this.stepsSignal()];
     for (let i = 0; i <= stepIndex; i++) {
       steps[i].canNavigateTo = true;
     }
     this.stepsSignal.set(steps);
-    
+
     this.isTransitioning = true;
     this.currentStepIndex.set(stepIndex);
     this.updateStepNavigation();
     this.updateCurrentStep();
-    
+    this.scrollToTop();
+
     setTimeout(() => {
       this.isTransitioning = false;
     }, 50);
-    
+
     return true;
+  }
+
+  // Reset scroll on step transition. Without this, a user clicking Continue
+  // on a long step lands mid-page on the next (often shorter) step because
+  // the browser clamps scrollY to the new max — the page header appears
+  // unreachable until the user manually scrolls.
+  private scrollToTop(): void {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
   }
 
   markStepValid(stepIndex: number, isValid: boolean): void {

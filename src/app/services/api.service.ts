@@ -67,6 +67,11 @@ export class ApiService implements OnDestroy {
     if (this.token) {
       this.headers = this.headers.set('Authorization', `Bearer ${this.token}`);
       console.log('Using JWT token auth');
+    } else {
+      // Drop a previously-set Authorization so headers track the current auth state
+      // (e.g. after logout). Without this, the Bearer from the last logged-in request
+      // would persist on this.headers and be sent on subsequent unauthenticated calls.
+      this.headers = this.headers.delete('Authorization');
     }
   }
 

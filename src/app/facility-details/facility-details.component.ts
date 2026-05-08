@@ -32,6 +32,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
   
   public form: UntypedFormGroup;
   public facilityOpen = true;
+  public isLoggedIn = false;
   public passesAvailable = false;
   public loadingProducts = false;
   public loadingDates = false;
@@ -95,12 +96,12 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
     // Initialize the form first so the template can bind immediately
     this.initializeForm();
 
-    // Check if the user is logged in - if so, check email verification
-    // otherwise the facility is "closed" to them
-    if (this.authService.getCurrentUser()) {
+    // Track auth state separately from facilityOpen so the template can show
+    // a "log in to book" prompt instead of the misleading "facility is closed"
+    // alert (issue #465).
+    this.isLoggedIn = !!this.authService.getCurrentUser();
+    if (this.isLoggedIn) {
       await this.checkUserEmailVerification();
-    } else {
-      this.facilityOpen = false;
     }
 
 

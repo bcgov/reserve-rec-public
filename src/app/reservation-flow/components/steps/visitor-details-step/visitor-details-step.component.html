@@ -46,16 +46,20 @@
           <div class="rounded p-4 bg-white">
             <h5 class="mb-3">Text Message Reminders Opt-in</h5>
             <div class="form-check p-3 rounded bg-light">
-              <input 
-                class="form-check-input" 
-                type="checkbox" 
+              <input
+                class="form-check-input"
+                type="checkbox"
                 id="smsReminders"
                 [(ngModel)]="smsOptIn"
+                [disabled]="!hasMobilePhone()"
                 (change)="onSmsOptInChange()"
               >
               <label class="form-check-label" for="smsReminders">
                 I would like to receive reminders via text message
               </label>
+              <p *ngIf="!hasMobilePhone()" class="small text-muted mb-0 mt-2">
+                Add a mobile phone number to your account to enable text message reminders.
+              </p>
             </div>
           </div>
         </div>

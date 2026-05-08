@@ -25,16 +25,28 @@ export class VisitorDetailsStepComponent implements OnInit {
   @Output() stepValidated = new EventEmitter<boolean>();
   
   smsOptIn = false;
-  
+
   constructor(private stepperService: StepperService) {}
-  
+
   ngOnInit(): void {
     this.smsOptIn = Boolean(this.form?.get('smsOptIn')?.value);
+
+    // SMS reminders require a mobile phone on the account. If there isn't one,
+    // force the opt-in off so a stale 'true' from elsewhere can't sneak through.
+    if (!this.hasMobilePhone()) {
+      this.smsOptIn = false;
+      this.form?.patchValue({ smsOptIn: false }, { emitEvent: false });
+    }
 
     // Step is always valid since this screen is informational.
     // Completion is handled by the parent flow when Continue is clicked.
     this.stepperService.markStepValid(1, true);
     this.stepValidated.emit(true);
+  }
+
+  hasMobilePhone(): boolean {
+    const mobile = this.user?.['custom:mobilePhone'];
+    return typeof mobile === 'string' && mobile.trim().length > 0;
   }
   
   formatAddress(): string {

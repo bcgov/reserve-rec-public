@@ -160,7 +160,7 @@
 				<div class="row mt-4 mb-2">
 					<div class="col-12 mt-3">
 						<button
-							*ngIf="facilityOpen && emailVerified"
+							*ngIf="isLoggedIn && facilityOpen && emailVerified"
 							class="disable-btn btn bg-white text-primary fw-bold rounded-1 px-4 w-100"
 							[disabled]="!this.form.get('selectedVisitors').value || !this.form.get('selectedDate').value || !this.form.get('selectedProduct').value || !this.passesAvailable"
 							(click)="submit()"
@@ -168,8 +168,26 @@
 							{{ passesAvailable ? "Book day-use pass" : "No passes available" }}
 						</button>
 
+							<div
+								*ngIf="!isLoggedIn"
+								class="alert alert-info p-3 d-flex align-items-start custom-alert"
+								role="status"
+							>
+								<div class="me-3" style="margin-top: 2px;">
+									<i class="fa-regular fa-circle-info text-primary fs-5"></i>
+								</div>
+								<div class="d-flex flex-column flex-grow-1">
+									<div class="mb-2">
+										<strong>Sign in to book a day-use pass.</strong>
+									</div>
+									<div>
+										<a routerLink="/login" class="btn btn-primary btn-sm">Sign in</a>
+									</div>
+								</div>
+							</div>
+
 						<div 
-							*ngIf="!facilityOpen"
+							*ngIf="isLoggedIn && !facilityOpen"
 							class="alert alert-danger p-3 d-flex align-items-start custom-alert"
 							role="alert"
 						>

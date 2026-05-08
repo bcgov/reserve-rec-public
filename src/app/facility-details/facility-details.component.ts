@@ -21,6 +21,7 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
   selector: 'app-facility-details',
   host: { class: 'h-100' },
   imports: [CommonModule, FormsModule, NgdsFormsModule, BreadcrumbComponent],
+  providers: [BsModalService],
   templateUrl: './facility-details.component.html',
   styleUrls: ['./facility-details.component.scss']
 })

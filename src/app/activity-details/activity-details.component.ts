@@ -106,6 +106,10 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
       geoZoneName: this.data?.geozone?.displayName,
       activityId: this.activityId || '',
       activityName: this.data?.displayName || 'Activity',
+      // Activity-only flow has no separate product, so the pass type displayed
+      // on the checkout step is the activity name. Without this the confirm
+      // step rendered "Product Name Unavailable".
+      productName: this.data?.displayName || 'Activity',
       collectionId: this.collectionId || '',
       activityType: this.activityType || '',
       dateRange: this.form.get('dateRange')?.value || ['', ''],

@@ -14,6 +14,8 @@ import { AuthService } from '../services/auth.service';
 import { WaitingRoomService } from '../services/waiting-room.service';
 import { ApiService } from '../services/api.service';
 import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
+import { BsModalService } from 'ngx-bootstrap/modal';
+import { ConfirmationModalComponent } from '../shared/components/confirmation-modal/confirmation-modal.component';
 
 @Component({
   selector: 'app-facility-details',
@@ -59,6 +61,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
   private toastService = inject(ToastService);
   private waitingRoomService = inject(WaitingRoomService);
   private apiService = inject(ApiService);
+  private modalService = inject(BsModalService);
 
   constructor(
     private route: ActivatedRoute,
@@ -369,12 +372,49 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
       checkOutAnchor: selectedProductDate?.reservationContext?.checkOutAnchor ?? selectedProductDate?.reservationContext?.temporalAnchors?.checkOutTime,
     };
 
+    const existing = this.cartService.items()[0];
+    if (existing) {
+      const proceed = await this.confirmReplaceCart(existing);
+      if (!proceed) return;
+    }
+
     this.cartService.addToCart(cartItem);
     this.toastService.addMessage('Item added to cart', 'Success', ToastTypes.SUCCESS);
 
     this.router.navigate(['/reservation-flow']).then(() => {
       window.scrollTo(0, 0);
       this.cdr.detectChanges();
+    });
+  }
+
+  // Prompt the user before replacing an existing cart item. Resolves true if they
+  // confirm, false if they cancel or dismiss. Single-item cart semantics — see
+  // CartService.addToCart.
+  private confirmReplaceCart(existing: CartItem): Promise<boolean> {
+    return new Promise(resolve => {
+      const description = existing.productName
+        ? `${existing.productName} (${existing.startDate})`
+        : `your pending booking on ${existing.startDate}`;
+      const modalRef = this.modalService.show(ConfirmationModalComponent, {
+        initialState: {
+          title: 'Replace pending booking?',
+          body: `Your cart already has ${description}. Adding this booking will replace it.`,
+          confirmText: 'Replace',
+          cancelText: 'Cancel',
+          confirmClass: 'btn btn-primary',
+          cancelClass: 'btn btn-outline-secondary',
+        },
+      });
+      let settled = false;
+      const settle = (value: boolean) => {
+        if (settled) return;
+        settled = true;
+        modalRef.hide();
+        resolve(value);
+      };
+      modalRef.content?.confirmButton.subscribe(() => settle(true));
+      modalRef.content?.cancelButton.subscribe(() => settle(false));
+      modalRef.onHide?.subscribe(() => settle(false));
     });
   }
 

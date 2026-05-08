@@ -48,17 +48,15 @@ export class CartService {
   readonly items = this.cartItems.asReadonly();
   readonly itemCount = computed(() => this.cartItems().length);
   
+  // The cart is single-item: a new add replaces whatever was there. The reservation
+  // flow only ever consumes cartItems[0], and there's no UI to pick from a list of
+  // pending bookings. Callers that want to warn the user before clobbering an existing
+  // item should call confirmReplaceIfNeeded() first.
   addToCart(item: CartItem): void {
     const itemWithId = { ...item, id: this.generateId() };
-    this.cartItems.update(items => {
-      // Drop any stale waiting-room-locked items before adding the new one.
-      // This enforces the single-item-per-waiting-room rule and prevents stale
-      // waitingRoomActive:true entries from triggering the guard on future visits.
-      const filtered = items.filter(i => !i.waitingRoomActive);
-      const newItems = [...filtered, itemWithId];
-      this.saveCartToStorage(newItems);
-      return newItems;
-    });
+    const newItems = [itemWithId];
+    this.cartItems.set(newItems);
+    this.saveCartToStorage(newItems);
   }
   
   removeFromCart(itemId: string): void {

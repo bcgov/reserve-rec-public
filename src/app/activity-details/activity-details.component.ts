@@ -13,6 +13,8 @@ import { CartService, CartItem } from '../services/cart.service';
 import { ToastService, ToastTypes } from '../services/toast.service';
 import { WaitingRoomService } from '../services/waiting-room.service';
 import { Subscription } from 'rxjs';
+import { BsModalService } from 'ngx-bootstrap/modal';
+import { ConfirmationModalComponent } from '../shared/components/confirmation-modal/confirmation-modal.component';
 
 
 @Component({
@@ -34,6 +36,7 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
   private cartService = inject(CartService);
   private toastService = inject(ToastService);
   private waitingRoomService = inject(WaitingRoomService);
+  private modalService = inject(BsModalService);
   public isSubmitting = signal(false);
   private dateRangeSub: Subscription | null = null;
   
@@ -93,7 +96,7 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
   }
 
 
- submit(): void {
+ async submit(): Promise<void> {
     if (!this.form?.valid || this.isSubmitting()) return;
 
     this.isSubmitting.set(true);
@@ -128,6 +131,15 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
       waitingRoomActive: !!this.data?.waitingRoomActive,
     };
 
+    const existing = this.cartService.items()[0];
+    if (existing) {
+      const proceed = await this.confirmReplaceCart(existing);
+      if (!proceed) {
+        this.isSubmitting.set(false);
+        return;
+      }
+    }
+
     this.cartService.addToCart(cartItem);
 
     // If waiting room is active, redirect there now that the cart item is in place
@@ -161,6 +173,37 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
       this.isSubmitting.set(false);
     }, 2000);
     }
+
+  // Prompt the user before replacing an existing cart item. Resolves true if they
+  // confirm, false if they cancel or dismiss. Single-item cart semantics — see
+  // CartService.addToCart.
+  private confirmReplaceCart(existing: CartItem): Promise<boolean> {
+    return new Promise(resolve => {
+      const description = existing.activityName
+        ? `${existing.activityName} (${existing.startDate})`
+        : `your pending booking on ${existing.startDate}`;
+      const modalRef = this.modalService.show(ConfirmationModalComponent, {
+        initialState: {
+          title: 'Replace pending booking?',
+          body: `Your cart already has ${description}. Adding this booking will replace it.`,
+          confirmText: 'Replace',
+          cancelText: 'Cancel',
+          confirmClass: 'btn btn-primary',
+          cancelClass: 'btn btn-outline-secondary',
+        },
+      });
+      let settled = false;
+      const settle = (value: boolean) => {
+        if (settled) return;
+        settled = true;
+        modalRef.hide();
+        resolve(value);
+      };
+      modalRef.content?.confirmButton.subscribe(() => settle(true));
+      modalRef.content?.cancelButton.subscribe(() => settle(false));
+      modalRef.onHide?.subscribe(() => settle(false));
+    });
+  }
 
 
   getStartDate() {

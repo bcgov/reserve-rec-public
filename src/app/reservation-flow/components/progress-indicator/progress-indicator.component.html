@@ -85,6 +85,7 @@
             [class.active]="step.isActive"
             [class.completed]="isStepCompletedForCurrentItem(step, i)"
             [class.text-primary]="step.isActive"
+            [class.disabled]="!step.isActive && !isStepCompletedForCurrentItem(step, i)"
             (click)="onStepClick(i)"
           >
             <!-- Step Number and Title on same line, left-aligned -->

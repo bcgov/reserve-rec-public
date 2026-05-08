@@ -43,6 +43,14 @@
 .nav-link.disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  color: #6c757d !important; // upcoming steps render gray instead of inheriting blue
+
+  // Inner text/numbers inherit the muted colour even when text-primary is on
+  // the parent — Angular template applies it conditionally based on isActive.
+  span,
+  i {
+    color: inherit !important;
+  }
 }
 
 @media (max-width: 768px) {

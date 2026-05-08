@@ -193,6 +193,7 @@ export class AuthService {
     await signOut();
     this.updateUser(null);
     this.session.set(null);
+    this.jwtToken = null;
     console.log('User logged out', this.user);
     this.router.navigate(['/']);
   }

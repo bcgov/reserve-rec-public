@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, EventEmitter, inject, OnDestroy, OnInit, Output } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { DateTime } from 'luxon';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, UntypedFormGroup } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
@@ -20,7 +20,7 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
 @Component({
   selector: 'app-facility-details',
   host: { class: 'h-100' },
-  imports: [CommonModule, FormsModule, NgdsFormsModule, BreadcrumbComponent],
+  imports: [CommonModule, FormsModule, NgdsFormsModule, BreadcrumbComponent, RouterLink],
   providers: [BsModalService],
   templateUrl: './facility-details.component.html',
   styleUrls: ['./facility-details.component.scss']

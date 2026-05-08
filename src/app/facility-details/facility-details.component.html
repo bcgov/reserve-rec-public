@@ -57,7 +57,8 @@
 			<p class="mb-4">{{ geozone?.description }}</p>
 			<div class="mt-2">
 				<a
-					[href]="geozone?.parkLink" target="_blank"
+					*ngIf="geozone?.parkLink"
+					[href]="geozone.parkLink"
 					target="_blank"
 					rel="noopener noreferrer"
 					class="btn btn-outline-primary col-lg-auto col-12 fw-bold rounded-2 py-3 px-4"

@@ -67,97 +67,42 @@ export class PaymentStepComponent implements OnInit {
   }
   
   async processPayment(): Promise<void> {
-  const formValue = this.form.value;
-
-    const bookedAt = new Date().toISOString();
-    const formattedValue = {
-      startDate: formValue.dateRange[0],
-      endDate: formValue.dateRange[1],
-      entryPoint: this.getFormattedAccessPointKey(formValue?.entryPoint),
-      exitPoint: this.getFormattedAccessPointKey(formValue?.exitPoint),
-      displayName: this.cartItem?.activityName || '',
-      timezone: 'America/Vancouver', // Todo - update to reflect activity timezone
-      bookedAt: bookedAt,
-      collectionId: this.cartItem?.collectionId || '',
-      activityId: this.cartItem?.activityId || '',
-      activityType: this.cartItem?.activityType || '',
-      feeInformation: {
-        registrationFees: 0, // Todo - update to reflect registration fees
-        transactionFees: 0, // Todo - update to reflect transaction fees
-        tax: this.getTaxes() || 0, // Todo - update to reflect tax calculation
-        total: this.getTotalCost(),
-      },
-      userId: this.user?.sub ? this.user.sub : 'guest',
-      partyInformation: {
-        adult: parseInt(formValue.occupants.totalAdult) || 0,
-        senior: parseInt(formValue.occupants.totalSenior) || 0,
-        youth: parseInt(formValue.occupants.totalYouth) || 0,
-        child: parseInt(formValue.occupants.totalChild) || 0,
-      },
-      rateClass: 'standard', // Todo - update to reflect activity rate class
-      namedOccupant: this.getNamedOccupantInformation(),
-      smsOptIn: Boolean(formValue?.smsOptIn),
-      vehicleInformation: this.getVehicleInformation(formValue),
-      equipmentInformation: formValue?.equipmentDetails || formValue?.additionalEquipment || '',
-      bookingStatus: 'confirmed',
-      location: formValue?.entryPoint?.location ? formValue.entryPoint?.location : { type: "point", coordinates: [-127.86704491749371, 50.85383286629616] } // Todo - update to reflect actual location
-    };
-
-    console.log('Formatted Submission Value:', formattedValue);
-
-  
     if (!this.isStepValid() || this.isProcessingPayment) return;
   
     this.isProcessingPayment = true;
 
     try {
-      const submissionValue = this.formatFormForSubmission();
-    
-      const booking = await this.bookingService.createBooking(
-        submissionValue, 
-        this.cartItem.collectionId, 
-        this.cartItem.activityType, 
-        this.cartItem.activityId, 
-        submissionValue.startDate
-      );
-    
-      const bookingId = booking?.bookingId || booking?.globalId || booking?.booking?.[0]?.data?.globalId || null;
-      const sessionId = booking?.sessionId || booking?.booking?.[0]?.data?.sessionId || null;
-    
-      if (bookingId && sessionId) {
-        // This will redirect the user to the payment gateway
-        await this.initiateTransaction(bookingId, sessionId, this.form.get('primaryOccupant.email').value || this.user?.email || '');
-      } else {
-        throw new Error('Booking creation failed, no booking ID returned.');
+      // Use existing booking from cart item (created when user clicked "book")
+      const bookingId = this.cartItem?.bookingId || this.bookingId;
+      const sessionId = this.cartItem?.sessionId || this.sessionId;
+
+      if (!bookingId || !sessionId) {
+        throw new Error('Booking ID and Session ID required. Booking may have expired.');
       }
+
+      // This will redirect the user to the payment gateway
+      await this.initiateTransaction(bookingId, sessionId, this.form.get('primaryOccupant.email').value || this.user?.email || '');
     } catch (error: any) {
-    if (error?.waitingRoom && this.cartItem) {
-      // Admission expired or invalidated — send user back to the waiting room
-      const params = new URLSearchParams({
-        collectionId: this.cartItem.collectionId,
-        activityType: this.cartItem.activityType,
-        activityId: this.cartItem.activityId,
-        startDate: this.cartItem.startDate,
-        returnUrl: '/checkout',
-      });
-      window.location.href = `/waitingroom.html?${params.toString()}`;
-      return;
-    }
-    
-    // Handle reservation policy validation errors (400)
-    if (error?.status === 400) {
-      const errorMessage = error?.error?.message || 'Your booking request could not be completed. Please check the booking details and try again.';
-      console.error('Booking validation error:', errorMessage);
-      alert(`Booking Error: ${errorMessage}`);
+      console.error('Error processing payment:', error);
+
+      // Check for waiting room admission expiration
+      if (error?.waitingRoom && this.cartItem) {
+        // Admission expired or invalidated — send user back to the waiting room
+        const params = new URLSearchParams({
+          collectionId: this.cartItem.collectionId,
+          activityType: this.cartItem.activityType,
+          activityId: this.cartItem.activityId,
+          startDate: this.cartItem.startDate,
+          returnUrl: '/checkout',
+        });
+        window.location.href = `/waitingroom.html?${params.toString()}`;
+        return;
+      }
+
+      alert(`There was an error processing your payment. Please try again later.`);
       this.isProcessingPayment = false;
-      return;
     }
-    
-    console.error('Error creating booking:', error);
-    alert(`There was an error creating your booking. Please try again later.`);
-    this.isProcessingPayment = false;
   }
-}
 
   formatFormForSubmission() {
     const formValue = this.form.value;
@@ -330,9 +275,24 @@ export class PaymentStepComponent implements OnInit {
       } else {
         throw new Error('No transaction URL returned');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create transaction:', error);
       this.loadingService.removeFromFetchList(Constants.dataIds.TRANSACTION_POST_RESULTS);
+
+      // Check for waiting room admission expiration
+      if (error?.waitingRoom && this.cartItem) {
+        // Admission expired or invalidated — send user back to the waiting room
+        const params = new URLSearchParams({
+          collectionId: this.cartItem.collectionId,
+          activityType: this.cartItem.activityType,
+          activityId: this.cartItem.activityId,
+          startDate: this.cartItem.startDate,
+          returnUrl: '/checkout',
+        });
+        window.location.href = `/waitingroom.html?${params.toString()}`;
+        return;
+      }
+
       alert('Failed to initiate payment. Please try again.');
     }
   }

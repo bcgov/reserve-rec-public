@@ -35,6 +35,8 @@ export interface CartItem {
   checkInAnchor?: string | number;
   checkOutAnchor?: string | number;
   waitingRoomActive?: boolean;
+  bookingId?: string; // Booking created immediately when user clicks "book"
+  sessionId?: string; // Session ID from initial booking creation
 }
 
 @Injectable({

@@ -16,6 +16,7 @@ import { ApiService } from '../services/api.service';
 import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { ConfirmationModalComponent } from '../shared/components/confirmation-modal/confirmation-modal.component';
+import { BookingService } from '../services/booking.service';
 
 @Component({
   selector: 'app-facility-details',
@@ -64,6 +65,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
   private waitingRoomService = inject(WaitingRoomService);
   private apiService = inject(ApiService);
   private modalService = inject(BsModalService);
+  private bookingService = inject(BookingService);
 
   constructor(
     private route: ActivatedRoute,
@@ -348,45 +350,74 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Add to cart - validation will happen when booking is created
-    const selectedProductDate = this.availableDates[date];
-    const cartItem: CartItem = {
-      id: '',
-      collectionId: this.selectedCollectionId || '',
-      activityType: this.selectedActivityType || '',
-      activityId: this.selectedActivityId || '',
-      productId: productId,
-      quantity: visitors,
-      activityName: this.selectedActivityName || this.facility?.displayName || '',
-      productName: selectedProductName,
-      geoZoneName: this.facility?.displayName || '',
-      dateRange: [date, date],
-      startDate: date,
-      endDate: date,
-      occupants: { totalAdult: visitors, totalSenior: 0, totalYouth: 0, totalChild: 0 },
-      feeInformation: { registrationFees: 0, transactionFees: 0, tax: 0, total: 0 },
-      detailsStepCompleted: false,
-      visitorDetailsStepCompleted: false,
-      equipmentStepCompleted: false,
-      paymentStepCompleted: false,
-      areAllStepsCompleted: false,
-      checkInAnchor: selectedProductDate?.reservationContext?.checkInAnchor ?? selectedProductDate?.reservationContext?.temporalAnchors?.checkInTime,
-      checkOutAnchor: selectedProductDate?.reservationContext?.checkOutAnchor ?? selectedProductDate?.reservationContext?.temporalAnchors?.checkOutTime,
-    };
+    // Create booking immediately to reserve the inventory
+    try {
+      const bookingData = {
+        startDate: date,
+        endDate: date,
+        productId: productId,
+        quantity: visitors,
+        collectionId: this.selectedCollectionId || '',
+        activityId: this.selectedActivityId || '',
+        activityType: this.selectedActivityType || '',
+        facilityDisplayName: this.facility?.displayName || '',
+      };
 
-    const existing = this.cartService.items()[0];
-    if (existing) {
-      const proceed = await this.confirmReplaceCart(existing);
-      if (!proceed) return;
+      const booking = await this.bookingService.createBooking(
+        bookingData,
+        this.selectedCollectionId || '',
+        this.selectedActivityType || '',
+        this.selectedActivityId || '',
+        date
+      );
+
+      const bookingId = booking?.bookingId || booking?.globalId || booking?.booking?.[0]?.data?.globalId || null;
+      const sessionId = booking?.sessionId || booking?.booking?.[0]?.data?.sessionId || null;
+
+      if (!bookingId || !sessionId) {
+        throw new Error('Booking creation failed, no booking ID or session ID returned.');
+      }
+
+      // Add to cart with booking details for inventory reservation
+      const selectedProductDate = this.availableDates[date];
+      const cartItem: CartItem = {
+        id: '',
+        collectionId: this.selectedCollectionId || '',
+        activityType: this.selectedActivityType || '',
+        activityId: this.selectedActivityId || '',
+        productId: productId,
+        quantity: visitors,
+        activityName: this.selectedActivityName || this.facility?.displayName || '',
+        productName: selectedProductName,
+        geoZoneName: this.facility?.displayName || '',
+        dateRange: [date, date],
+        startDate: date,
+        endDate: date,
+        occupants: { totalAdult: visitors, totalSenior: 0, totalYouth: 0, totalChild: 0 },
+        feeInformation: { registrationFees: 0, transactionFees: 0, tax: 0, total: 0 },
+        detailsStepCompleted: false,
+        visitorDetailsStepCompleted: false,
+        equipmentStepCompleted: false,
+        paymentStepCompleted: false,
+        areAllStepsCompleted: false,
+        checkInAnchor: selectedProductDate?.reservationContext?.checkInAnchor ?? selectedProductDate?.reservationContext?.temporalAnchors?.checkInTime,
+        checkOutAnchor: selectedProductDate?.reservationContext?.checkOutAnchor ?? selectedProductDate?.reservationContext?.temporalAnchors?.checkOutTime,
+        bookingId: bookingId,
+        sessionId: sessionId,
+      };
+
+      this.cartService.addToCart(cartItem);
+      this.toastService.addMessage('Item added to cart', 'Success', ToastTypes.SUCCESS);
+
+      this.router.navigate(['/reservation-flow']).then(() => {
+        window.scrollTo(0, 0);
+        this.cdr.detectChanges();
+      });
+    } catch (error: any) {
+      console.error('Error creating booking:', error);
+      const errorMessage = error?.error?.message || error?.message || 'Failed to create booking. Please try again.';
+      this.toastService.addMessage(errorMessage, 'Error', ToastTypes.ERROR);
     }
-
-    this.cartService.addToCart(cartItem);
-    this.toastService.addMessage('Item added to cart', 'Success', ToastTypes.SUCCESS);
-
-    this.router.navigate(['/reservation-flow']).then(() => {
-      window.scrollTo(0, 0);
-      this.cdr.detectChanges();
-    });
   }
 
   // Prompt the user before replacing an existing cart item. Resolves true if they

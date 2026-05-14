@@ -99,6 +99,9 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
 
   private initializeForCurrentItem(): void {
     if (!this.cartItem) return;
+    // Initialize booking IDs from cart item (created when user clicked "book")
+    this.currentBookingId = this.cartItem?.bookingId || null;
+    this.currentSessionId = this.cartItem?.sessionId || null;
     this.initializeFromCart(this.cartItem);
     this.loadAccessPointsForCurrentItem();
     this.updateBookingSummary();
@@ -324,53 +327,22 @@ async onStepCompleted(completed: boolean): Promise<void> {
     }
   }
   async createBookingForItem(item: CartItem): Promise<any> {
-    const formValue = this.form?.value;
-    if (!formValue) {
-      throw new Error('Form data not available');
+    // Booking already created upfront when user clicked "book" button
+    // Just return the existing booking reference
+    if (!item.bookingId || !item.sessionId) {
+      throw new Error('Booking must be created upfront - missing bookingId or sessionId');
     }
 
-    const normalizedProductId = this.normalizeProductId(item.productId);
-    const bookingDetails = this.getBookingFormDetails(formValue);
+    console.log('Booking created:', {
+      bookingId: item.bookingId,
+      sessionId: item.sessionId
+    });
 
-    const bookingData = {
-      startDate: item.startDate,
-      endDate: item.endDate,
-      productId: normalizedProductId,
-      quantity: item.quantity || 1,
-      entryPoint: formValue.entryPoint || null,
-      exitPoint: formValue.exitPoint || null,
-      facilityDisplayName: item.geoZoneName,
-      timezone: 'America/Vancouver',
-      bookedAt: new Date().toISOString(),
-      collectionId: item.collectionId,
-      activityId: item.activityId,
-      activityType: item.activityType,
-      feeInformation: item.feeInformation,
-      userId: this.user?.sub || 'guest',
-      partyInformation: {
-        adult: item.occupants.totalAdult,
-        senior: item.occupants.totalSenior,
-        youth: item.occupants.totalYouth,
-        child: item.occupants.totalChild,
-      },
-      rateClass: 'standard',
-      namedOccupant: bookingDetails.namedOccupant,
-      smsOptIn: Boolean(formValue?.smsOptIn),
-      vehicleInformation: bookingDetails.vehicleInformation,
-      equipmentInformation: bookingDetails.equipmentInformation,
-      bookingStatus: 'confirmed',
-      location: { type: 'point', coordinates: [-127.86704491749371, 50.85383286629616] }
+    return {
+      bookingId: item.bookingId,
+      sessionId: item.sessionId,
+      globalId: item.bookingId
     };
-
-    console.log('Creating booking:', bookingData);
-
-    return await this.bookingService.createBooking(
-      bookingData,
-      item.collectionId,
-      item.activityType,
-      item.activityId,
-      item.startDate
-    );
   }
 
   private normalizeProductId(productId?: string): string | null {
@@ -452,7 +424,8 @@ async onStepCompleted(completed: boolean): Promise<void> {
       sessionId: sessionId,
       namedOccupant: bookingDetails.namedOccupant,
       vehicleInformation: bookingDetails.vehicleInformation,
-      equipmentInformation: bookingDetails.equipmentInformation
+      equipmentInformation: bookingDetails.equipmentInformation,
+      smsOptIn: formValue?.smsOptIn || false,
     };
   }
 

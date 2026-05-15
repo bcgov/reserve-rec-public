@@ -415,7 +415,15 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
       });
     } catch (error: any) {
       console.error('Error creating booking:', error);
-      const errorMessage = error?.error?.message || error?.message || 'Failed to create booking. Please try again.';
+      // API returns error text under `msg`; walk the usual shapes before
+      // falling back to a generic message.
+      const errorMessage =
+        error?.error?.msg ||
+        error?.error?.error ||
+        error?.error?.Message ||
+        error?.error?.message ||
+        error?.message ||
+        'Failed to create booking. Please try again.';
       this.toastService.addMessage(errorMessage, 'Error', ToastTypes.ERROR);
     }
   }

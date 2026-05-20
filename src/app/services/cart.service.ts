@@ -1,4 +1,5 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, effect, inject } from '@angular/core';
+import { AuthService } from './auth.service';
 
 export interface CartItem {
   id: string;
@@ -43,13 +44,34 @@ export interface CartItem {
   providedIn: 'root'
 })
 export class CartService {
-  private readonly CART_STORAGE_KEY = 'bcparks-cart';
-  private cartItems = signal<CartItem[]>(this.loadCartFromStorage());
-  
+  // The cart is keyed by Cognito sub in localStorage so two accounts sharing
+  // a browser session never see each other's items. Anonymous users get a
+  // synthetic 'anon' slot. (Ref bcgov/reserve-rec-public#503.)
+  private static readonly STORAGE_KEY_PREFIX = 'bcparks-cart::';
+  private static readonly LEGACY_STORAGE_KEY = 'bcparks-cart';
+
+  private authService = inject(AuthService);
+  private cartItems = signal<CartItem[]>([]);
+  private currentSub: string | null = null;
+
   // Public readonly signals
   readonly items = this.cartItems.asReadonly();
   readonly itemCount = computed(() => this.cartItems().length);
-  
+
+  constructor() {
+    // Initial load + react to user changes (sign-in, sign-out, refresh).
+    // The effect runs once with whatever the user signal currently holds,
+    // then again whenever it changes.
+    effect(() => {
+      const sub = this.authService.user()?.sub ?? null;
+      if (sub === this.currentSub) {
+        return;
+      }
+      this.currentSub = sub;
+      this.cartItems.set(this.loadCartFromStorage());
+    });
+  }
+
   // The cart is single-item: a new add replaces whatever was there. The reservation
   // flow only ever consumes cartItems[0], and there's no UI to pick from a list of
   // pending bookings. Callers that want to warn the user before clobbering an existing
@@ -60,7 +82,7 @@ export class CartService {
     this.cartItems.set(newItems);
     this.saveCartToStorage(newItems);
   }
-  
+
   removeFromCart(itemId: string): void {
     this.cartItems.update(items => {
       const newItems = items.filter(item => item.id !== itemId);
@@ -68,19 +90,37 @@ export class CartService {
       return newItems;
     });
   }
-  
+
   clearCart(): void {
     this.cartItems.set([]);
     this.saveCartToStorage([]);
   }
-  
+
   private generateId(): string {
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);
   }
-  
+
+  private storageKey(): string {
+    const sub = this.authService.user()?.sub;
+    return `${CartService.STORAGE_KEY_PREFIX}${sub ?? 'anon'}`;
+  }
+
   private loadCartFromStorage(): CartItem[] {
     try {
-      const stored = localStorage.getItem(this.CART_STORAGE_KEY);
+      let stored = localStorage.getItem(this.storageKey());
+      if (!stored) {
+        // One-time migration: if a legacy unscoped cart exists and this is
+        // the first sub-scoped load, adopt it for the current user. Then
+        // remove the legacy key so future users on this browser don't
+        // inherit it. Without this, the user's existing cart silently
+        // disappears on first deploy.
+        const legacy = localStorage.getItem(CartService.LEGACY_STORAGE_KEY);
+        if (legacy) {
+          localStorage.removeItem(CartService.LEGACY_STORAGE_KEY);
+          localStorage.setItem(this.storageKey(), legacy);
+          stored = legacy;
+        }
+      }
       if (!stored) return [];
       const items: CartItem[] = JSON.parse(stored);
       // Clear stale waitingRoomActive flags on load unless there is a matching
@@ -118,7 +158,7 @@ export class CartService {
 
   private saveCartToStorage(items: CartItem[]): void {
     try {
-      localStorage.setItem(this.CART_STORAGE_KEY, JSON.stringify(items));
+      localStorage.setItem(this.storageKey(), JSON.stringify(items));
     } catch (error) {
       console.warn('Failed to save cart to storage:', error);
     }
@@ -126,7 +166,7 @@ export class CartService {
 
    updateCartItem(itemId: string, updatedItem: CartItem): void {
     this.cartItems.update(items => {
-      const newItems = items.map(item => 
+      const newItems = items.map(item =>
         item.id === itemId ? { ...item, ...updatedItem } : item
       );
       this.saveCartToStorage(newItems);

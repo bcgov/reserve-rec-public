@@ -79,11 +79,6 @@ export const routes: Routes = [
     data: { breadcrumb: 'Facility Details' }
   },
   {
-    path: 'find-booking',
-    loadComponent: () => import('./find-booking/find-booking.component')
-      .then(mod => mod.FindBookingComponent)
-  },
-  {
     path: 'login',
     loadComponent: () => import('./login/login.component')
       .then(mod => mod.LoginComponent)

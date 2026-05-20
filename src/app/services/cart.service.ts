@@ -52,7 +52,11 @@ export class CartService {
 
   private authService = inject(AuthService);
   private cartItems = signal<CartItem[]>([]);
-  private currentSub: string | null = null;
+  // `undefined` sentinel so the first effect run is not mistaken for "no
+  // change" when the auth user signal starts at null. After the first run
+  // this holds the actual sub (or null for anon) and subsequent same-user
+  // ticks short-circuit normally.
+  private currentSub: string | null | undefined = undefined;
 
   // Public readonly signals
   readonly items = this.cartItems.asReadonly();

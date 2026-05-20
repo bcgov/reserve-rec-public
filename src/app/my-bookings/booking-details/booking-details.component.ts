@@ -30,27 +30,21 @@ export class BookingDetailsComponent implements OnInit {
   async ngOnInit() {
     try {
       const bookingId = this.route.snapshot.paramMap.get('id');
-      const email = this.route.snapshot.queryParamMap.get('email');
-      const queryParams: any = {};
-      if (email) {
-        queryParams.email = email;
-      }
-      
-      const res: any = await lastValueFrom(this.apiService.get(`bookings/${bookingId}`, queryParams));
+
+      // Bookings GET now requires auth and returns the caller's booking
+      // exclusively. The server enforces booking.userId === claims.sub
+      // (Ref bcgov/reserve-rec-public#503), so no email param is needed and
+      // no client-side ownership check is required — the API would have
+      // returned 403/401 if we were not the owner.
+      const res: any = await lastValueFrom(this.apiService.get(`bookings/${bookingId}`));
       this.booking = res.data;
 
       // Extract QR code if available
       if (this.booking?.qrCode?.dataUrl) {
         this.qrCodeDataUrl = this.booking.qrCode.dataUrl;
       }
-      
-      this.user = this.authService.getCurrentUser();
 
-      if(this.user.sub != this.booking.userId && !this.user.sub.startsWith('guest')) {
-        console.error('User does not match booking userId');
-        this.router.navigate(['/']); 
-        return;
-      }
+      this.user = this.authService.getCurrentUser();
       this.loading = false;
     } catch (error) {
       console.error('Failed to fetch booking details:', error);

@@ -175,20 +175,19 @@ export class PaymentStepComponent implements OnInit {
   }
 
   getNamedOccupantInformation() {
-    const userIsOccupant = this.form.get('userIsPrimaryOccupant').value;
-    const accountMobilePhone = this.user?.['custom:mobilePhone'] || this.user?.phone_number || '';
-    const obj = {
-      firstName: userIsOccupant ? this.user?.given_name || '' : this.form.get('primaryOccupant.firstName').value,
-      lastName: userIsOccupant ? this.user?.family_name || '' : this.form.get('primaryOccupant.lastName').value,
+    // Identity fields (firstName, lastName, email, mobilePhone) are resolved
+    // server-side from the authenticated Cognito sub — the FE must not send
+    // them or the booking can be made to carry another user's identity
+    // (Ref #480). Address fields stay client-provided since Cognito does not
+    // reliably carry them for BCSC users.
+    const obj: any = {
       contactInfo: {
-        email: userIsOccupant ? this.user?.email || '' : this.form.get('primaryOccupant.email').value,
-        mobilePhone: userIsOccupant ? accountMobilePhone : this.form.get('primaryOccupant.phoneNumber').value,
-        streetAddress: userIsOccupant ? this.user?.address?.streetAddress || '' : this.form.get('addressInfo.streetAddress').value,
-        unitNumber: userIsOccupant ? this.user?.address?.unitNumber || '' : this.form.get('addressInfo.unitNumber').value,
-        postalCode: userIsOccupant ? this.user?.address?.postalCode || '' : this.form.get('addressInfo.postalCode').value,
-        city: userIsOccupant ? this.user?.address?.city || '' : this.form.get('addressInfo.city').value,
-        province: userIsOccupant ? this.user?.address?.province || '' : this.form.get('addressInfo.province').value,
-        country: userIsOccupant ? this.user?.address?.country || '' : this.form.get('addressInfo.country').value,
+        streetAddress: this.user?.address?.streetAddress || this.form.get('addressInfo.streetAddress')?.value || '',
+        unitNumber: this.user?.address?.unitNumber || this.form.get('addressInfo.unitNumber')?.value || '',
+        postalCode: this.user?.address?.postalCode || this.form.get('addressInfo.postalCode')?.value || '',
+        city: this.user?.address?.city || this.form.get('addressInfo.city')?.value || '',
+        province: this.user?.address?.province || this.form.get('addressInfo.province')?.value || '',
+        country: this.user?.address?.country || this.form.get('addressInfo.country')?.value || '',
       }
     };
 

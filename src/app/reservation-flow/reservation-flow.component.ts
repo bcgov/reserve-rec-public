@@ -366,37 +366,21 @@ async onStepCompleted(completed: boolean): Promise<void> {
   }
 
   private getNamedOccupantInfo(formValue: any): any {
-    const userIsOccupant = formValue.userIsPrimaryOccupant;
-    const profile = this.getUserProfileDefaults();
-    const primaryOccupant = formValue.primaryOccupant || {};
+    // Identity fields (firstName, lastName, email, mobilePhone) are resolved
+    // server-side from the authenticated Cognito sub — the FE must not send
+    // them or the booking can be made to carry another user's identity
+    // (Ref #480). Address fields stay client-provided since Cognito does not
+    // reliably carry them for BCSC users.
     const addressInfo = formValue.addressInfo || {};
 
     return {
-      firstName: userIsOccupant ? profile.firstName : primaryOccupant.firstName || '',
-      lastName: userIsOccupant ? profile.lastName : primaryOccupant.lastName || '',
       contactInfo: {
-        email: userIsOccupant ? profile.email : primaryOccupant.email || '',
-        mobilePhone: userIsOccupant ? profile.mobilePhone : primaryOccupant.phoneNumber || '',
         streetAddress: addressInfo.streetAddress || '',
         city: addressInfo.city || '',
         postalCode: addressInfo.postalCode || '',
         province: addressInfo.province || '',
         country: addressInfo.country || ''
       }
-    };
-  }
-
-  private getUserProfileDefaults(): {
-    firstName: string;
-    lastName: string;
-    email: string;
-    mobilePhone: string;
-  } {
-    return {
-      firstName: this.user?.given_name || '',
-      lastName: this.user?.family_name || '',
-      email: this.user?.email || '',
-      mobilePhone: this.user?.['custom:mobilePhone'] || this.user?.phone_number || ''
     };
   }
 

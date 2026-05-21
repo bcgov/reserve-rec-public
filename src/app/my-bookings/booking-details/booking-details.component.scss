@@ -1,6 +1,11 @@
 // Responsive adjustments for mobile
-@media (max-width: 768px) {
-  .dropdown-menu {
-    min-width: 15rem !important;
-  }
+.success-section {
+  background-color: #f6fff8;
+}
+
+.dropdown-menu {
+  // Have dropdown be a bit larger than button, so it hides 
+  // the item it appears above (trust me, it just looks nicer)
+  min-width: 101%;
+  left: -2px !important;
 }

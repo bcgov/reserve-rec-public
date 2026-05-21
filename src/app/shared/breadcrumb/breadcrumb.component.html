@@ -1,7 +1,7 @@
 <div *ngIf="breadcrumbs.length > 1">
  
   <!-- Breadcrumb Navigation -->
-  <nav aria-label="breadcrumb" class="pt-4 mb-3">
+  <nav aria-label="breadcrumb" class="pt-4 mb-5">
     <ol class="breadcrumb custom-breadcrumb">
       <ng-container *ngFor="let breadcrumb of breadcrumbs; let last = last; let first = first">
         <li class="breadcrumb-item" [class.active]="last" [attr.aria-current]="last ? 'page' : null">

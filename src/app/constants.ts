@@ -129,7 +129,7 @@ export class Constants {
       subTypes: {}
     },
     dayuse: {
-      display: 'Day Use',
+      display: 'Day-use pass',
       value: 'dayuse',
       iconClass: 'fa-regular fa-person-hiking',
       subTypes: {

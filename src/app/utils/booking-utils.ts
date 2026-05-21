@@ -17,7 +17,7 @@ export class BookingUtils {
    * Get the facility display name
    */
   static getFacilityName(booking: any): string {
-    return booking?.facilityDisplayName || booking?.displayName || 'N/A';
+    return booking?.facilityDisplayName || booking?.displayName || '';
   }
 
   /**
@@ -55,7 +55,7 @@ export class BookingUtils {
     const checkInAnchor =
       booking?.checkInAnchor ||
       booking?.reservationContext?.checkInAnchor ||
-      booking?.reservationContext?.temporalAnchors?.checkInTime;
+      booking?.reservationContext?.checkInTime;
 
     return BookingUtils.formatBookingTime(checkInAnchor, booking?.startDate);
   }
@@ -67,7 +67,7 @@ export class BookingUtils {
     const checkOutAnchor =
       booking?.checkOutAnchor ||
       booking?.reservationContext?.checkOutAnchor ||
-      booking?.reservationContext?.temporalAnchors?.checkOutTime;
+      booking?.reservationContext?.checkOutTime;
 
     return BookingUtils.formatBookingTime(checkOutAnchor, booking?.endDate);
   }
@@ -243,7 +243,7 @@ export class BookingUtils {
     if (!dt) {
       return '';
     }
-    return dt.toFormat('h:mm a');
+    return dt.toFormat('h a').toLowerCase();
   }
 
   private static parseDateTime(value: unknown, fallbackDate?: string): DateTime | null {

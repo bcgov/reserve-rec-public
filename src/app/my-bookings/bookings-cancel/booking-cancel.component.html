@@ -6,32 +6,38 @@
   <app-breadcrumb></app-breadcrumb>
 
   <!-- Page heading -->
-  <h1 class="fw-bold mb-1 text-primary">Cancel entire booking</h1>
+  <h1 class="fw-bold mb-2 text-primary">Cancel entire booking</h1>
   <p class="text-muted mb-4">{{ getGeozoneName() }}</p>
   <ng-container *ngIf="isBookingCancelled()">
-            <div class="card bg-success-subtle border-success-subtle mb-4 col-10 mx-auto">
-              <div class="card-header bg-success-subtle border-0 text-body-emphasis fw-semibold">
-                <i class="fa-solid fa-circle-check me-2 text-success"></i>
-                <span>Your Booking is cancelled.</span>
-              </div>
-              <div class="card-body">
-                <p class="mb-4">Thank you for cancelling your booking. This gives others the chance to visit the park. We hope to see you soon!</p>
-                <div class="d-flex justify-content-end">
-                  <a [routerLink]="['/my-bookings']" class="btn btn-outline-primary">Return to bookings</a>
-                </div>
-              </div>
-            </div>
+  <div class="d-flex flex-column col-12 col-lg-9">
+    <div class="success-section alert alert-info border border-success mb-4 p-4 text-dark">
+      <div class="d-flex">
+        <div class="me-2 flex-shrink-0">
+          <i class="fa-regular fa-check-circle text-success"></i>
+        </div>
+        <div class="flex-grow-1">
+          <strong>Your booking is cancelled.</strong>
+          <p class="mb-4">Thank you for cancelling your booking. This gives others the chance to visit the park. We hope to see you soon!</p>
+          <div class="text-end">
+            <button class="btn btn-outline-primary rounded-1 fw-bold py-2 px-3" (click)="goBack()">
+              Return to my bookings
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   </ng-container>
   <div class="row">
     <div class="col-10 mx-auto">
 
       <!-- Shared card: header + switched body -->
       <div class="card border rounded mb-4">
-        <div class="card-header bg-booking-header">
+        <div class="card-header bg-booking-header ps-4 p-3 border">
           <b class="text-body-emphasis d-block">{{ getGeozoneName() }}</b>
           <p class="text-muted mb-0">{{ getActivityType() }}</p>
         </div>
-        <div class="card-body">
+        <div class="card-body p-4">
           <ng-container *ngIf="isBookingCancelled()"> 
           <div class="alert alert-danger mb-4" role="alert">
               <i class="fa-solid fa-circle-exclamation me-2"></i>
@@ -44,16 +50,16 @@
       </div>
 
       <!-- Acknowledgement Checkbox -->
-      <div *ngIf="!isBookingCancelled()" class="mb-4 p-3 border border-2 rounded border-medium-grey bg-light-blue-nav">
+      <div *ngIf="!isBookingCancelled()" class="mb-4 p-3 border border-1 rounded-2 border-medium-grey bg-light-blue-nav">
         <div class="form-check">
           <input
-            class="form-check-input"
+            class="form-check-input border border-dark"
             type="checkbox"
             id="acknowledgeCancel"
             (change)="acknowledgeCancel = $any($event.target).checked"
           >
-          <label class="form-check-label" for="acknowledgeCancel">
-            I acknowledge that I want to cancel the above booking in full.
+          <label class="form-check-label ps-2 fs-6" for="acknowledgeCancel">
+            I acknowledge that I want to cancel the above booking in full
           </label>
         </div>
       </div>
@@ -66,9 +72,10 @@
 <div *ngIf="showActionBar()" class="w-100 bg-light-blue-nav border-top fixed-bottom cancel-action-bar">
   <div class="container">
     <div class="d-flex justify-content-between py-3">
-      <a [routerLink]="['/account/bookings', getBookingNumber()]" class="btn btn-outline-primary">
-        Cancel
-      </a>
+      <button class="btn btn-outline-primary rounded-1 fw-bold mb-2 py-2 px-3" (click)="goBack()">
+        <i class="fa-solid fa-circle-chevron-left me-2"></i>
+        Back to booking
+      </button>
 
       <button
         type="button"
@@ -80,7 +87,7 @@
         (click)="onConfirmRefund()"
       >
         <span *ngIf="cancelling" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-        {{ cancelling ? 'Cancelling...' : 'Okay' }}
+        {{ cancelling ? 'Cancelling...' : 'Continue' }}
       </button>
     </div>
   </div>
@@ -163,16 +170,16 @@
   <div class="row g-3 mb-3">
     <div class="col-md-6">
       <div class="mb-3">
-        <p class="small fw-semibold mb-1 text-body-emphasis">Arrival</p>
+        <p class="small fw-semibold mb-2 text-body-emphasis">Arrival</p>
         <div>{{ getArrivalDate() | date:'fullDate' }}</div>
-        <p *ngIf="getArrivalTime()" class="mb-0 mt-1 text-muted small">Check-in: {{ getArrivalTime() }}</p>
+        <div class="text-muted small mt-1">{{ getArrivalTime() }}</div>
       </div>
     </div>
     <div class="col-md-6">
       <div class="mb-3">
-        <p class="small fw-semibold mb-1 text-body-emphasis">Departure</p>
+        <p class="small fw-semibold mb-2 text-body-emphasis">Departure</p>
         <div>{{ getDepartureDate() | date:'fullDate' }}</div>
-        <p *ngIf="getDepartureTime()" class="mb-0 mt-1 text-muted small">Check-out: {{ getDepartureTime() }}</p>
+        <div class="text-muted small mt-1">{{ getDepartureTime() }}</div>
       </div>
     </div>
   </div>
@@ -181,31 +188,31 @@
   <div class="row g-3 mb-3">
     <div class="col-md-6">
       <div class="mb-3">
-        <p class="small fw-semibold mb-1 text-body-emphasis">Pass type</p>
-        <div><i class="fa-regular fa-map-marker-alt text-muted fa-sm"></i> {{ getProductDisplayName() }}</div>
+        <p class="small fw-semibold mb-2 text-body-emphasis">Pass type</p>
+        <div><i class="fa-regular fa-map-marker-alt fa-sm ps-1 pe-2"></i> {{ getProductDisplayName() }}</div>
       </div>
     </div>
     <div class="col-md-6">
       <div class="mb-3">
-        <p class="small fw-semibold mb-1 text-body-emphasis">Passes</p>
-        <div><i class="fa-regular fa-tickets-simple text-muted fa-sm"></i> {{ getPassCount() }}</div>
+        <p class="small fw-semibold mb-2 text-body-emphasis">Passes</p>
+        <div><i class="fa-regular fa-tickets-simple fa-sm pe-2"></i> {{ getPassCount() }}</div>
       </div>
     </div>
   </div>
 
-  <hr class="my-4" />
+  <hr class="my-3 border-dark" />
 
   <!-- Visitor / License Plate -->
   <div class="row g-3 mb-3">
     <div class="col-md-6">
       <div class="mb-3">
-        <p class="small fw-semibold mb-1 text-body-emphasis">Visitor</p>
+        <p class="small fw-semibold mb-2 text-body-emphasis mt-1">Visitor</p>
         <div>{{ getNamedOccupant() }}</div>
       </div>
     </div>
     <div class="col-md-6">
       <div class="mb-3">
-        <p class="small fw-semibold mb-1 text-body-emphasis">License plate</p>
+        <p class="small fw-semibold mb-2 text-body-emphasis mt-1">License plate</p>
         <div>
           {{ getLicensePlate() }}<span *ngIf="getLicensePlateRegistrationRegion()">, {{ getLicensePlateRegistrationRegion() }}</span>
         </div>
@@ -213,11 +220,11 @@
     </div>
   </div>
 
-  <hr class="my-4" />
+  <hr class="my-3 border-dark" />
 
   <!-- Confirmation Number -->
   <div>
-    <p class="small fw-semibold mb-1 text-body-emphasis">Confirmation number</p>
-    <div class="fw-bold">{{ getBookingNumber() }}</div>
+    <p class="small fw-semibold mb-2 text-body-emphasis">Confirmation number</p>
+    <div>{{ getBookingNumber() }}</div>
   </div>
 </ng-template>

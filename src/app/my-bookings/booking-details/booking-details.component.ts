@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { BreadcrumbComponent } from '../../shared/breadcrumb/breadcrumb.component';
 import { BookingUtils } from '../../utils/booking-utils';
+import { Constants } from '../../constants';
 
 @Component({
   selector: 'app-booking-details',
@@ -70,6 +71,14 @@ export class BookingDetailsComponent implements OnInit {
   getDepartureDate(): string {
     return BookingUtils.getDepartureDate(this.booking);
   }
+  
+  getArrivalTime(): string {
+    return BookingUtils.getArrivalTime(this.booking);
+  }
+
+  getDepartureTime(): string {
+    return BookingUtils.getDepartureTime(this.booking);
+  }
 
   getFacilityName(): string {
     return BookingUtils.getFacilityName(this.booking);
@@ -81,6 +90,10 @@ export class BookingDetailsComponent implements OnInit {
 
   getBookingType(): string {
     return BookingUtils.getBookingType(this.booking);
+  }
+
+  getActivityType(): string {
+    return Constants.activityTypes?.[BookingUtils.getBookingType(this.booking)].display || ''
   }
 
   getProductDisplayName(): string {

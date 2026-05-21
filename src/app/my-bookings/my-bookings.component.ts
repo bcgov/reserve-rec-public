@@ -105,15 +105,22 @@ export class MyBookingsComponent implements OnInit {
       const isCancelled = item.status === 'cancelled' || item.bookingStatus === 'cancelled';
       const hasEnded = this.today > rangeEnd;
 
+      
+      // Get the name of the activity type from constants
+      let activityType = BookingUtils.getBookingType(item);
+      if (Constants.activityTypes?.[BookingUtils.getBookingType(item)]) {
+        activityType = Constants.activityTypes?.[BookingUtils.getBookingType(item)].display
+      }
+
       const booking = {
         bookingId: item.bookingId || item.globalId,
         geozoneName: BookingUtils.getGeozoneName(item),
         facilityName: BookingUtils.getFacilityName(item),
         productName: BookingUtils.getProductDisplayName(item),
-        activityType: BookingUtils.getBookingType(item),
+        activityType: activityType,
         startDate: item.startDate,
         endDate: item.endDate,
-        formattedDate: this.formatDateRange(item.startDate, item.endDate),
+        formattedDate: this.formatDateRange(item),
         isCancelled: isCancelled,
         status: item.status || item.bookingStatus
       };
@@ -139,17 +146,47 @@ export class MyBookingsComponent implements OnInit {
   }
 
   // Format date range with time of day info
-  formatDateRange(startDate: string, endDate: string): string {
-    const start = DateTime.fromISO(startDate);
-    const end = DateTime.fromISO(endDate);
-    const checkInTime = start.toFormat('h:mm a');
-    
-    if (start.hasSame(end, 'day')) {
-      // Same day pass
-      return `${start.toFormat('MMMM d, yyyy')} - ${checkInTime}`;
-    } else {
-      // Multi-day pass
-      return `${start.toFormat('MMM d, yyyy')} - ${end.toFormat('MMM d, yyyy')} - ${checkInTime}`;
+  formatDateRange(item: any): string {
+    const start = DateTime.fromISO(item.startDate);
+    const end = DateTime.fromISO(item.endDate);
+    const dateRange = start.hasSame(end, 'day')
+      ? start.toFormat('MMMM d, yyyy')
+      : `${start.toFormat('MMM d, yyyy')} - ${end.toFormat('MMM d, yyyy')}`;
+
+    // TODO: Will need to add other activity type as needed
+    // so far we know what dayuse will look like
+    if (item?.activityType === 'dayuse') {
+      return `${dateRange}, ${this.getDayUsePassType(item)}`;
     }
+
+    // Otherwise, default to just showing the check in time (if exists)
+    const checkInTime = item?.reservationContext?.checkInTime
+      ? BookingUtils.getArrivalTime(item)
+      : undefined;
+
+    return checkInTime ? `${dateRange} | ${checkInTime}` : dateRange;
+  }
+
+  private getDayUsePassType(item: any): string {
+    const context = item?.reservationContext;
+    // If check in or check out don't exist for some bizarre reason, just show Day-use
+    if (!context?.checkInTime || !context?.checkOutTime) {
+      return 'Day-use';
+    }
+
+    const checkInTime = BookingUtils.getArrivalTime(item);
+    const timeDiff = Number(context.checkOutTime) - Number(context.checkInTime);
+
+    console.log('context.checkInTime >>>', context.checkInTime);
+    console.log('context.checkOutTime >>>', context.checkOutTime);
+
+    console.log('checkInTime >>>', checkInTime);
+    console.log('timeDiff >>>', timeDiff);
+    // Check the timeDiff and see what "pass type" this is
+    if (checkInTime === '7 am' && timeDiff <= 21600000) return 'AM';
+    if (checkInTime === '7 am' && timeDiff > 21600000) return 'All day';
+    if (checkInTime === '1 pm') return 'PM';
+
+    return 'Day-use';
   }
 }

@@ -1,18 +1,18 @@
-<div class="container mt-5 px-4 mb-5">
+<div class="container mt-5 px-4 mb-4">
       
   <!-- Breadcrumb -->
   <app-breadcrumb></app-breadcrumb>
   
      <!-- Back Button -->
-  <div class="mb-3">
-    <button class="btn btn-outline-primary" (click)="goBack()">
+  <div class="mb-4">
+    <button class="btn btn-outline-primary rounded-1 fw-bold mb-2 py-2 px-3" (click)="goBack()">
       <i class="fa-solid fa-circle-chevron-left me-2"></i>
       Back
     </button>
   </div>
 
       <!-- Park Name -->
-      <h1 class="fw-bold mb-1 text-body-emphasis" *ngIf="booking">
+      <h1 class="text-primary mb-2" *ngIf="booking">
         {{ getGeozoneName() }}
       </h1>
       <p class="text-muted mb-4">{{ getFacilityName() }}</p>
@@ -37,23 +37,23 @@
         <!-- Actions Section -->
         <div *ngIf="!isCancelled()" class="mb-4 p-0">
           <div class="row">
-            <div class="col-lg-2 col-md-3 col-12">
+            <div class="col-lg-3 col-md-5 col-12 my-2">
               <div class="dropdown d-grid">
                 <button
-                  class="btn btn-outline-primary dropdown-toggle btn-lg"
+                  class="btn btn-outline-primary dropdown-toggle btn-lg fw-bold rounded-2"
                   type="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false">
                   Actions
                 </button>
-                <ul class="dropdown-menu" style="min-width: 20rem;">
+                <ul class="dropdown-menu mt-1">
                   <li *ngIf="qrCodeDataUrl">
-                    <button type="button" class="dropdown-item" (click)="downloadQRCode()">
+                    <button type="button" class="dropdown-item px-4 p-3 border-bottom border-info text-primary" (click)="downloadQRCode()">
                       Download QR code
                     </button>
                   </li>
                   <li *ngIf="!isCancelled()">
-                    <button type="button" class="dropdown-item text-danger" (click)="cancelBooking()">
+                    <button type="button" class="dropdown-item text-danger px-4 p-3" (click)="cancelBooking()">
                       Cancel entire booking
                     </button>
                   </li>
@@ -63,38 +63,73 @@
           </div>
         </div>
 
+        <!-- Cancellation success section -->
+        <!-- <div class="d-flex flex-column col-12 col-lg-9">
+          <div class="success-section alert alert-info border border-success mb-4 p-4 text-dark" *ngIf="isCancelled()">
+            <div class="d-flex">
+              <div class="me-2 flex-shrink-0">
+                <i class="fa-regular fa-check-circle text-success"></i>
+              </div>
+              <div class="flex-grow-1">
+                <strong>Your booking is cancelled.</strong>
+                <p class="mb-4">Thank you for cancelling your booking. This gives others the chance to visit the park. We hope to see you soon!</p>
+                <div class="text-end">
+                  <button class="btn btn-outline-primary rounded-1 fw-bold py-2 px-3" (click)="goBack()">
+                    Return to my bookings
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div> -->
+
         <!-- Info Section -->
-        <div class="alert alert-info border border-primary mb-4 p-4 text-dark">
-          <i class="fa-regular fa-circle-info text-primary"></i> <strong> Changes cannot be made to this booking.</strong>
+        <div class="d-flex flex-column">
+          <div class="info-section alert alert-info border border-primary mb-4 p-4 text-dark d-flex align-items-start" *ngIf="!isCancelled()">
+            <div class="me-2 flex-shrink-0">
+              <i class="fa-regular fa-circle-info text-primary"></i>
+            </div>
+            <div class="flex-grow-1">
+              <strong>Changes cannot be made to this booking.</strong>
+            </div>
+          </div>
         </div>
 
         <!-- Booking Card -->
         <div class="row">
-          <div class="col-lg-9 col-12">
-            <div class="card border rounded mb-4">
-          <div class="card-header bg-booking-header">
-            <b class="mb-0 text-body-emphasis">{{ getGeozoneName() }}</b>
-            <p class="text-muted mb-0">{{ getFacilityName() }}</p>
+          <div class="col-lg-9 col-12 mt-3">
+            <div class="booking-card card rounded mb-2">
+            <div class="card-header bg-booking-header ps-4 p-3 border-0">
+            <b class="text-body-emphasis">{{ getGeozoneName() }}</b>
+            <p class="text-muted mb-0">{{ getActivityType() }}</p>
           </div>
 
-          <div class="card-body">
-            <div *ngIf="isCancelled()" class="alert alert-danger mb-4" role="alert">
-              <i class="fa-solid fa-circle-exclamation me-2"></i>
-              This booking has been cancelled.
+          <div class="card-body p-4">
+            <div class="d-flex flex-column">
+              <div class="info-section alert alert-danger border border-danger mb-4 p-3 text-dark d-flex align-items-start" *ngIf="isCancelled()" role="alert">
+                <div class="me-2 flex-shrink-0">
+                  <i class="fa-regular fa-circle-exclamation text-danger"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <strong>This booking has been cancelled.</strong>
+                </div>
+              </div>
             </div>
 
             <!-- Arrival / Departure -->
             <div class="row g-3 mb-3">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <p class="small fw-semibold mb-1 text-body-emphasis">Arrival</p>
+                  <p class="small fw-semibold mb-2 text-body-emphasis">Arrival</p>
                   <div>{{ getArrivalDate() | date:'fullDate' }}</div>
+                  <div class="text-muted small mt-1">{{ getArrivalTime() }}</div>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <p class="small fw-semibold mb-1 text-body-emphasis">Departure</p>
+                  <p class="small fw-semibold mb-2 text-body-emphasis">Departure</p>
                   <div>{{ getDepartureDate() | date:'fullDate' }}</div>
+                  <div class="text-muted small mt-1">{{ getDepartureTime() }}</div>
                 </div>
               </div>
             </div>
@@ -103,31 +138,31 @@
             <div class="row g-3 mb-3">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <p class="small fw-semibold mb-1 text-body-emphasis">Pass type</p>
-                  <div> <i class="fa-regular fa-map-marker-alt text-muted fa-sm"></i> {{ getProductDisplayName() }}</div>
+                  <p class="small fw-semibold mb-2 text-body-emphasis">Pass type</p>
+                  <div> <i class="fa-regular fa-map-marker-alt fa-sm ps-1 pe-2"></i> {{ getProductDisplayName() }}</div>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <p class="small fw-semibold mb-1 text-body-emphasis">Passes</p>
-                  <div><i class="fa-regular fa-tickets-simple text-muted fa-sm"></i> {{ getPassCount() }}</div>
+                  <p class="small fw-semibold mb-2 text-body-emphasis">Passes</p>
+                  <div><i class="fa-regular fa-tickets-simple fa-sm pe-2"></i> {{ getPassCount() }}</div>
                 </div>
               </div>
             </div>
 
-            <hr class="my-4" />
+            <hr class="my-3 border-dark" />
 
             <!-- Named Occupant / License Plate -->
             <div class="row g-3 mb-3">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <p class="small fw-semibold mb-1 text-body-emphasis">Visitor</p>
+                  <p class="small fw-semibold mb-2 text-body-emphasis mt-1">Visitor</p>
                   <div>{{ getNamedOccupant() }}</div>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <p class="small fw-semibold mb-1 text-body-emphasis">License plate</p>
+                  <p class="small fw-semibold mb-2 text-body-emphasis mt-1">License plate</p>
                   <div>
                     {{ getLicensePlate() }}<span *ngIf="getLicensePlateRegistrationRegion()">, {{ getLicensePlateRegistrationRegion() }}</span>
                   </div>
@@ -135,12 +170,12 @@
               </div>
             </div>
 
-            <hr class="my-4" />
+            <hr class="my-3 border-dark" />
 
             <!-- Confirmation Number -->
             <div>
-              <p class="small fw-semibold mb-1 text-body-emphasis">Confirmation number</p>
-              <div class="fw-bold">{{ getBookingNumber() }}</div>
+              <p class="small fw-semibold mb-2 text-body-emphasis">Confirmation number</p>
+              <div>{{ getBookingNumber() }}</div>
             </div>
           </div>
         </div>
@@ -150,29 +185,28 @@
         <!-- QR Code Card -->
         <div class="row">
           <div class="col-lg-9 col-12">
-            <div class="card border rounded mb-4" *ngIf="!isCancelled() && qrCodeDataUrl">
-              <div class="card-body">
+            <div class="card border-1 mb-4" *ngIf="!isCancelled() && qrCodeDataUrl">
+              <div class="card-body p-4">
                 <div class="text-center">
               <div>
                 <img
                   [src]="qrCodeDataUrl"
                   alt="Day-use pass QR code"
-                  class="img-fluid border rounded p-2"
+                  class="img-fluid p-2"
                   style="max-width: 280px;"
                 />
               </div>
               <div class="mt-3">
                 <button 
                   type="button" 
-                  class="btn btn-primary"
+                  class="btn btn-primary rounded-1 py-2 px-3"
                   (click)="downloadQRCode()"
                 >
-                  <i class="fa-solid fa-download me-2"></i>
-                  Download QR Code
+                  Download QR code
                 </button>
               </div>
               <div class="mt-3 text-muted">
-                <p class="mb-0">
+                <p class="mb-0 text-start">
                   Print or screenshot your day-use pass before you arrive at the park, as mobile internet connectivity can be unreliable. You will need it to show to BC Parks staff when requested.
                 </p>
               </div>
@@ -180,16 +214,5 @@
             </div>
           </div>
         </div>
-
-        <!-- No QR Code Message -->
-        <div class="row">
-          <div class="col-lg-9 col-12">
-                <div class="alert alert-info" *ngIf="!isCancelled() && !qrCodeDataUrl">
-              <i class="fa-solid fa-info-circle me-2"></i>
-              QR code is not available for this booking.
-            </div>
-          </div>
-        </div>
-
       </div>
 </div>

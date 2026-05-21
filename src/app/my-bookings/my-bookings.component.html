@@ -2,7 +2,7 @@
   <app-breadcrumb></app-breadcrumb>
   
   <div class="row mb-5">
-    <h1 class="fw-bold text-primary">My Bookings</h1>
+    <h1 class="fw-bold text-primary">My bookings</h1>
   </div>
 
   <!-- Show loading spinner -->
@@ -19,7 +19,7 @@
       <section *ngIf="activeBookings.length > 0" class="mb-5">
         <h2 class="mb-4 text-primary">Active</h2>
         <div class="row g-4">
-          <div class="col-md-6" *ngFor="let booking of activeBookings">
+          <div class="col-lg-6" *ngFor="let booking of activeBookings">
             <app-bookings-main-card
               [ariaLabel]="'Booking at ' + booking.geozoneName"
               [bookingId]="booking.bookingId"
@@ -38,7 +38,7 @@
       <section *ngIf="pastBookings.length > 0" class="mb-5">
         <h2 class="mb-4 text-primary">Past</h2>
         <div class="row g-4">
-          <div class="col-md-6" *ngFor="let booking of pastBookings">
+          <div class="col-lg-6" *ngFor="let booking of pastBookings">
             <app-bookings-main-card
               [ariaLabel]="'Booking at ' + booking.geozoneName"
               [bookingId]="booking.bookingId"
@@ -57,7 +57,7 @@
       <section *ngIf="cancelledBookings.length > 0" class="mb-5">
         <h2 class="mb-4 text-primary">Cancelled</h2>
         <div class="row g-4">
-          <div class="col-md-6" *ngFor="let booking of cancelledBookings">
+          <div class="col-lg-6" *ngFor="let booking of cancelledBookings">
             <app-bookings-main-card
               [ariaLabel]="'Cancelled booking at ' + booking.geozoneName"
               [bookingId]="booking.bookingId"
@@ -80,7 +80,7 @@
           These bookings don't fit the expected categories and may need attention.
         </div>
         <div class="row g-4">
-          <div class="col-md-6" *ngFor="let booking of otherBookings">
+          <div class="col-lg-6" *ngFor="let booking of otherBookings">
             <app-bookings-main-card
               [ariaLabel]="'Booking at ' + booking.geozoneName"
               [bookingId]="booking.bookingId"
@@ -100,8 +100,13 @@
   
   <!-- No bookings -->
   <ng-template #noBookings>
-    <div class="bg-info border border-primary text-primary text-center no-bookings mt-4 py-4" role="status" aria-live="polite">
-      No bookings to display
+    <div class="d-flex align-items-center no-bookings border border-primary border-1 rounded-2 fw-bold p-4" role="status" aria-live="polite">
+      <div class="align-self-start pt-1">
+        <i class="fa-regular fa-circle-info text-primary pe-2 d-flex"></i>
+      </div>
+      <div class="">
+        There are no bookings to display.
+      </div>
     </div>
   </ng-template>
 </div>

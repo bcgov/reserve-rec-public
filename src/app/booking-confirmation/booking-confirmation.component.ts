@@ -96,6 +96,14 @@ export class BookingConfirmationComponent implements OnInit {
     return BookingUtils.getDepartureDate(this.booking);
   }
 
+  getArrivalTime(): string {
+    return BookingUtils.getArrivalTime(this.booking);
+  }
+
+  getDepartureTime(): string {
+    return BookingUtils.getDepartureTime(this.booking);
+  }
+
   getAreaName(): string {
     return BookingUtils.getFacilityName(this.booking);
   }

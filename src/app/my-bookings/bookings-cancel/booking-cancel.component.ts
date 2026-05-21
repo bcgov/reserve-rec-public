@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { ApiService } from '../../services/api.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -10,6 +10,7 @@ import { CancelService } from '../../services/cancel.service';
 import { ToastService, ToastTypes } from '../../services/toast.service';
 import { FeatureFlagService } from '../../services/feature-flag.service';
 import { BookingUtils } from '../../utils/booking-utils';
+import { Constants } from '../../constants';
 
 @Component({
   selector: 'app-booking-cancel',
@@ -43,7 +44,8 @@ constructor(
   private authService: AuthService,
   private cancelService: CancelService,
   private toastService: ToastService,
-  private featureFlagService: FeatureFlagService
+  private featureFlagService: FeatureFlagService,
+  private router: Router
 ) {}
 
   async ngOnInit() {
@@ -144,7 +146,7 @@ constructor(
   }
 
   getActivityType(): string {
-    return BookingUtils.getBookingType(this.booking);
+    return Constants.activityTypes?.[BookingUtils.getBookingType(this.booking)].display || ''
   }
 
   getAdultOccupants(): number {
@@ -202,5 +204,9 @@ constructor(
     } finally {
       this.cancelling = false;
     }
+  }
+
+  goBack(): void {
+    this.router.navigate(['/account/bookings/', this.booking.bookingId])
   }
 }

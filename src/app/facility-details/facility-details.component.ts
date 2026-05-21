@@ -361,6 +361,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
         activityId: this.selectedActivityId || '',
         activityType: this.selectedActivityType || '',
         facilityDisplayName: this.facility?.displayName || '',
+        geozoneDisplayName: this.geozone?.displayName || '',
       };
 
       const booking = await this.bookingService.createBooking(

@@ -24,7 +24,7 @@
 
             @if (booking()) {
               <div class="mb-4">
-                <h5>Booking Details</h5>
+                <h5>Booking details</h5>
                 <dl class="row">
                   <dt class="col-sm-4">Activity:</dt>
                   <dd class="col-sm-8">{{ booking().displayName }}</dd>
@@ -76,7 +76,7 @@
                   class="btn btn-outline-danger" 
                   (click)="cancelBooking()"
                   [disabled]="isProcessing()">
-                  Cancel Booking
+                  Cancel entire booking
                 </button>
               </div>
             } @else {

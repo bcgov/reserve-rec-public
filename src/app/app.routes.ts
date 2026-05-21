@@ -21,8 +21,8 @@ export const routes: Routes = [
     loadComponent: () => import('./my-bookings/booking-details/booking-details.component')
       .then(m => m.BookingDetailsComponent),
     data: { 
-      breadcrumb: 'Booking Details',
-      parentBreadcrumb: { label: 'My Bookings', url: '/my-bookings' }
+      breadcrumb: 'Booking details',
+      parentBreadcrumb: { label: 'My bookings', url: '/my-bookings' }
     }
   },
   {
@@ -30,8 +30,8 @@ export const routes: Routes = [
     loadComponent: () => import('./my-bookings/bookings-cancel/booking-cancel.component')
       .then(m => m.BookingCancelComponent),
     data: {
-      breadcrumb: 'Cancel Booking',
-      parentBreadcrumb: { label: 'My Bookings', url: '/my-bookings' }
+      breadcrumb: 'Cancel entire booking',
+      parentBreadcrumb: { label: 'My bookings', url: '/my-bookings' }
     }
   },
   {
@@ -89,7 +89,7 @@ export const routes: Routes = [
       .then(mod => mod.MyBookingsComponent),
     canActivate: [UserGuard],
     resolve: { user: UserResolver },
-    data: { breadcrumb: 'My Bookings' }
+    data: { breadcrumb: 'My bookings' }
   },
   {
     path: 'payment-retry',

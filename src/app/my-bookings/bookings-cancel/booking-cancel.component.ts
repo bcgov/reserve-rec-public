@@ -207,6 +207,6 @@ constructor(
   }
 
   goBack(): void {
-    this.router.navigate(['/account/my-bookings/'])
+    this.router.navigate(['/my-bookings'])
   }
 }

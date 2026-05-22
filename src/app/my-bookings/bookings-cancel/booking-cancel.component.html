@@ -9,19 +9,22 @@
   <h1 class="fw-bold mb-2 text-primary">Cancel entire booking</h1>
   <p class="text-muted mb-4">{{ getGeozoneName() }}</p>
   <ng-container *ngIf="isBookingCancelled()">
-  <div class="d-flex flex-column col-12 col-lg-9">
-    <div class="success-section alert alert-info border border-success mb-4 p-4 text-dark">
-      <div class="d-flex">
-        <div class="me-2 flex-shrink-0">
-          <i class="fa-regular fa-check-circle text-success"></i>
-        </div>
-        <div class="flex-grow-1">
-          <strong>Your booking is cancelled.</strong>
-          <p class="mb-4">Thank you for cancelling your booking. This gives others the chance to visit the park. We hope to see you soon!</p>
-          <div class="text-end">
-            <button class="btn btn-outline-primary rounded-1 fw-bold py-2 px-3" (click)="goBack()">
-              Return to my bookings
-            </button>
+  <div class="row">
+
+    <div class="d-flex flex-column col-lg-10 mx-auto">
+      <div class="success-section alert alert-info border border-success mb-4 p-4 text-dark">
+        <div class="d-flex">
+          <div class="me-2 flex-shrink-0">
+            <i class="fa-regular fa-check-circle text-success"></i>
+          </div>
+          <div class="flex-grow-1">
+            <strong>Your booking is cancelled.</strong>
+            <p class="mb-4">Thank you for cancelling your booking. This gives others the chance to visit the park. We hope to see you soon!</p>
+            <div class="text-end">
+              <button class="btn btn-outline-primary rounded-1 fw-bold py-2 px-3" (click)="goBack()">
+                Return to my bookings
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -177,11 +177,6 @@ export class MyBookingsComponent implements OnInit {
     const checkInTime = BookingUtils.getArrivalTime(item);
     const timeDiff = Number(context.checkOutTime) - Number(context.checkInTime);
 
-    console.log('context.checkInTime >>>', context.checkInTime);
-    console.log('context.checkOutTime >>>', context.checkOutTime);
-
-    console.log('checkInTime >>>', checkInTime);
-    console.log('timeDiff >>>', timeDiff);
     // Check the timeDiff and see what "pass type" this is
     if (checkInTime === '7 am' && timeDiff <= 21600000) return 'AM';
     if (checkInTime === '7 am' && timeDiff > 21600000) return 'All day';

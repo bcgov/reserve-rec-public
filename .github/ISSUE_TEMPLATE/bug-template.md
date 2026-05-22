@@ -1,7 +1,16 @@
-#### Scenario: 
+---
+name: Bug template
+about: Use this template to report defects, errors or anything broken
+title: '[BUG - Public]'
+labels: Reservations, Bug
+issue type: Bug
+assignees: ''
 
+---
 
-#### Expected: 
+#### Steps to reproduce:
+- Navigate to 
 
+#### Expected behaviour:
 
-#### Issue: 
+#### Issue:

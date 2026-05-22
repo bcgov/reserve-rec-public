@@ -25,6 +25,9 @@ input::placeholder {
   min-height: 50vh;
   padding-top: 25vh;
   padding-bottom: 25vh;
+  background-image: url('https://nrs.objectstore.gov.bc.ca/kuwyyf/RS_5254_3_Kinney_Lake_Fall_Colours_gal_e6e48135f5.jpg');
+  background-size: cover;
+  background-position: center;
 }
 
 ::ng-deep .grouped-picklist .dropdown-item:not([disabled]) {

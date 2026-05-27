@@ -1,4 +1,5 @@
-import { ChangeDetectorRef, Component, EventEmitter, inject, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, EventEmitter, inject, OnInit, Output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { lastValueFrom } from 'rxjs';
 import { DateTime } from 'luxon';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -26,7 +27,7 @@ import { BookingService } from '../services/booking.service';
   templateUrl: './facility-details.component.html',
   styleUrls: ['./facility-details.component.scss']
 })
-export class FacilityDetailsComponent implements OnInit, OnDestroy {
+export class FacilityDetailsComponent implements OnInit {
   @Output() formValue: EventEmitter<any> = new EventEmitter<any>();
   public emailVerified = false;
   public emailVerificationLoaded = false;
@@ -60,6 +61,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
   private selectedDateStr: string;
   private waitingRoomActive = false;
 
+  private destroyRef = inject(DestroyRef);
   private cartService = inject(CartService);
   private toastService = inject(ToastService);
   private waitingRoomService = inject(WaitingRoomService);
@@ -137,13 +139,13 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
       ]
     });
 
-    this.form.valueChanges.subscribe(() => {
+    this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.formValue.emit(this.form);
       this.cdr.detectChanges();
     });
 
     // When the user chooses/changes the activity, we need to retrieve the products related
-    this.form.get('selectedActivity').valueChanges.subscribe(async (activity) => {
+    this.form.get('selectedActivity').valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(async (activity) => {
       this.setFormProduct(activity);
     });
     
@@ -188,7 +190,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
   }
 
   setFormProductDates() {
-    this.form.get('selectedProduct').valueChanges.subscribe(async (product) => {
+    this.form.get('selectedProduct').valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(async (product) => {
       if (!product) return;
       
       const pk = product.split('#')[0];
@@ -227,7 +229,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
   }
 
   setFormPassesAvailable() {
-    this.form.get('selectedDate').valueChanges.subscribe(async (date) => {
+    this.form.get('selectedDate').valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(async (date) => {
       if (!date) return;
 
       this.selectedDateStr = typeof date === 'string' ? date : (date?.toISODate ? date.toISODate() : String(date));
@@ -298,6 +300,10 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
     }
 
     return DateTime.invalid('Invalid temporal window value');
+  }
+
+  public onCalendarDisplayChange() {
+    this.cdr.detectChanges();
   }
 
 
@@ -474,7 +480,4 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
     this.toastService.addMessage('Verification code resent. Please check your email.', 'Verification Sent', ToastTypes.SUCCESS);
   }
 
-  ngOnDestroy() {
-    this.cdr.detectChanges();
-  }
 }

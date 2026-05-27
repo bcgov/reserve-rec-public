@@ -140,6 +140,7 @@
 								[minDate]="startDate"
 								[maxDate]="endDate"
 								[disabled]="!this.form.get('selectedProduct').value || this.availableProducts.length === 0 || loadingDates"
+								(displayChange)="onCalendarDisplayChange()"
 								>
 							<i
 								ngdsInputPrepend

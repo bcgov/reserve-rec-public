@@ -102,11 +102,14 @@ export class BookingUtils {
   }
 
   /**
-   * Get the booking type (activity type)
+   * Get the activity type
    */
-  static getBookingType(booking: any): string {
+  static getActivityType(booking: any): string {
     const activityType = booking?.activityType;
     if (!activityType) {
+      return 'No Activity Type';
+    }
+    if (activityType.toLowerCase() === 'dayuse') {
       return 'Day-use pass';
     }
     return activityType;

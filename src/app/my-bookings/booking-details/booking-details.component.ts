@@ -82,12 +82,8 @@ export class BookingDetailsComponent implements OnInit {
     return BookingUtils.getGeozoneName(this.booking);
   }
 
-  getBookingType(): string {
-    return BookingUtils.getBookingType(this.booking);
-  }
-
   getActivityType(): string {
-    return Constants.activityTypes?.[BookingUtils.getBookingType(this.booking)].display || ''
+    return BookingUtils.getActivityType(this.booking);
   }
 
   getProductDisplayName(): string {

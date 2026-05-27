@@ -38,6 +38,14 @@ input::placeholder {
    box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25);
 }
 
+@media (max-width: 540px) {
+  .search-box {
+    max-width: calc(100% - 1.5rem);
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
+
 .accordion {
   background-color: transparent !important;
 }

@@ -6,7 +6,6 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { BreadcrumbComponent } from '../../shared/breadcrumb/breadcrumb.component';
 import { BookingUtils } from '../../utils/booking-utils';
-import { Constants } from '../../constants';
 
 @Component({
   selector: 'app-booking-details',
@@ -82,12 +81,8 @@ export class BookingDetailsComponent implements OnInit {
     return BookingUtils.getGeozoneName(this.booking);
   }
 
-  getBookingType(): string {
-    return BookingUtils.getBookingType(this.booking);
-  }
-
   getActivityType(): string {
-    return Constants.activityTypes?.[BookingUtils.getBookingType(this.booking)].display || ''
+    return BookingUtils.getActivityType(this.booking);
   }
 
   getProductDisplayName(): string {

@@ -146,7 +146,7 @@ constructor(
   }
 
   getActivityType(): string {
-    return Constants.activityTypes?.[BookingUtils.getBookingType(this.booking)].display || ''
+    return Constants.activityTypes?.[BookingUtils.getActivityType(this.booking)]?.display || ''
   }
 
   getAdultOccupants(): number {

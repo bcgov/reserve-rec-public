@@ -70,7 +70,7 @@ export class BookingService {
     try {
       this.dataService.clearItemValue(Constants.dataIds.BOOKING_DETAILS_RESULT);
       this.loadingService.addToFetchList(Constants.dataIds.BOOKING_DETAILS_RESULT);
-      const res = await lastValueFrom(this.apiService.get(`bookings/${globalId}`, queryParams));
+      const res = (await lastValueFrom(this.apiService.get(`bookings/${globalId}`, queryParams)))['data'];
       this.dataService.setItemValue(Constants.dataIds.BOOKING_DETAILS_RESULT, res);
       this.loadingService.removeFromFetchList(Constants.dataIds.BOOKING_DETAILS_RESULT);
       return res;

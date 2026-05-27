@@ -106,11 +106,8 @@ export class MyBookingsComponent implements OnInit {
       const hasEnded = this.today > rangeEnd;
 
       
-      // Get the name of the activity type from constants
-      let activityType = BookingUtils.getBookingType(item);
-      if (Constants.activityTypes?.[BookingUtils.getBookingType(item)]) {
-        activityType = Constants.activityTypes?.[BookingUtils.getBookingType(item)].display
-      }
+      // Get the display name of the activity type from constants
+      const activityType = Constants.activityTypes?.[item.activityType]?.display || BookingUtils.getActivityType(item);
 
       const booking = {
         bookingId: item.bookingId || item.globalId,

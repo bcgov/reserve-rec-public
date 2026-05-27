@@ -59,7 +59,7 @@ export class BookingConfirmationComponent implements OnInit {
       this.loadingService.addToFetchList(Constants.dataIds.BOOKING_DETAILS_RESULT);
       // Fetch booking from API (don't fetch access points since they're optional)
       const bookingData: any = await this.bookingService.getBookingByGlobalId(this.bookingId!, false);
-      this.booking = bookingData?.data || bookingData;
+      this.booking = bookingData;
 
       // Extract QR code if available
       if (this.booking?.qrCode?.dataUrl) {
@@ -128,8 +128,8 @@ export class BookingConfirmationComponent implements OnInit {
     return BookingUtils.getExitPoint(this.booking);
   }
 
-  getBookingType(): string {
-    return BookingUtils.getBookingType(this.booking);
+  getActivityType(): string {
+    return BookingUtils.getActivityType(this.booking);
   }
 
   getProductDisplayName(): string {

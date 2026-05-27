@@ -6,7 +6,6 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { BreadcrumbComponent } from '../../shared/breadcrumb/breadcrumb.component';
 import { BookingUtils } from '../../utils/booking-utils';
-import { Constants } from '../../constants';
 
 @Component({
   selector: 'app-booking-details',

@@ -92,6 +92,6 @@ export class BookingService {
   }
 
   cancelBooking(bookingId: string) {
-    return this.apiService.delete(`bookings/${bookingId}`, {});
+    return this.apiService.post(`bookings/${bookingId}/cancel`, {}, {});
   }
 }

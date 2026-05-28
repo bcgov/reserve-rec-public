@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, DestroyRef, EventEmitter, inject, OnInit, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, EventEmitter, inject, OnDestroy, OnInit, Output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { lastValueFrom } from 'rxjs';
 import { DateTime } from 'luxon';
@@ -27,7 +27,7 @@ import { BookingService } from '../services/booking.service';
   templateUrl: './facility-details.component.html',
   styleUrls: ['./facility-details.component.scss']
 })
-export class FacilityDetailsComponent implements OnInit {
+export class FacilityDetailsComponent implements OnInit, OnDestroy {
   @Output() formValue: EventEmitter<any> = new EventEmitter<any>();
   public emailVerified = false;
   public emailVerificationLoaded = false;
@@ -478,6 +478,10 @@ export class FacilityDetailsComponent implements OnInit {
   resendVerification() {
     this.authService.handleResendAttributeCodeToEmail();
     this.toastService.addMessage('Verification code resent. Please check your email.', 'Verification Sent', ToastTypes.SUCCESS);
+  }
+
+  ngOnDestroy(): void {
+    this.cdr.detectChanges()
   }
 
 }

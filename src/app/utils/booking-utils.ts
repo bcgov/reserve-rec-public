@@ -119,8 +119,8 @@ export class BookingUtils {
    * Get the pass/booking quantity count
    */
   static getPassCount(booking: any): number {
-    if (typeof booking?.quantity === 'number') {
-      return booking.quantity;
+    if (typeof booking?.invQuantity === 'number') {
+      return booking.invQuantity;
     }
     return BookingUtils.getPartySize(booking);
   }

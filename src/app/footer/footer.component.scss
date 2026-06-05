@@ -55,6 +55,76 @@ a:hover {
     text-decoration: underline;
 }
 
+// Footer responsive layout.
+//
+// The design specifies non-Bootstrap breakpoints (mobile < 540px, tablet
+// 540–1439px, desktop >= 1440px), so we drive the layout with explicit media
+// queries rather than Bootstrap's grid/flex utility classes — those snap at
+// 576/768px and were the cause of the 744px viewport rendering as mobile.
+$footer-bp-tablet: 540px;
+$footer-bp-desktop: 1440px;
+
+// --- Main content (above the divider): logo + the two nav columns ---
+.footer-main {
+    display: flex;
+    flex-direction: column; // mobile (< 540): everything stacked
+    gap: 1rem;
+}
+
+// Tablet: logo spans the full width on its own row, the two nav sections
+// sit side-by-side as two equal columns beneath it.
+@media (min-width: $footer-bp-tablet) {
+    .footer-main {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        column-gap: 1.5rem;
+        row-gap: 1rem;
+    }
+
+    .footer-logo {
+        flex: 0 0 100%;
+    }
+
+    .footer-nav {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+}
+
+// Desktop: the logo becomes the first of three columns in a single row.
+@media (min-width: $footer-bp-desktop) {
+    .footer-main {
+        flex-wrap: nowrap;
+    }
+
+    .footer-logo {
+        flex: 1 1 0;
+    }
+}
+
+// --- Legal links (below the divider) ---
+// Mobile: two columns, filled row-by-row. With the DOM order
+// Disclaimer, Privacy, Accessibility, Copyright this yields:
+//   Disclaimer    Privacy
+//   Accessibility Copyright
+.footer-legal {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem 1.5rem;
+    justify-items: start;
+}
+
+// Tablet and up: a single centered row.
+@media (min-width: $footer-bp-tablet) {
+    .footer-legal {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem 3rem;
+    }
+}
+
 // I have decreed it that this is the best way to do this
 // and I will fight anyone who says otherwise
 @media (max-width: 767px) {

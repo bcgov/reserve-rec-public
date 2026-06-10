@@ -49,6 +49,24 @@ export class BookingUtils {
   }
 
   /**
+   * Whether the booking date has already passed (an expired / "old" pass).
+   * Compares the end date against today in the park timezone, date-only, so a
+   * same-day pass is NOT treated as expired. Expired passes can't be cancelled.
+   */
+  static isExpired(booking: any): boolean {
+    const endDate = booking?.endDate || booking?.startDate;
+    if (!endDate) {
+      return false;
+    }
+    const end = DateTime.fromISO(String(endDate), { zone: 'America/Vancouver' }).startOf('day');
+    if (!end.isValid) {
+      return false;
+    }
+    const today = DateTime.now().setZone('America/Vancouver').startOf('day');
+    return end < today;
+  }
+
+  /**
    * Get formatted arrival/check-in time
    */
   static getArrivalTime(booking: any): string {

@@ -52,7 +52,7 @@
                       Download QR code
                     </button>
                   </li>
-                  <li *ngIf="!isCancelled()">
+                  <li *ngIf="!isCancelled() && !isExpired()">
                     <button type="button" class="dropdown-item text-danger px-4 p-3" (click)="cancelBooking()">
                       Cancel entire booking
                     </button>

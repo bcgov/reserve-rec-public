@@ -117,6 +117,10 @@ export class BookingDetailsComponent implements OnInit {
     return BookingUtils.isCancelled(this.booking);
   }
 
+  isExpired(): boolean {
+    return BookingUtils.isExpired(this.booking);
+  }
+
   downloadQRCode(): void {
     if (!this.qrCodeDataUrl) {
       console.warn('No QR code available to download');
@@ -138,6 +142,11 @@ export class BookingDetailsComponent implements OnInit {
   }
 
   cancelBooking(): void {
+    // Expired passes can't be cancelled — the button is hidden, but guard the
+    // handler too in case it's reached another way (#538).
+    if (this.isExpired()) {
+      return;
+    }
     const bookingId = this.route.snapshot.paramMap.get('id');
     if (bookingId) {
       this.router.navigate(['/account/bookings/cancel', bookingId]);

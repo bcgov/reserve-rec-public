@@ -89,8 +89,12 @@ constructor(
     return BookingUtils.isCancelled(this.booking);
   }
 
+  isExpired(): boolean {
+    return BookingUtils.isExpired(this.booking);
+  }
+
   showActionBar(): boolean {
-    return !this.loading && !!this.booking && !this.isBookingCancelled();
+    return !this.loading && !!this.booking && !this.isBookingCancelled() && !this.isExpired();
   }
 
   getGeozoneName(): string {
@@ -187,7 +191,7 @@ constructor(
   }
 
   async onConfirmRefund() {
-    if (!this.acknowledgeCancel || this.isBookingCancelled()) {
+    if (!this.acknowledgeCancel || this.isBookingCancelled() || this.isExpired()) {
       return;
     }
 

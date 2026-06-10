@@ -132,13 +132,14 @@
       <button 
         type="button" 
         class="btn btn-primary"
-        [class.bg-disabled]="!canProceed()"
-        [class.text-disabled]="!canProceed()"
-        [class.border-disabled]="!canProceed()"
-        [disabled]="!canProceed()"
+        [class.bg-disabled]="!canProceed() || isSubmitting"
+        [class.text-disabled]="!canProceed() || isSubmitting"
+        [class.border-disabled]="!canProceed() || isSubmitting"
+        [disabled]="!canProceed() || isSubmitting"
         (click)="proceedToNext()"
       >
-        {{ getNextButtonLabel() }}
+        <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        {{ isSubmitting ? 'Processing…' : getNextButtonLabel() }}
       </button>
     </div>
   </div>

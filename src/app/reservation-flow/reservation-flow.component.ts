@@ -44,6 +44,9 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
   public accessPointsSelectionList: any[] = [];
   public currentBookingId: string | null = null;
   public currentSessionId: string | null = null;
+  // True while the booking is being created/completed, to disable the Finish
+  // button and block double-submission (#541).
+  public isSubmitting = false;
 
   get cartItem(): CartItem | null {
     return this.cartItems[0] || null;
@@ -232,7 +235,12 @@ async onStepCompleted(completed: boolean): Promise<void> {
 
   // Special handling for equipment step (step 2, 0-indexed)
   // This is where we create the booking for both payment enabled/disabled scenarios
-  if (currentStep === 2 && this.cartItem) { 
+  if (currentStep === 2 && this.cartItem) {
+    // Guard against double-submission: while the create/complete request is in
+    // flight the Finish button is disabled, but block re-entry too (#541).
+    if (this.isSubmitting) { return; }
+    this.isSubmitting = true;
+    this.changeDetectorRef.detectChanges();
     try {
       // Create booking for the cart item
       const bookingResponse = await this.createBookingForItem(this.cartItem);
@@ -312,6 +320,11 @@ async onStepCompleted(completed: boolean): Promise<void> {
       
       alert('There was an error creating your booking. Please try again later.');
       return;
+    } finally {
+      // Re-enable the button on any exit (error/retry, or advancing to the
+      // payment step). On the navigate-away success path the page unloads.
+      this.isSubmitting = false;
+      this.changeDetectorRef.detectChanges();
     }
   }
 
@@ -457,7 +470,8 @@ async onStepCompleted(completed: boolean): Promise<void> {
 
   proceedToNext(): void {
     if (!this.canProceed()) return;
-    
+    if (this.isSubmitting) return;
+
     const currentStep = this.stepperService.currentStepIndex();
     
     // Step 0 just advances the stepper

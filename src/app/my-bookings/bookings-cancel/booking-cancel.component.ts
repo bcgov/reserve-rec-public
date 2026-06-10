@@ -10,7 +10,6 @@ import { CancelService } from '../../services/cancel.service';
 import { ToastService, ToastTypes } from '../../services/toast.service';
 import { FeatureFlagService } from '../../services/feature-flag.service';
 import { BookingUtils } from '../../utils/booking-utils';
-import { Constants } from '../../constants';
 
 @Component({
   selector: 'app-booking-cancel',
@@ -150,7 +149,10 @@ constructor(
   }
 
   getActivityType(): string {
-    return Constants.activityTypes?.[BookingUtils.getActivityType(this.booking)]?.display || ''
+    // BookingUtils.getActivityType already returns the display label (e.g.
+    // "Day-use pass"); the previous Constants lookup re-keyed on that label and
+    // always resolved to '' (#560).
+    return BookingUtils.getActivityType(this.booking);
   }
 
   getAdultOccupants(): number {

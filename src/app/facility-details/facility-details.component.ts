@@ -57,6 +57,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
   private selectedCollectionId: string;
   private selectedActivityType: string;
   private selectedActivityId: string;
+  private selectedActivitySubType: string | null = null;
   private selectedActivityName: string;
   private selectedDateStr: string;
   private waitingRoomActive = false;
@@ -169,7 +170,9 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
     this.selectedCollectionId = collectionId;
     this.selectedActivityType = activityType;
     this.selectedActivityId = activityId;
-    this.selectedActivityName = this.availableActivities.find(a => a.value === activity)?.display || '';
+    const selectedActivity = this.availableActivities.find(a => a.value === activity);
+    this.selectedActivityName = selectedActivity?.display || '';
+    this.selectedActivitySubType = selectedActivity?.meta?.activitySubType ?? null;
 
     this.loadingProducts = true;
     this.availableProducts = [];
@@ -272,9 +275,14 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
         }
       }
 
-      // Provide the number of passes allowed using minimum count up to maximum
+      // Provide the number of passes allowed using minimum count up to maximum.
+      // Vehicle parking day-use passes are one pass per booking (one vehicle),
+      // so cap the selectable count at 1 regardless of maxDailyInventory (#566).
+      const isParking = this.selectedActivitySubType === 'vehicleParking';
+      const effectiveMin = isParking ? 1 : minInv;
+      const effectiveMax = isParking ? 1 : maxInv;
       const allowedVisitors = [];
-      for (let i = minInv; i <= maxInv; i++) {
+      for (let i = effectiveMin; i <= effectiveMax; i++) {
         allowedVisitors.push({
           display: i.toString(),
           value: i.toString()

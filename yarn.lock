@@ -2371,10 +2371,10 @@
     bootstrap "^5.3.3"
     jquery "^3.6.0"
 
-"@digitalspace/ngds-forms@^0.0.130":
-  version "0.0.130"
-  resolved "https://registry.yarnpkg.com/@digitalspace/ngds-forms/-/ngds-forms-0.0.130.tgz#a6b27ee9c1e78763e1edc7e6110ca0c73beb4902"
-  integrity sha512-BwaRFUliymrRumK9a3zMTdnYrgjZudkiI+lska1awUlqGGNszRgOwtROmjhttjZxkwin4b3aRj+PHq8cg2N79Q==
+"@digitalspace/ngds-forms@^0.0.131":
+  version "0.0.131"
+  resolved "https://registry.yarnpkg.com/@digitalspace/ngds-forms/-/ngds-forms-0.0.131.tgz#c1f07e5574125cb5de0e5e66a81d182a2189ea9c"
+  integrity sha512-wjbV9f9VgBUSmQR5vVwAMShW4+/DKzEWJeMrf3x38JRE+t7p6hTX5lJGwsCVkXKkaltJlc2npNxmB1qBjhC6EQ==
   dependencies:
     tslib "^2.3.0"
 

@@ -5,14 +5,7 @@
     <h1 class="fw-bold text-primary">My bookings</h1>
   </div>
 
-  <!-- Show loading spinner -->
-  <div *ngIf="loading; else loadComplete" class="d-flex justify-content-center py-4">
-    <div class="spinner-border" role="status">
-      <span class="visually-hidden">Loading...</span>
-    </div>
-  </div>
-  
-  <ng-template #loadComplete>
+  <ng-container *ngIf="!loading">
     <div *ngIf="hasAnyBookings(); else noBookings">
       
       <!-- Active Bookings Section -->
@@ -96,8 +89,8 @@
       </section>
 
     </div>
-  </ng-template>
-  
+  </ng-container>
+
   <!-- No bookings -->
   <ng-template #noBookings>
     <div class="d-flex align-items-center no-bookings border border-primary border-1 rounded-2 fw-bold p-4" role="status" aria-live="polite">

@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
+import { DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { filter, distinctUntilChanged } from 'rxjs/operators';
@@ -18,6 +20,8 @@ interface Breadcrumb {
 export class BreadcrumbComponent implements OnInit {
   breadcrumbs: Breadcrumb[] = [];
 
+  private destroyRef = inject(DestroyRef);
+
   constructor(
     private router: Router,
     private activatedRoute: ActivatedRoute
@@ -26,11 +30,11 @@ export class BreadcrumbComponent implements OnInit {
   ngOnInit(): void {
     this.breadcrumbs = this.buildBreadcrumbs(this.activatedRoute.root);
 
-    // Update breadcrumbs on navigation
     this.router.events
       .pipe(
         filter(event => event instanceof NavigationEnd),
-        distinctUntilChanged()
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {
         this.breadcrumbs = this.buildBreadcrumbs(this.activatedRoute.root);

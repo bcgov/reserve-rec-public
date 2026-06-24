@@ -1,4 +1,4 @@
-import { AfterContentChecked, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
@@ -15,9 +15,9 @@ import { PaymentStepComponent } from './components/steps/payment-step/payment-st
 import { AdmissionCountdownComponent } from '../components/admission-countdown/admission-countdown.component';
 import { FeatureFlagService } from '../services/feature-flag.service';
 import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
-import { ViewChild, ElementRef } from '@angular/core';
-import { lastValueFrom } from 'rxjs';
-import * as bootstrap from 'bootstrap';
+import { ViewChild } from '@angular/core';
+import { lastValueFrom, Subscription } from 'rxjs';
+import Modal from 'bootstrap/js/dist/modal';
 
 @Component({
   selector: 'app-reservation-flow',
@@ -36,9 +36,11 @@ import * as bootstrap from 'bootstrap';
   templateUrl: './reservation-flow.component.html',
   styleUrl: './reservation-flow.component.scss'
 })
-export class ReservationFlowComponent implements OnInit, AfterContentChecked, OnDestroy {
+export class ReservationFlowComponent implements OnInit, OnDestroy {
 
   cartItems: CartItem[] = [];
+  currentStep = 0;
+  private stepSub?: Subscription;
   public user: any = null;
   public form: UntypedFormGroup;
   public accessPointsSelectionList: any[] = [];
@@ -68,6 +70,7 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
 
   constructor(
     private changeDetectorRef: ChangeDetectorRef,
+    private elementRef: ElementRef,
     public router: Router,
     public stepperService: StepperService,
     private cartService: CartService,
@@ -79,6 +82,10 @@ export class ReservationFlowComponent implements OnInit, AfterContentChecked, On
   }
 
   ngOnInit(): void {
+    this.stepperService.reset();
+    this.stepSub = this.stepperService.currentStep$.subscribe(() => {
+      this.currentStep = this.stepperService.currentStepIndex();
+    });
     this.loadCartItems();
     this.initializeForCurrentItem();
   }
@@ -439,10 +446,6 @@ async onStepCompleted(completed: boolean): Promise<void> {
     this.router.navigate(['/']);
   }
 
-  ngAfterContentChecked(): void {
-    this.changeDetectorRef.detectChanges();
-  }
-
   // Navigation bar methods
   cancelBooking(): void {
     // Now handled by modal
@@ -511,8 +514,8 @@ async onStepCompleted(completed: boolean): Promise<void> {
   }
 
   ngOnDestroy(): void {
-    this.stepperService.reset();
-    this.changeDetectorRef.detach();
+    this.stepSub?.unsubscribe();
+    this.elementRef.nativeElement.remove();
   }
 
   @ViewChild('cancelBookingModal', { static: false }) cancelBookingModal?: ElementRef;
@@ -520,7 +523,7 @@ async onStepCompleted(completed: boolean): Promise<void> {
 
   openCancelModal(): void {
     if (!this.cancelModalInstance && this.cancelBookingModal) {
-      this.cancelModalInstance = new bootstrap.Modal(this.cancelBookingModal.nativeElement);
+      this.cancelModalInstance = new Modal(this.cancelBookingModal.nativeElement);
     }
     if (this.cancelModalInstance) {
       this.cancelModalInstance.show();
@@ -528,7 +531,7 @@ async onStepCompleted(completed: boolean): Promise<void> {
       // fallback for static template
       const modalEl = document.getElementById('cancelBookingModal');
       if (modalEl) {
-        this.cancelModalInstance = new bootstrap.Modal(modalEl);
+        this.cancelModalInstance = new Modal(modalEl);
         this.cancelModalInstance.show();
       }
     }

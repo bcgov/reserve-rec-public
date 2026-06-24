@@ -20,7 +20,7 @@
       <!-- Step Content Container -->
       <div class="container-fluid bg-grey p-4">
         <!-- Single step container with exclusive display logic -->
-        <ng-container [ngSwitch]="stepperService.currentStepIndex()">
+        <ng-container [ngSwitch]="currentStep">
           
           <!-- Step 0: Details -->
           <div *ngSwitchCase="0" class="step-wrapper fade-in">

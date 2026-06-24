@@ -130,6 +130,7 @@
 					<div class="col-md-6">
 							<ngds-date-input
 								[class]="'text-white rounded-1'"
+								[disablePast]="true"
 								[control]="this.form.get('selectedDate')"
 								[label]="'Day of visit'"
 								[placeholder]="loadingDates ? 'Loading...' : 'Select a date'"

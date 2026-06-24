@@ -104,8 +104,8 @@ export class MyBookingsComponent implements OnInit {
       const rangeEnd = DateTime.fromISO(item.endDate).endOf('day');
       const isCancelled = item.status === 'cancelled' || item.bookingStatus === 'cancelled';
       const hasEnded = this.today > rangeEnd;
+      const isPending = item.isPending === 'PENDING';
 
-      
       // Get the display name of the activity type from constants
       const activityType = Constants.activityTypes?.[item.activityType]?.display || BookingUtils.getActivityType(item);
 
@@ -129,7 +129,7 @@ export class MyBookingsComponent implements OnInit {
       // 4. Other - catch-all for debugging
       if (isCancelled) {
         this.cancelledBookings.push(booking);
-      } else if (!hasEnded) {
+      } else if (!hasEnded && !isPending) {
         this.activeBookings.push(booking);
       } else if (hasEnded) {
         this.pastBookings.push(booking);

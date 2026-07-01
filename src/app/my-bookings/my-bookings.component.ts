@@ -171,14 +171,17 @@ export class MyBookingsComponent implements OnInit {
       return 'Day-use';
     }
 
-    const checkInTime = BookingUtils.getArrivalTime(item);
-    const timeDiff = Number(context.checkOutTime) - Number(context.checkInTime);
+    // Derive the label from the resolved times rather than exact-string matches
+    // ('7 am' / '1 pm'), so it holds up when AM/PM windows vary by season/facility:
+    //  - an afternoon check-in is a PM pass,
+    //  - an all-day-length window is All day,
+    //  - otherwise a morning half-day window is an AM pass.
+    const zone = item?.timezone || 'America/Vancouver';
+    const checkInHour = DateTime.fromMillis(Number(context.checkInTime), { zone }).hour;
+    const windowHours = (Number(context.checkOutTime) - Number(context.checkInTime)) / 3_600_000;
 
-    // Check the timeDiff and see what "pass type" this is
-    if (checkInTime === '7 am' && timeDiff <= 21600000) return 'AM';
-    if (checkInTime === '7 am' && timeDiff > 21600000) return 'All day';
-    if (checkInTime === '1 pm') return 'PM';
-
-    return 'Day-use';
+    if (checkInHour >= 12) return 'PM';
+    if (windowHours >= 8) return 'All day';
+    return 'AM';
   }
 }

@@ -63,16 +63,16 @@
               <div class="col-12"><ngds-text-input label="Suite, apartment or unit" [control]="contactForm.get('unitNumber')"></ngds-text-input></div>
               <div class="col-md-6"><ngds-text-input label="City" [control]="contactForm.get('city')"></ngds-text-input></div>
               <div class="col-md-6">
-                <label class="form-label">Province or state</label>
-                <select class="form-select" formControlName="province">
+                <label class="form-label" for="province-select">Province or state</label>
+                <select id="province-select" class="form-select" formControlName="province">
                   <option value="">Select…</option>
                   <option *ngFor="let p of provinces" [value]="p">{{ p }}</option>
                 </select>
               </div>
               <div class="col-md-6"><ngds-text-input label="Postal or zip code" [control]="contactForm.get('postalCode')"></ngds-text-input></div>
               <div class="col-md-6">
-                <label class="form-label">Country</label>
-                <select class="form-select" formControlName="country">
+                <label class="form-label" for="country-select">Country</label>
+                <select id="country-select" class="form-select" formControlName="country">
                   <option value="">Select…</option>
                   <option *ngFor="let c of countries" [value]="c">{{ c }}</option>
                 </select>
@@ -134,8 +134,8 @@
             <div class="row g-3">
               <div class="col-md-6"><ngds-text-input label="Plate number" [control]="vehicleForm.get('licensePlate')"></ngds-text-input></div>
               <div class="col-md-6">
-                <label class="form-label">Province, state or territory</label>
-                <select class="form-select" formControlName="vehicleRegLocale">
+                <label class="form-label" for="vehicle-province-select">Province, state or territory</label>
+                <select id="vehicle-province-select" class="form-select" formControlName="vehicleRegLocale">
                   <option value="">Select…</option>
                   <option *ngFor="let p of provinces" [value]="p">{{ p }}</option>
                 </select>

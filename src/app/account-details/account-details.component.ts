@@ -120,7 +120,7 @@ export class AccountDetailsComponent implements OnInit {
       await this.authService.updateUserProfile(attributes);
       this.toastService.addMessage('Your account information has been updated.', 'Saved', ToastTypes.SUCCESS);
       this.editing = null;
-    } catch (error) {
+    } catch {
       this.toastService.addMessage('We could not save your changes. Please try again.', 'Error', ToastTypes.ERROR);
     } finally {
       this.saving = false;

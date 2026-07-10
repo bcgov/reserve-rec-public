@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, RouterStateSnapshot } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 import { CartService } from '../services/cart.service';
 import { WaitingRoomService } from '../services/waiting-room.service';
 
@@ -8,7 +9,9 @@ const MODE2_FACILITY_KEY = 'MODE2#global#1';
 @Injectable({ providedIn: 'root' })
 export class WaitingRoomGuard implements CanActivate {
   constructor(
+    private authService: AuthService,
     private cartService: CartService,
+    private router: Router,
     private waitingRoomService: WaitingRoomService
   ) {}
 
@@ -21,6 +24,12 @@ export class WaitingRoomGuard implements CanActivate {
       if (sessionStorage.getItem('wr_bypass_guard') === '1') {
         sessionStorage.removeItem('wr_bypass_guard');
         return true;
+      }
+      // The waiting room requires a signed-in user. Send unauthenticated users to
+      // login (with a reason) instead of silently bouncing them off the standalone
+      // waiting room page back to the landing page.
+      if (!this.requireLogin(state)) {
+        return false;
       }
       const today = new Date().toISOString().slice(0, 10);
       window.location.href = this.waitingRoomService.buildWaitingRoomUrl(
@@ -49,6 +58,10 @@ export class WaitingRoomGuard implements CanActivate {
       return true;
     }
 
+    if (!this.requireLogin(state)) {
+      return false;
+    }
+
     window.location.href = this.waitingRoomService.buildWaitingRoomUrl(
       waitingRoomItem.collectionId,
       waitingRoomItem.activityType,
@@ -56,6 +69,20 @@ export class WaitingRoomGuard implements CanActivate {
       waitingRoomItem.startDate,
       '/checkout'
     );
+    return false;
+  }
+
+  /**
+   * Ensures a user is signed in. Returns true when authenticated. When not,
+   * stashes the return URL, routes to login with a waiting-room reason, and
+   * returns false so the caller can abort.
+   */
+  private requireLogin(state: RouterStateSnapshot): boolean {
+    if (this.authService.getCurrentUser()) {
+      return true;
+    }
+    sessionStorage.setItem('returnUrl', state.url);
+    this.router.navigate(['/login'], { queryParams: { reason: 'waiting-room' } });
     return false;
   }
 }

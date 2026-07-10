@@ -9,7 +9,7 @@ import {
   confirmResetPassword,
 } from 'aws-amplify/auth';
 
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 
 @Component({
@@ -23,6 +23,8 @@ export class LoginComponent implements OnInit{
   showAmplifyAuth = false;
   authKey = Date.now();
   initialState: 'signIn' | 'signUp' = 'signIn';
+
+  loginReason: string | null = null;
 
   // Amplify surfaces the raw Cognito error in the authenticator's alert, which
   // leaked infrastructure detail to end users — e.g. "User pool client
@@ -62,12 +64,15 @@ export class LoginComponent implements OnInit{
 
   constructor(
     private authService: AuthService,
+    private route: ActivatedRoute,
     private router: Router
   ) {}
   currentDate = '';
   ngOnInit() {
     // Force authenticator reset by updating key
-    this.authKey = Date.now();    // If user is already authenticated, redirect to home
+    this.authKey = Date.now();
+    this.loginReason = this.route.snapshot.queryParamMap.get('reason');
+    // If user is already authenticated, redirect to home
     if (this.authService.user()) {
       this.router.navigate(['/']);
       return;

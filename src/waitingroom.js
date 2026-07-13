@@ -329,8 +329,11 @@
   // The Angular SPA handles Cognito login. Store the intended URL so it can
   // redirect back after authentication.
   function redirectToLogin() {
-    sessionStorage.setItem('wr_return_url', window.location.href);
-    window.location.href = '/';
+    // Preserve the intended return URL and send the user to the login page.
+    // The SPA guard normally routes here already; this is the fallback for
+    // direct hits on the standalone waiting room page without a valid token.
+    sessionStorage.setItem('returnUrl', getReturnUrl());
+    window.location.href = '/login?reason=waiting-room';
   }
 
   // ── Init ──────────────────────────────────────────────────────────────────

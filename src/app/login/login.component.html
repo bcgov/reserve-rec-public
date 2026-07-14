@@ -33,9 +33,9 @@
       </button>
       
       <ng-container *ngIf="authKey">
-        <amplify-authenticator
-          [loginMechanisms]="['email']"
-          [signUpAttributes]="['given_name', 'family_name']"
+        <amplify-authenticator 
+          [loginMechanisms]="['username']"
+          [signUpAttributes]="['email', 'given_name', 'family_name']"
           [initialState]="initialState">
         <ng-template amplifySlot="sign-up-form-fields">
 

@@ -1,117 +1,122 @@
 <div class="mb-4">
   <!-- Shopping Cart / Booking Form Counter Section - COMMENTED OUT -->
   <!-- <div class="card mb-3">
-    <div class="card-body py-3">
-      <div class="d-flex align-items-center justify-content-between">
-        <div class="d-flex align-items-center">
-          <i class="fa-solid fa-shopping-cart text-primary me-3 fs-5"></i>
-          <div>
-            <h6 class="mb-1 fw-semibold">
-              {{ queueItems[currentItemIndex]?.activityName }}
-              <small class="text-muted">
-                ({{ queueItems[currentItemIndex]?.startDate | date }} - {{ queueItems[currentItemIndex]?.endDate | date }})
-                Booking Form: {{ currentItemIndex + 1 }}/{{ totalItems }}
-              </small>
-            </h6>
-          </div>
-        </div>
-
-        <div class="dropdown" *ngIf="totalItems > 1">
-          <button 
-            class="btn btn-outline-primary dropdown-toggle d-flex align-items-center" 
-            type="button" 
-            id="itemSelectorDropdown" 
-            data-bs-toggle="dropdown" 
-            aria-expanded="false"
-          >
-            <i class="fa-solid fa-exchange-alt me-2"></i>
-            Jump to Item
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="itemSelectorDropdown">
-            <li class="dropdown-header">
-              <i class="fa-solid fa-list me-2"></i>
-              Select Reservation
-            </li>
-            <li><hr class="dropdown-divider"></li>
-            <li *ngFor="let item of queueItems; let i = index">
-              <button 
-                type="button"
-                class="dropdown-item d-flex align-items-center py-2"
-                [class.active]="i === currentItemIndex"
-                (click)="switchToItem(i)"
-              >
-                <span class="me-3" style="width: 20px;">
-                  <i *ngIf="item.areAllStepsCompleted" 
-                     class="fa-solid fa-check-circle text-success"></i>
-                  <i *ngIf="i === currentItemIndex" 
-                     class="fa-solid fa-clock text-primary"></i>
-                  <i *ngIf="!item.areAllStepsCompleted && i < currentItemIndex" 
-                     class="fa-regular fa-clock text-muted"></i>
-                </span>
-
-                <div class="flex-grow-1">
-                  <div class="fw-semibold mb-0" style="font-size: 14px;">
-                    {{ item.geoZoneName }}
-                    <small class="text-muted">
-                      ({{ item.startDate | date }} - {{ item.endDate | date }})
-                    </small>
-                  </div>
-                  <small class="text-muted">{{ item.activityName }}</small>
-                </div>
-
-                <span class="badge ms-2" [class]="getQueueItemBadgeClasses(i)">
-                  {{ item.areAllStepsCompleted ? 'Completed' : 
-                     (i === currentItemIndex ? 'In Progress' : 
-                     (i > currentItemIndex ? 'Pending' : 'Not Complete')) }}
-                </span>
-              </button>
-            </li>
-          </ul>
+  <div class="card-body py-3">
+    <div class="d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center">
+        <i class="fa-solid fa-shopping-cart text-primary me-3 fs-5"></i>
+        <div>
+          <h6 class="mb-1 fw-semibold">
+            {{ queueItems[currentItemIndex]?.activityName }}
+            <small class="text-muted">
+              ({{ queueItems[currentItemIndex]?.startDate | date }} - {{ queueItems[currentItemIndex]?.endDate | date }})
+              Booking Form: {{ currentItemIndex + 1 }}/{{ totalItems }}
+            </small>
+          </h6>
         </div>
       </div>
-    </div>
-  </div> -->
 
-  <!-- Current Item Steps (Bootstrap Nav Pills Style) -->
-  <div class="mb-3">
-      <nav class="nav nav-pills nav-justified">
-        <div 
-          *ngFor="let step of stepperService.getSteps(); let i = index"
-          class="nav-item flex-fill"
-        >
-          <button
-            type="button"
-            class="nav-link w-100 position-relative"
-            [class.active]="step.isActive"
-            [class.completed]="isStepCompletedForCurrentItem(step, i)"
-            [class.text-primary]="step.isActive"
-            [class.disabled]="!step.isActive && !isStepCompletedForCurrentItem(step, i)"
-            (click)="onStepClick(i)"
+      <div class="dropdown" *ngIf="totalItems > 1">
+        <button
+          class="btn btn-outline-primary dropdown-toggle d-flex align-items-center"
+          type="button"
+          id="itemSelectorDropdown"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
           >
-            <!-- Step Number and Title on same line, left-aligned -->
-            <div class="d-flex align-items-center">
-              <span 
-                class="d-flex align-items-center justify-content-center me-2"
-                [class.text-success]="isStepCompletedForCurrentItem(step, i)"
-                [class.text-primary]="step.isActive && !isStepCompletedForCurrentItem(step, i)"
-                [class.text-secondary]="!step.isActive && !isStepCompletedForCurrentItem(step, i)"
-                style="width: 32px; font-size: 20px;"
+          <i class="fa-solid fa-exchange-alt me-2"></i>
+          Jump to Item
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="itemSelectorDropdown">
+          <li class="dropdown-header">
+            <i class="fa-solid fa-list me-2"></i>
+            Select Reservation
+          </li>
+          <li><hr class="dropdown-divider"></li>
+          <li *ngFor="let item of queueItems; let i = index">
+            <button
+              type="button"
+              class="dropdown-item d-flex align-items-center py-2"
+              [class.active]="i === currentItemIndex"
+              (click)="switchToItem(i)"
               >
-                <i *ngIf="isStepCompletedForCurrentItem(step, i)" 
-                   class="fa-regular fa-circle-check"></i>
-                <span *ngIf="!isStepCompletedForCurrentItem(step, i)" class="fw-semibold">
+              <span class="me-3" style="width: 20px;">
+                <i *ngIf="item.areAllStepsCompleted"
+                class="fa-solid fa-check-circle text-success"></i>
+                <i *ngIf="i === currentItemIndex"
+                class="fa-solid fa-clock text-primary"></i>
+                <i *ngIf="!item.areAllStepsCompleted && i < currentItemIndex"
+                class="fa-regular fa-clock text-muted"></i>
+              </span>
+
+              <div class="flex-grow-1">
+                <div class="fw-semibold mb-0" style="font-size: 14px;">
+                  {{ item.geoZoneName }}
+                  <small class="text-muted">
+                    ({{ item.startDate | date }} - {{ item.endDate | date }})
+                  </small>
+                </div>
+                <small class="text-muted">{{ item.activityName }}</small>
+              </div>
+
+              <span class="badge ms-2" [class]="getQueueItemBadgeClasses(i)">
+                {{ item.areAllStepsCompleted ? 'Completed' :
+                (i === currentItemIndex ? 'In Progress' :
+                (i > currentItemIndex ? 'Pending' : 'Not Complete')) }}
+              </span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div> -->
+
+<!-- Current Item Steps (Bootstrap Nav Pills Style) -->
+<div class="mb-3">
+  <nav class="nav nav-pills nav-justified">
+    @for (step of stepperService.getSteps(); track step; let i = $index) {
+      <div
+        class="nav-item flex-fill"
+        >
+        <button
+          type="button"
+          class="nav-link w-100 position-relative"
+          [class.active]="step.isActive"
+          [class.completed]="isStepCompletedForCurrentItem(step, i)"
+          [class.text-primary]="step.isActive"
+          [class.disabled]="!step.isActive && !isStepCompletedForCurrentItem(step, i)"
+          (click)="onStepClick(i)"
+          >
+          <!-- Step Number and Title on same line, left-aligned -->
+          <div class="d-flex align-items-center">
+            <span
+              class="d-flex align-items-center justify-content-center me-2"
+              [class.text-success]="isStepCompletedForCurrentItem(step, i)"
+              [class.text-primary]="step.isActive && !isStepCompletedForCurrentItem(step, i)"
+              [class.text-secondary]="!step.isActive && !isStepCompletedForCurrentItem(step, i)"
+              style="width: 32px; font-size: 20px;"
+              >
+              @if (isStepCompletedForCurrentItem(step, i)) {
+                <i
+                class="fa-regular fa-circle-check"></i>
+              }
+              @if (!isStepCompletedForCurrentItem(step, i)) {
+                <span class="fw-semibold">
                   {{ i + 1 }}
                 </span>
-              </span>
-              <span 
-                class="fw-semibold" 
-                [class.text-success]="isStepCompletedForCurrentItem(step, i)"
-                style="font-size: 13px;">
-                {{ getStepTitle(step) }}
-              </span>
-            </div>
-          </button>
-        </div>
-      </nav>
-  </div>
+              }
+            </span>
+            <span
+              class="fw-semibold"
+              [class.text-success]="isStepCompletedForCurrentItem(step, i)"
+              style="font-size: 13px;">
+              {{ getStepTitle(step) }}
+            </span>
+          </div>
+        </button>
+      </div>
+    }
+  </nav>
+</div>
 </div>

@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { AmplifyAuthenticatorModule } from '@aws-amplify/ui-angular';
 import { AuthService } from '../services/auth.service';
-import { CommonModule } from '@angular/common';
+
 import { Router } from '@angular/router';
 
 
 @Component({
     selector: 'app-login',
-    imports: [AmplifyAuthenticatorModule, CommonModule],
+    imports: [AmplifyAuthenticatorModule],
     templateUrl: './login.component.html',
     styleUrl: './login.component.scss'
 })

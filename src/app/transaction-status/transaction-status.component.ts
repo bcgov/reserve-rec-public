@@ -2,14 +2,14 @@ import { Component, effect, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { ApiService } from '../services/api.service';
-import { CommonModule } from '@angular/common';
+
 import { LoadingService } from '../services/loading.service';
 import { Constants } from '../constants';
 import { BookingService } from '../services/booking.service';
 
 @Component({
   selector: 'app-transaction-status',
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './transaction-status.component.html',
   styleUrl: './transaction-status.component.scss'
 })

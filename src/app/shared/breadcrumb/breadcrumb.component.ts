@@ -2,7 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { filter, distinctUntilChanged } from 'rxjs/operators';
 
 interface Breadcrumb {
@@ -15,7 +15,7 @@ interface Breadcrumb {
   templateUrl: './breadcrumb.component.html',
   styleUrls: ['./breadcrumb.component.scss'],
   standalone: true,
-  imports: [CommonModule, RouterModule]
+  imports: [RouterModule]
 })
 export class BreadcrumbComponent implements OnInit {
   breadcrumbs: Breadcrumb[] = [];

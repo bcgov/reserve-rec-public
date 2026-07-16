@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 import { AuthService } from '../services/auth.service';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 
 @Component({
     selector: 'app-account',
-    imports: [CommonModule, RouterModule ],
+    imports: [RouterModule],
     templateUrl: './account.component.html',
     styleUrl: './account.component.scss'
 })

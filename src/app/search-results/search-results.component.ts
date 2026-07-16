@@ -1,7 +1,7 @@
 import { Component, effect, inject, OnInit, Signal, signal } from '@angular/core';
 import { DataService } from '../services/data.service';
 import { Constants } from '../constants';
-import { CommonModule } from '@angular/common';
+
 import { LoadingService } from '../services/loading.service';
 import { ActivatedRoute } from '@angular/router';
 import { SearchMapComponent } from "../search-map/search-map.component";
@@ -14,7 +14,7 @@ import { SearchResultItemComponent } from './search-results-section/search-resul
   selector: 'app-search',
   templateUrl: './search-results.component.html',
   styleUrls: ['./search-results.component.scss'],
-  imports: [CommonModule, FormsModule, SearchMapComponent, SearchResultSectionComponent, SearchResultItemComponent],
+  imports: [FormsModule, SearchMapComponent, SearchResultSectionComponent, SearchResultItemComponent],
 })
 export class SearchResultsComponent implements OnInit {
   public _dataSignal: Signal<any[]> = signal([]);

@@ -1,100 +1,103 @@
-<div *ngIf="loading" class="text-center my-5">
-  <div class="spinner-border" role="status"></div>
-</div>
+@if (loading) {
+  <div class="text-center my-5">
+    <div class="spinner-border" role="status"></div>
+  </div>
+}
 
-<div *ngIf="!loading && booking" class="container mt-5 px-4 mb-5 cancel-page-container" [class.with-action-bar]="showActionBar()">
-  <app-breadcrumb></app-breadcrumb>
-
-  <!-- Page heading -->
-  <h1 class="fw-bold mb-2 text-primary">Cancel entire booking</h1>
-  <p class="text-muted mb-4">{{ getGeozoneName() }}</p>
-  <ng-container *ngIf="isBookingCancelled()">
-  <div class="row">
-
-    <div class="d-flex flex-column col-lg-10 mx-auto">
-      <div class="success-section alert alert-info border border-success mb-4 p-4 text-dark">
-        <div class="d-flex">
-          <div class="me-2 flex-shrink-0">
-            <i class="fa-regular fa-check-circle text-success"></i>
-          </div>
-          <div class="flex-grow-1">
-            <strong>Your booking is cancelled.</strong>
-            <p class="mb-4">Thank you for cancelling your booking. This gives others the chance to visit the park. We hope to see you soon!</p>
-            <div class="text-end">
-              <button class="btn btn-outline-primary rounded-1 fw-bold py-2 px-3" (click)="goBack()">
-                Return to my bookings
-              </button>
+@if (!loading && booking) {
+  <div class="container mt-5 px-4 mb-5 cancel-page-container" [class.with-action-bar]="showActionBar()">
+    <app-breadcrumb></app-breadcrumb>
+    <!-- Page heading -->
+    <h1 class="fw-bold mb-2 text-primary">Cancel entire booking</h1>
+    <p class="text-muted mb-4">{{ getGeozoneName() }}</p>
+    @if (isBookingCancelled()) {
+      <div class="row">
+        <div class="d-flex flex-column col-lg-10 mx-auto">
+          <div class="success-section alert alert-info border border-success mb-4 p-4 text-dark">
+            <div class="d-flex">
+              <div class="me-2 flex-shrink-0">
+                <i class="fa-regular fa-check-circle text-success"></i>
+              </div>
+              <div class="flex-grow-1">
+                <strong>Your booking is cancelled.</strong>
+                <p class="mb-4">Thank you for cancelling your booking. This gives others the chance to visit the park. We hope to see you soon!</p>
+                <div class="text-end">
+                  <button class="btn btn-outline-primary rounded-1 fw-bold py-2 px-3" (click)="goBack()">
+                    Return to my bookings
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-  </ng-container>
-  <div class="row">
-    <div class="col-10 mx-auto">
-
-      <!-- Shared card: header + switched body -->
-      <div class="card border rounded mb-4">
-        <div class="card-header bg-booking-header ps-4 p-3 border">
-          <b class="text-body-emphasis d-block">{{ getGeozoneName() }}</b>
-          <p class="text-muted mb-0">{{ getActivityType() }}</p>
+    }
+    <div class="row">
+      <div class="col-10 mx-auto">
+        <!-- Shared card: header + switched body -->
+        <div class="card border rounded mb-4">
+          <div class="card-header bg-booking-header ps-4 p-3 border">
+            <b class="text-body-emphasis d-block">{{ getGeozoneName() }}</b>
+            <p class="text-muted mb-0">{{ getActivityType() }}</p>
+          </div>
+          <div class="card-body p-4">
+            @if (isBookingCancelled()) {
+              <div class="alert alert-danger mb-4" role="alert">
+                <i class="fa-regular fa-circle-exclamation text-danger me-2"></i>
+                <strong class="text-dark">This booking has been cancelled</strong>
+              </div>
+            }
+            <ng-container *ngTemplateOutlet="paymentsEnabled ? paymentsEnabledBody : paymentsDisabledBody"></ng-container>
+          </div>
         </div>
-        <div class="card-body p-4">
-          <ng-container *ngIf="isBookingCancelled()"> 
-          <div class="alert alert-danger mb-4" role="alert">
-              <i class="fa-regular fa-circle-exclamation text-danger me-2"></i>
-              <strong class="text-dark">This booking has been cancelled</strong>
+        <!-- Acknowledgement Checkbox -->
+        @if (!isBookingCancelled()) {
+          <div class="mb-4 p-3 border border-1 rounded-2 border-medium-grey bg-light-blue-nav">
+            <div class="form-check">
+              <input
+                class="form-check-input border border-dark"
+                type="checkbox"
+                id="acknowledgeCancel"
+                (change)="acknowledgeCancel = $any($event.target).checked"
+                >
+              <label class="form-check-label ps-2 fs-6" for="acknowledgeCancel">
+                I acknowledge that I want to cancel the above booking in full
+              </label>
             </div>
-            </ng-container>
-
-          <ng-container *ngTemplateOutlet="paymentsEnabled ? paymentsEnabledBody : paymentsDisabledBody"></ng-container>
-        </div>
+          </div>
+        }
       </div>
-
-      <!-- Acknowledgement Checkbox -->
-      <div *ngIf="!isBookingCancelled()" class="mb-4 p-3 border border-1 rounded-2 border-medium-grey bg-light-blue-nav">
-        <div class="form-check">
-          <input
-            class="form-check-input border border-dark"
-            type="checkbox"
-            id="acknowledgeCancel"
-            (change)="acknowledgeCancel = $any($event.target).checked"
-          >
-          <label class="form-check-label ps-2 fs-6" for="acknowledgeCancel">
-            I acknowledge that I want to cancel the above booking in full
-          </label>
-        </div>
-      </div>
-
     </div>
   </div>
-</div>
+}
 
 <!-- Full width action bar (visible only while cancellation is available) -->
-<div *ngIf="showActionBar()" class="w-100 bg-light-blue-nav border-top fixed-bottom cancel-action-bar">
-  <div class="container">
-    <div class="d-flex justify-content-between py-3">
-      <button class="btn btn-outline-primary rounded-1 fw-bold mb-2 py-2 px-3" (click)="goBack()">
-        <i class="fa-solid fa-circle-chevron-left me-2"></i>
-        Back to booking
-      </button>
-
-      <button
-        type="button"
-        class="btn btn-primary"
-        [class.bg-disabled]="!acknowledgeCancel"
-        [class.text-disabled]="!acknowledgeCancel"
-        [class.border-disabled]="!acknowledgeCancel"
-        [disabled]="!acknowledgeCancel || cancelling"
-        (click)="onConfirmRefund()"
-      >
-        <span *ngIf="cancelling" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-        {{ cancelling ? 'Cancelling...' : 'Continue' }}
-      </button>
+@if (showActionBar()) {
+  <div class="w-100 bg-light-blue-nav border-top fixed-bottom cancel-action-bar">
+    <div class="container">
+      <div class="d-flex justify-content-between py-3">
+        <button class="btn btn-outline-primary rounded-1 fw-bold mb-2 py-2 px-3" (click)="goBack()">
+          <i class="fa-solid fa-circle-chevron-left me-2"></i>
+          Back to booking
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          [class.bg-disabled]="!acknowledgeCancel"
+          [class.text-disabled]="!acknowledgeCancel"
+          [class.border-disabled]="!acknowledgeCancel"
+          [disabled]="!acknowledgeCancel || cancelling"
+          (click)="onConfirmRefund()"
+          >
+          @if (cancelling) {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          }
+          {{ cancelling ? 'Cancelling...' : 'Continue' }}
+        </button>
+      </div>
     </div>
   </div>
-</div>
+}
 
 <!-- Card body: payments ENABLED (refund table) -->
 <ng-template #paymentsEnabledBody>
@@ -127,12 +130,16 @@
           <td>
             <div class="mb-2">Nightly camping fee</div>
             <div class="text-muted ms-3">
-              <div *ngIf="getAdultOccupants() > 0" class="mb-2">
-                {{getAdultOccupants()}} x Adult/Senior nightly rate ({{adultRate | currency:'CAD':'symbol-narrow'}}/night)
-              </div>
-              <div *ngIf="getYouthOccupants() > 0" class="mb-2">
-                {{getYouthOccupants()}} x Youth nightly rate ({{youthRate | currency:'CAD':'symbol-narrow'}}/night)
-              </div>
+              @if (getAdultOccupants() > 0) {
+                <div class="mb-2">
+                  {{getAdultOccupants()}} x Adult/Senior nightly rate ({{adultRate | currency:'CAD':'symbol-narrow'}}/night)
+                </div>
+              }
+              @if (getYouthOccupants() > 0) {
+                <div class="mb-2">
+                  {{getYouthOccupants()}} x Youth nightly rate ({{youthRate | currency:'CAD':'symbol-narrow'}}/night)
+                </div>
+              }
             </div>
           </td>
           <td class="text-muted text-end"><i class="fa-solid fa-check"></i></td>
@@ -217,17 +224,19 @@
       <div class="mb-3">
         <p class="small fw-semibold mb-2 text-body-emphasis mt-1">License plate</p>
         <div>
-          {{ getLicensePlate() }}<span *ngIf="getLicensePlateRegistrationRegion()">, {{ getLicensePlateRegistrationRegion() }}</span>
-        </div>
+          {{ getLicensePlate() }}@if (getLicensePlateRegistrationRegion()) {
+          <span>, {{ getLicensePlateRegistrationRegion() }}</span>
+        }
       </div>
     </div>
   </div>
+</div>
 
-  <hr class="my-3 border-dark" />
+<hr class="my-3 border-dark" />
 
-  <!-- Confirmation Number -->
-  <div>
-    <p class="small fw-semibold mb-2 text-body-emphasis">Confirmation number</p>
-    <div>{{ getBookingNumber() }}</div>
-  </div>
+<!-- Confirmation Number -->
+<div>
+  <p class="small fw-semibold mb-2 text-body-emphasis">Confirmation number</p>
+  <div>{{ getBookingNumber() }}</div>
+</div>
 </ng-template>

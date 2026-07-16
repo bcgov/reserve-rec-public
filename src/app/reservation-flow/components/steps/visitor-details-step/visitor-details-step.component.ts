@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { StepperService } from '../../../services/stepper.service';
 import { CartItem } from '../../../../services/cart.service';
@@ -8,10 +8,9 @@ import { CartItem } from '../../../../services/cart.service';
   selector: 'app-visitor-details-step',
   standalone: true,
   imports: [
-    CommonModule, 
     ReactiveFormsModule,
     FormsModule
-  ],
+],
   templateUrl: './visitor-details-step.component.html',
   styleUrl: './visitor-details-step.component.scss'
 })

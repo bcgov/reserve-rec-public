@@ -1,9 +1,10 @@
 <div>
-  <div *ngIf="loadingService?.isLoading() else transactionStatus" class="overlay">
-    <div class="spinner"></div>
-  </div>
+  @if (loadingService?.isLoading()) {
+    <div class="overlay">
+      <div class="spinner"></div>
+    </div>
+  } @else {
+    <h1>Redirecting...</h1>
+  }
 </div>
 
-<ng-template #transactionStatus>
-  <h1>Redirecting...</h1>
-</ng-template>

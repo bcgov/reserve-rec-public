@@ -1,23 +1,28 @@
-<div *ngIf="breadcrumbs.length > 1">
- 
-  <!-- Breadcrumb Navigation -->
-  <nav aria-label="breadcrumb" class="pt-4 mb-5">
-    <ol class="breadcrumb custom-breadcrumb">
-      <ng-container *ngFor="let breadcrumb of breadcrumbs; let last = last; let first = first">
-        <li class="breadcrumb-item" [class.active]="last" [attr.aria-current]="last ? 'page' : null">
-          <a 
-            *ngIf="!last" 
-            [routerLink]="[breadcrumb.url]" 
-            class="text-decoration-none">
-            {{ breadcrumb.label }}
-          </a>
-          <span *ngIf="last">{{ breadcrumb.label }}</span>
-        </li>
-        <li *ngIf="!last" class="breadcrumb-separator">
-          <i class="fa-solid fa-chevron-right"></i>
-        </li>
-      </ng-container>
-    </ol>
-  </nav>
-
-</div>
+@if (breadcrumbs.length > 1) {
+  <div>
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb" class="pt-4 mb-5">
+      <ol class="breadcrumb custom-breadcrumb">
+        @for (breadcrumb of breadcrumbs; track breadcrumb; let last = $last; let first = $first) {
+          <li class="breadcrumb-item" [class.active]="last" [attr.aria-current]="last ? 'page' : null">
+            @if (!last) {
+              <a
+                [routerLink]="[breadcrumb.url]"
+                class="text-decoration-none">
+                {{ breadcrumb.label }}
+              </a>
+            }
+            @if (last) {
+              <span>{{ breadcrumb.label }}</span>
+            }
+          </li>
+          @if (!last) {
+            <li class="breadcrumb-separator">
+              <i class="fa-solid fa-chevron-right"></i>
+            </li>
+          }
+        }
+      </ol>
+    </nav>
+  </div>
+}

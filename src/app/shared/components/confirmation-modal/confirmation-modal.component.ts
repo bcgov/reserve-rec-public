@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { Utils } from '../../../utils/utils';
-import { NgFor, NgIf } from '@angular/common';
+
 
 export interface ModalRowSpec {
   label: string;
@@ -9,7 +9,7 @@ export interface ModalRowSpec {
 }
 
 @Component({
-  imports: [NgFor, NgIf],
+  imports: [],
   selector: 'app-confirmation-modal',
   templateUrl: './confirmation-modal.component.html',
   styleUrls: ['./confirmation-modal.component.scss'],

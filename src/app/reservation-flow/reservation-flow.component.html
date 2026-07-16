@@ -3,82 +3,86 @@
   <div class="container">
     <!-- Breadcrumbs -->
     <app-breadcrumb></app-breadcrumb>
-    
+
     <h1 class="text-primary my-4">Checkout</h1>
     <app-admission-countdown class="mb-3 d-block"></app-admission-countdown>
-    
+
     <div class="container-fluid bg-white p-4">
 
-    <app-progress-indicator
-      [totalItems]="1"
-      [currentItemIndex]="0"
-      [currentItemName]="cartItem?.activityName"
-      [queueItems]="cartItems"
-    >
-    </app-progress-indicator>
-      
+      <app-progress-indicator
+        [totalItems]="1"
+        [currentItemIndex]="0"
+        [currentItemName]="cartItem?.activityName"
+        [queueItems]="cartItems"
+        >
+      </app-progress-indicator>
+
       <!-- Step Content Container -->
       <div class="container-fluid bg-grey p-4">
         <!-- Single step container with exclusive display logic -->
-        <ng-container [ngSwitch]="currentStep">
-          
+        @switch (currentStep) {
           <!-- Step 0: Details -->
-          <div *ngSwitchCase="0" class="step-wrapper fade-in">
-            <app-confirm-details-step
-              [form]="form"
-              [cartItem]="cartItem"
-              [bookingSummary]="bookingSummary"
-              (stepCompleted)="onStepCompleted($event)"
-              (stepValidated)="onStepValidated($event)"
-            ></app-confirm-details-step>
-          </div>
-          
-          <!-- Step 1: Visitor Details -->
-          <div *ngSwitchCase="1" class="step-wrapper fade-in">
-            <app-visitor-details-step
-              [form]="form"
-              [user]="user"
-              [cartItem]="cartItem"
-              [bookingSummary]="bookingSummary"
-              (stepCompleted)="onStepCompleted($event)"
-              (stepValidated)="onStepValidated($event)"
-            ></app-visitor-details-step>
-          </div>
-          
-          <!-- Step 2: Equipment -->
-          <div *ngSwitchCase="2" class="step-wrapper fade-in">
-            <app-equipment-step
-              [form]="form"
-              [cartItem]="cartItem"
-              [bookingSummary]="bookingSummary"
-              (stepCompleted)="onStepCompleted($event)"
-              (stepValidated)="onStepValidated($event)"
-            ></app-equipment-step>
-          </div>
-          
-          <!-- Step 3: Payment (conditionally shown based on feature flag) -->
-          <div *ngSwitchCase="3" class="step-wrapper fade-in">
-            <app-payment-step
-              [form]="form"
-              [user]="user"
-              [cartItem]="cartItem"
-              [bookingSummary]="bookingSummary"
-              [bookingId]="currentBookingId"
-              [sessionId]="currentSessionId"
-              (stepCompleted)="onStepCompleted($event)"
-              (stepValidated)="onStepValidated($event)"
-            ></app-payment-step>
-          </div>
-          
-          <!-- Fallback for any unexpected state -->
-          <div *ngSwitchDefault class="step-wrapper">
-            <div class="alert alert-warning">
-              <i class="fa-solid fa-exclamation-triangle me-2"></i>
-              Invalid step state. Please refresh the page.
+          @case (0) {
+            <div class="step-wrapper fade-in">
+              <app-confirm-details-step
+                [form]="form"
+                [cartItem]="cartItem"
+                [bookingSummary]="bookingSummary"
+                (stepCompleted)="onStepCompleted($event)"
+                (stepValidated)="onStepValidated($event)"
+              ></app-confirm-details-step>
             </div>
-          </div>
-          
-        </ng-container>
+          }
+          <!-- Step 1: Visitor Details -->
+          @case (1) {
+            <div class="step-wrapper fade-in">
+              <app-visitor-details-step
+                [form]="form"
+                [user]="user"
+                [cartItem]="cartItem"
+                [bookingSummary]="bookingSummary"
+                (stepCompleted)="onStepCompleted($event)"
+                (stepValidated)="onStepValidated($event)"
+              ></app-visitor-details-step>
+            </div>
+          }
+          <!-- Step 2: Equipment -->
+          @case (2) {
+            <div class="step-wrapper fade-in">
+              <app-equipment-step
+                [form]="form"
+                [cartItem]="cartItem"
+                [bookingSummary]="bookingSummary"
+                (stepCompleted)="onStepCompleted($event)"
+                (stepValidated)="onStepValidated($event)"
+              ></app-equipment-step>
+            </div>
+          }
+          <!-- Step 3: Payment (conditionally shown based on feature flag) -->
+          @case (3) {
+            <div class="step-wrapper fade-in">
+              <app-payment-step
+                [form]="form"
+                [user]="user"
+                [cartItem]="cartItem"
+                [bookingSummary]="bookingSummary"
+                [bookingId]="currentBookingId"
+                [sessionId]="currentSessionId"
+                (stepCompleted)="onStepCompleted($event)"
+                (stepValidated)="onStepValidated($event)"
+              ></app-payment-step>
+            </div>
+          }
+          <!-- Fallback for any unexpected state -->
+          @default {
+            <div class="step-wrapper">
+              <div class="alert alert-warning">
+                <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                Invalid step state. Please refresh the page.
+              </div>
+            </div>
+          }
+        }
       </div>
     </div>
   </div>
@@ -89,7 +93,7 @@
   <div class="modal-dialog modal-dialog-centered modal-md">
     <div class="modal-content">
       <div class="modal-header border-0">
-        
+
         <button type="button" class="btn btn-link position-absolute top-0 end-0 m-2 text-decoration-none text-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>
       </div>
       <div class="modal-body">
@@ -109,36 +113,40 @@
   <div class="container">
     <div class="d-flex justify-content-between py-3">
       <!-- Cancel Booking on first step, Back button on subsequent steps -->
-      <button 
-        *ngIf="!showBackButton()"
-        type="button" 
-        class="btn btn-outline-primary"
-        (click)="openCancelModal()"
-      >
-        <i class="fa-solid fa-xmark me-2"></i>
-        Cancel Booking
-      </button>
-      
+      @if (!showBackButton()) {
+        <button
+          type="button"
+          class="btn btn-outline-primary"
+          (click)="openCancelModal()"
+          >
+          <i class="fa-solid fa-xmark me-2"></i>
+          Cancel Booking
+        </button>
+      }
+
+      @if (showBackButton()) {
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          (click)="goBack()"
+          >
+          <i class="fa-solid fa-chevron-left me-2"></i>
+          {{ getBackButtonLabel() }}
+        </button>
+      }
+
       <button
-        *ngIf="showBackButton()"
         type="button"
-        class="btn btn-outline-secondary"
-        (click)="goBack()"
-      >
-        <i class="fa-solid fa-chevron-left me-2"></i>
-        {{ getBackButtonLabel() }}
-      </button>
-      
-      <button 
-        type="button" 
         class="btn btn-primary"
         [class.bg-disabled]="!canProceed() || isSubmitting"
         [class.text-disabled]="!canProceed() || isSubmitting"
         [class.border-disabled]="!canProceed() || isSubmitting"
         [disabled]="!canProceed() || isSubmitting"
         (click)="proceedToNext()"
-      >
-        <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        >
+        @if (isSubmitting) {
+          <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        }
         {{ isSubmitting ? 'Processing…' : getNextButtonLabel() }}
       </button>
     </div>

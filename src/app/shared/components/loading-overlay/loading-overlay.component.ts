@@ -1,5 +1,5 @@
 import { Component, effect, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { LoadingService } from '../../../services/loading.service';
 
 // Centered spinner overlay shown whenever LoadingService reports an outstanding
@@ -8,13 +8,15 @@ import { LoadingService } from '../../../services/loading.service';
 @Component({
   selector: 'app-loading-overlay',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
-    <div *ngIf="loading()" class="loading-overlay" role="status" aria-live="polite">
-      <div class="spinner-border text-primary" aria-hidden="true"></div>
-      <span class="visually-hidden">Loading…</span>
-    </div>
-  `,
+    @if (loading()) {
+      <div class="loading-overlay" role="status" aria-live="polite">
+        <div class="spinner-border text-primary" aria-hidden="true"></div>
+        <span class="visually-hidden">Loading…</span>
+      </div>
+    }
+    `,
   styles: [`
     .loading-overlay {
       position: fixed;

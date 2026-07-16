@@ -1,7 +1,7 @@
 <div class="container-fluid">
   <div class="row justify-content-center">
     <div class="col-lg-10 col-12">
-      
+
       <!-- Info Alert -->
       <div class="alert alert-info mb-4 border border-2 border-primary" role="alert">
         <div class="d-flex">
@@ -30,18 +30,22 @@
               <div class="rounded p-3">
                 <h6 class="text-muted mb-2 fw-semibold">Arrival</h6>
                 <p class="mb-0 fw-medium">{{ cartItem?.startDate | date:'fullDate' }}</p>
-                <p *ngIf="cartItem?.checkInAnchor" class="mb-0 mt-1 text-muted small">
-                  {{ cartItem?.checkInAnchor | date:'shortTime' }}
-                </p>
+                @if (cartItem?.checkInAnchor) {
+                  <p class="mb-0 mt-1 text-muted small">
+                    {{ cartItem?.checkInAnchor | date:'shortTime' }}
+                  </p>
+                }
               </div>
             </div>
             <div class="col-md-6">
               <div class="rounded p-3">
                 <h6 class="text-muted mb-2 fw-semibold">Departure</h6>
                 <p class="mb-0 fw-medium">{{ cartItem?.endDate | date:'fullDate' }}</p>
-                <p *ngIf="cartItem?.checkOutAnchor" class="mb-0 mt-1 text-muted small">
-                  {{ cartItem?.checkOutAnchor | date:'shortTime' }}
-                </p>
+                @if (cartItem?.checkOutAnchor) {
+                  <p class="mb-0 mt-1 text-muted small">
+                    {{ cartItem?.checkOutAnchor | date:'shortTime' }}
+                  </p>
+                }
               </div>
             </div>
           </div>
@@ -67,18 +71,18 @@
       <!-- Acknowledgement Checkbox -->
       <div class="mb-4 p-3 border border-2 rounded border-medium-grey bg-light-blue-nav">
         <div class="form-check">
-          <input 
-            class="form-check-input" 
-            type="checkbox" 
+          <input
+            class="form-check-input"
+            type="checkbox"
             [formControl]="$any(form?.get('acknowledgeDetails'))"
             id="acknowledgeDetails"
-          >
+            >
           <label class="form-check-label" for="acknowledgeDetails">
             I acknowledge that this information is correct and agree to the terms of the booking.
           </label>
         </div>
       </div>
-      
+
     </div>
   </div>
 </div>

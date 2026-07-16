@@ -4,12 +4,12 @@ import { HeaderComponent } from "./header/header.component";
 import { FooterComponent } from './footer/footer.component';
 import { InfiniteLoadingBarComponent } from './infinite-loading-bar/infinite-loading-bar.component';
 import { LoadingOverlayComponent } from './shared/components/loading-overlay/loading-overlay.component';
-import { CommonModule } from '@angular/common';
+
 import { filter } from 'rxjs/operators';
 
 @Component({
     selector: 'app-root',
-    imports: [RouterOutlet, HeaderComponent, FooterComponent, InfiniteLoadingBarComponent, LoadingOverlayComponent, CommonModule],
+    imports: [RouterOutlet, HeaderComponent, FooterComponent, InfiniteLoadingBarComponent, LoadingOverlayComponent],
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss'
 })

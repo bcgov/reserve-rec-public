@@ -53,13 +53,15 @@
                 [(ngModel)]="smsOptIn"
                 [disabled]="!hasMobilePhone()"
                 (change)="onSmsOptInChange()"
-              >
+                >
               <label class="form-check-label" for="smsReminders">
                 I would like to receive reminders via text message
               </label>
-              <p *ngIf="!hasMobilePhone()" class="small text-muted mb-0 mt-2">
-                Add a mobile phone number to your account to enable text message reminders.
-              </p>
+              @if (!hasMobilePhone()) {
+                <p class="small text-muted mb-0 mt-2">
+                  Add a mobile phone number to your account to enable text message reminders.
+                </p>
+              }
             </div>
           </div>
         </div>

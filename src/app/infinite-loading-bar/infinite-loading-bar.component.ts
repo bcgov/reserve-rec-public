@@ -1,10 +1,10 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, effect, signal } from '@angular/core';
 import { LoadingService } from '../services/loading.service';
 
 @Component({
     selector: 'app-infinite-loading-bar',
-    imports: [CommonModule],
+    imports: [],
     templateUrl: './infinite-loading-bar.component.html',
     styleUrl: './infinite-loading-bar.component.scss'
 })

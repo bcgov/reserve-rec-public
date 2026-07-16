@@ -1,11 +1,11 @@
 import { Component, Input, inject, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { StepperService, StepConfig } from '../../services/stepper.service';
 
 @Component({
   selector: 'app-progress-indicator',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './progress-indicator.component.html',
   styleUrl: './progress-indicator.component.scss'
 })

@@ -1,11 +1,11 @@
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { WaitingRoomService } from '../../services/waiting-room.service';
 
 @Component({
   selector: 'app-admission-countdown',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     @if (visible()) {
       <div class="admission-countdown" [class.admission-countdown--warning]="isWarning()">

@@ -1,128 +1,154 @@
-<div class="container mt-5">
-  <div class="row mb-4">
-    <div class="col text-left">
-      <h1 class="display-4">Account Details</h1>
+<div class="container my-4 account-settings">
+
+  <nav class="small mb-2" aria-label="breadcrumb">
+    <a routerLink="/">Home</a> <span class="text-muted">&rsaquo; Account settings</span>
+  </nav>
+  <h1 class="h3 fw-bold mb-4">Account settings</h1>
+
+  <!-- Email not verified -->
+  <div *ngIf="user && !emailVerified" class="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
+    <div>
+      <strong><i class="fa-solid fa-circle-exclamation me-2"></i>You will not be able to book a day-use pass until your email has been verified.</strong>
+      <div class="small mt-1">Please check your inbox for the verification e-mail or select the button to resend.</div>
+    </div>
+    <button class="btn btn-primary btn-sm flex-shrink-0 ms-3" (click)="resendVerification()">Resend verification</button>
+  </div>
+
+  <!-- BC Services Card notice -->
+  <div *ngIf="isBcsc" class="alert alert-info" role="alert">
+    <strong><i class="fa-solid fa-circle-info me-2"></i>Some information cannot be edited, as it is based off your BC Services Card.</strong>
+    <div class="small mt-1">
+      If any of the below information is incorrect or out of date,
+      <a href="https://www.bceid.ca/" target="_blank" rel="noopener">click here to find out how to update your information</a>.
     </div>
   </div>
-  <div class="container mt-5">
-    <div class="row">
-      <!-- Left Column: Quick Links -->
-      <div class="col-md-3">
-        <div class="list-group">
-          <a #personalDetails (click)="scrollToElement(personalDetails)" class="list-group-item list-group-item-action">Personal Details</a>
-          <a #vehicleDetails (click)="scrollToElement(vehicleDetails)" class="list-group-item list-group-item-action">Vehicle Details</a>
-          <a #accountManagement (click)="scrollToElement(accountManagement)" class="list-group-item list-group-item-action">Account Management</a>
+
+  <div class="row g-4" *ngIf="user">
+
+    <!-- Contact information -->
+    <div class="col-lg-8">
+      <div class="card h-100" [class.opacity-50]="editing && editing !== 'contact'">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+          <span class="fw-semibold">Contact information</span>
+          <button *ngIf="!isBcsc && editing !== 'contact'" class="btn btn-outline-primary btn-sm"
+                  [disabled]="editing" (click)="startEdit('contact')">Edit</button>
         </div>
-      </div>
+        <div class="card-body">
 
-      <!-- Right Column: Content Sections -->
-      <div class="col-md-9">
-        <h2 id="personal-details" class="mb-4">Personal Details</h2>
+          <!-- Read-only -->
+          <ng-container *ngIf="editing !== 'contact'">
+            <div class="mb-3">
+              <div class="fw-semibold">Name</div>
+              <div>{{ user.given_name }} {{ user.family_name }}</div>
+            </div>
+            <div class="mb-3">
+              <div class="fw-semibold">Home address</div>
+              <div>{{ user['custom:streetAddress'] }}<span *ngIf="user['custom:unitNumber']">, {{ user['custom:unitNumber'] }}</span></div>
+              <div>{{ user['custom:city'] }}<span *ngIf="user['custom:province']">, {{ user['custom:province'] }}</span> {{ user['custom:postalCode'] }}</div>
+              <div>{{ user['custom:country'] }}</div>
+            </div>
+            <div>
+              <div class="fw-semibold">Phone numbers</div>
+              <div class="d-flex"><span class="text-muted phone-label">Mobile:</span><span>{{ user['custom:mobilePhone'] || '—' }}</span></div>
+              <div class="d-flex"><span class="text-muted phone-label">Alternate:</span><span>{{ user['custom:secondaryNumber'] || '—' }}</span></div>
+            </div>
+          </ng-container>
 
-        <!-- Name Section -->
-        <hr>
-        <div class="details-section">
-          <div class="row mb-3">
-            <div class="col-md-4 font-weight-bold"><b>Name</b></div>
-            <div class="col-md-6">{{ (user.given_name + ' ' + user.family_name) }}</div>
-            <div class="col-md-2 text-end">
-              <button class="btn btn-sm btn-edit" (click)="edit()">Edit</button>
-            </div>
-          </div>
-        
-
-        <!-- Email Section -->
-        <hr>
-        <div class="row mb-3">
-          <div class="col-md-4 font-weight-bold"><b>Email address</b></div>
-          <div class="col-md-6">{{ user.email }}</div>
-          <div class="col-md-2 text-end">
-            <button class="btn btn-sm btn-edit" (click)="edit()">Edit</button>
-          </div>
-        </div>
-
-        <!-- Phone Number Section -->
-        <hr>
-        <div class="row mb-3">
-          <div class="col-md-4 font-weight-bold"><b>Phone numbers</b></div>
-          <div class="col-md-6">
-            <div class="row">
-              <div class="col-2 phoneText">Mobile:</div>
-              <div class="col-6 text-start">{{ user['custom:mobilePhone'] }}</div>
-            </div>
-            <div class="row">
-              <div class="col-2 phoneText">Home:</div>
-              <div class="col-6 text-start">{{ user['custom:secondaryNumber'] }}</div>
-            </div>
-          </div>
-          <div class="col-md-2 text-end">
-            <button class="btn btn-sm btn-edit" (click)="edit()">Edit</button>
-          </div>
-        </div>
-
-        <!-- Address Section -->
-        <hr>
-        <div class="row mb-3">
-          <div class="col-md-4 font-weight-bold"> <b>Home address</b></div>
-          <div class="col-md-6">
-            <div class="row">
-              <div class="col-12">{{ user['custom:streetAddress'] }}</div>
-            </div>
-            <div class="row">
-              <div class="col-8 text-start">{{ user['custom:postalCode'] }}</div>
-            </div>
-            <div class="row">
-              <div class="col-8 text-start">{{ user['custom:city'] }}, {{ user['custom:province'] }}</div>
-            </div>
-            <div class="row">
-              <div class="col-8 text-start">{{ user['custom:country'] }}</div>
-            </div>
-          </div>
-          <div class="col-md-2 text-end">
-            <button class="btn btn-sm btn-edit" (click)="edit()">Edit</button>
-          </div>
-        </div>
-        <hr>
-      </div>
-
-        <!-- Vehicle Details Section -->
-        
-          <div class="details-section">
-            <h2 id="vehicle-details" class="mb-4 pb-0">Vehicle Details</h2>
-            <div class="phoneText">Optional</div>
-            <hr>
-            <div class="row mb-3">
-              <div class="col-md-4 font-weight-bold"><b>License Plate</b></div>
+          <!-- Edit -->
+          <form *ngIf="editing === 'contact'" [formGroup]="contactForm" (ngSubmit)="saveContact()">
+            <div class="row g-3">
+              <div class="col-md-6"><ngds-text-input label="Surname" [control]="contactForm.get('family_name')"></ngds-text-input></div>
+              <div class="col-md-6"><ngds-text-input label="Given names" [control]="contactForm.get('given_name')"></ngds-text-input></div>
+              <div class="col-12"><ngds-text-input label="Street address" [control]="contactForm.get('streetAddress')"></ngds-text-input></div>
+              <div class="col-12"><ngds-text-input label="Suite, apartment or unit" [control]="contactForm.get('unitNumber')"></ngds-text-input></div>
+              <div class="col-md-6"><ngds-text-input label="City" [control]="contactForm.get('city')"></ngds-text-input></div>
               <div class="col-md-6">
-                <div class="row">
-                  <div class="col-12">{{ user['custom:licensePlate'] }}</div>
-                </div>
-                <div class="row">
-                  <div class="col-12">{{ user['custom:vehicleRegLocale'] }}</div>
-                </div>
+                <label class="form-label" for="province-select">Province or state</label>
+                <select id="province-select" class="form-select" formControlName="province">
+                  <option value="">Select…</option>
+                  <option *ngFor="let p of provinces" [value]="p">{{ p }}</option>
+                </select>
               </div>
-              <div class="col-md-2 text-end">
-                <button class="btn btn-sm btn-edit" (click)="edit()">Edit</button>
+              <div class="col-md-6"><ngds-text-input label="Postal or zip code" [control]="contactForm.get('postalCode')"></ngds-text-input></div>
+              <div class="col-md-6">
+                <label class="form-label" for="country-select">Country</label>
+                <select id="country-select" class="form-select" formControlName="country">
+                  <option value="">Select…</option>
+                  <option *ngFor="let c of countries" [value]="c">{{ c }}</option>
+                </select>
               </div>
+              <div class="col-md-6"><ngds-text-input label="Mobile phone" [control]="contactForm.get('mobilePhone')"></ngds-text-input></div>
+              <div class="col-md-6"><ngds-text-input label="Alternate phone (optional)" [control]="contactForm.get('secondaryNumber')"></ngds-text-input></div>
             </div>
-            <hr>
-          </div>  
+            <div class="d-flex justify-content-end gap-2 mt-3">
+              <button type="button" class="btn btn-link" [disabled]="saving" (click)="cancelEdit()">Cancel</button>
+              <button type="submit" class="btn btn-primary" [disabled]="saving">Save</button>
+            </div>
+          </form>
 
-        <!-- Account Management Section -->
-       
-        <div class="details-section">
-          <h2 id="account-management" class="mb-4">Account Management</h2>
-          <hr>
-          <div class="row mb-3">
-            <div class="col-md-4 font-weight-bold"><b>Password</b></div>
-            <div class="col-md-6"><i>Last updated {{ user['custom:pwUpdate'] }}</i></div>
-            <div class="col-md-2 text-end">
-              <button class="btn btn-sm btn-edit" (click)="edit()">Change</button>
-            </div>
-          </div>
-          <hr>
         </div>
       </div>
     </div>
+
+    <!-- Account management -->
+    <div class="col-lg-4">
+      <div class="card h-100" [class.opacity-50]="editing">
+        <div class="card-header bg-light"><span class="fw-semibold">Account management</span></div>
+        <div class="card-body">
+          <div class="mb-3">
+            <div class="fw-semibold">Email address</div>
+            <div>
+              {{ user.email }}
+              <span *ngIf="emailVerified" class="text-success small ms-1"><i class="fa-solid fa-circle-check"></i> Verified</span>
+              <span *ngIf="!emailVerified" class="text-danger small ms-1"><i class="fa-solid fa-circle-xmark"></i> Not verified</span>
+            </div>
+            <!-- Email change is handled in a follow-up ticket -->
+            <button class="btn btn-outline-primary btn-sm mt-2" disabled title="Coming soon">Change email address</button>
+          </div>
+          <hr>
+          <div>
+            <div class="fw-semibold">Password</div>
+            <div class="text-muted small">Updated {{ user['custom:pwUpdate'] || 'previously' }}</div>
+            <!-- Password change is handled in a follow-up ticket -->
+            <button class="btn btn-outline-primary btn-sm mt-2" disabled title="Coming soon">Change password</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vehicle information -->
+    <div class="col-lg-8">
+      <div class="card" [class.opacity-50]="editing && editing !== 'vehicle'">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+          <span class="fw-semibold">Vehicle information <span class="text-muted fw-normal">(optional)</span></span>
+          <button *ngIf="editing !== 'vehicle'" class="btn btn-outline-primary btn-sm"
+                  [disabled]="editing" (click)="startEdit('vehicle')">Edit</button>
+        </div>
+        <div class="card-body">
+          <ng-container *ngIf="editing !== 'vehicle'">
+            <span *ngIf="user['custom:licensePlate']">{{ user['custom:licensePlate'] }}<span *ngIf="user['custom:vehicleRegLocale']">, {{ user['custom:vehicleRegLocale'] }}</span></span>
+            <span *ngIf="!user['custom:licensePlate']" class="text-muted">No vehicle information added.</span>
+          </ng-container>
+
+          <form *ngIf="editing === 'vehicle'" [formGroup]="vehicleForm" (ngSubmit)="saveVehicle()">
+            <div class="row g-3">
+              <div class="col-md-6"><ngds-text-input label="Plate number" [control]="vehicleForm.get('licensePlate')"></ngds-text-input></div>
+              <div class="col-md-6">
+                <label class="form-label" for="vehicle-province-select">Province, state or territory</label>
+                <select id="vehicle-province-select" class="form-select" formControlName="vehicleRegLocale">
+                  <option value="">Select…</option>
+                  <option *ngFor="let p of provinces" [value]="p">{{ p }}</option>
+                </select>
+              </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-3">
+              <button type="button" class="btn btn-link" [disabled]="saving" (click)="cancelEdit()">Cancel</button>
+              <button type="submit" class="btn btn-primary" [disabled]="saving">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>

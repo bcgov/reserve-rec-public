@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { Amplify } from "aws-amplify";
 import { ConfigService } from './config.service';
 import { Hub } from 'aws-amplify/utils';
-import { fetchAuthSession, signOut, signInWithRedirect, fetchUserAttributes, sendUserAttributeVerificationCode } from 'aws-amplify/auth';
+import { fetchAuthSession, signOut, signInWithRedirect, fetchUserAttributes, sendUserAttributeVerificationCode, updateUserAttributes } from 'aws-amplify/auth';
 import { LoggerService } from './logger.service';
 import { Router } from '@angular/router';
 
@@ -245,6 +245,36 @@ export class AuthService {
       console.error('Error fetching attributes:', error);
       return false;
     }
+  }
+
+  /**
+   * Whether the current user authenticated via BC Services Card (federated),
+   * as opposed to a regular email/password account. BCSC-sourced identity
+   * fields (name, address) must not be edited in our system.
+   */
+  isBcscUser(): boolean {
+    try {
+      const payload: any = this.session()?.tokens?.idToken?.payload;
+      const identities = payload?.identities;
+      if (Array.isArray(identities) && identities.some((i: any) => `${i?.providerName}`.toUpperCase() === 'BCSC')) {
+        return true;
+      }
+      // Fallback: federated usernames are prefixed with the IdP name (e.g. "BCSC_...").
+      const username = `${payload?.['cognito:username'] || ''}`.toUpperCase();
+      return username.startsWith('BCSC_') || username.startsWith('BCSC-');
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Persist profile attribute changes to Cognito, then refresh the local user
+   * signal so the UI reflects the saved values.
+   * @param attributes map of Cognito attribute keys to values
+   */
+  async updateUserProfile(attributes: Record<string, string>): Promise<void> {
+    await updateUserAttributes({ userAttributes: attributes });
+    this.updateUser(await fetchUserAttributes());
   }
 
   // Resend the verification code to the user's email

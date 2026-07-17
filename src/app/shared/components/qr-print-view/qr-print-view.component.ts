@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { BookingInfo } from '../../models/booking-info.model';
 
 /**
@@ -41,7 +41,7 @@ import { BookingInfo } from '../../models/booking-info.model';
 @Component({
   selector: 'app-qr-print-view',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './qr-print-view.component.html',
   styleUrl: './qr-print-view.component.scss'
 })

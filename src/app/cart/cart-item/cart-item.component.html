@@ -3,9 +3,9 @@
   <div class="p-3 border-bottom bg-grey">
     <h5 class="mb-0 fw-bold text-primary">{{ item.geoZoneName }}</h5>
   </div>
-  
+
   <div class="p-3 bg-grey">
-    
+
     <!-- First Row:  -->
     <div class="row g-3 mb-3">
       <!-- Activity Type -->
@@ -19,7 +19,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Campsite -->
       <div class="col-6">
         <div class="border rounded">
@@ -46,7 +46,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Nights -->
       <div class="col-6">
         <div class="border rounded">
@@ -89,86 +89,94 @@
   </div>
 
 
-<!-- Price Breakdown Section!! -->
+  <!-- Price Breakdown Section!! -->
 
-<div class="p-3 mb-3">
-  <hr class="border-2 mb-3">
-  <!-- Adults -->
-  <div *ngIf="item.occupants.totalAdult > 0" class="d-flex justify-content-between align-items-center mb-2">
-    <div>
-      <span class="fw-medium text-primary">Backcountry Fee - Adult</span>
-      <div class="text-muted small">{{ item.activityName }} ({{ calculateNights() }} nights × {{ item.occupants.totalAdult }} adults)</div>
+  <div class="p-3 mb-3">
+    <hr class="border-2 mb-3">
+    <!-- Adults -->
+    @if (item.occupants.totalAdult > 0) {
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+          <span class="fw-medium text-primary">Backcountry Fee - Adult</span>
+          <div class="text-muted small">{{ item.activityName }} ({{ calculateNights() }} nights × {{ item.occupants.totalAdult }} adults)</div>
+        </div>
+        <span class="fw-semibold">${{ calculateAdultCost() | number:'1.2-2' }}</span>
+      </div>
+    }
+
+    <!-- Seniors -->
+    @if (item.occupants.totalSenior > 0) {
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+          <span class="fw-medium text-primary">Backcountry Fee - Senior</span>
+          <div class="text-muted small">{{ item.activityName }} ({{ calculateNights() }} nights × {{ item.occupants.totalSenior }} seniors)</div>
+        </div>
+        <span class="fw-semibold">${{ calculateSeniorCost() | number:'1.2-2' }}</span>
+      </div>
+    }
+
+    <!-- Youth -->
+    @if (item.occupants.totalYouth > 0) {
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+          <span class="fw-medium text-primary">Backcountry Fee - Youth</span>
+          <div class="text-muted small">{{ item.activityName }} ({{ calculateNights() }} nights × {{ item.occupants.totalYouth }} youth)</div>
+        </div>
+        <span class="fw-semibold">${{ calculateYouthCost() | number:'1.2-2' }}</span>
+      </div>
+    }
+
+    <!-- Children -->
+    @if (item.occupants.totalChild > 0) {
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+          <span class="fw-medium text-primary">Backcountry Fee - Child</span>
+          <div class="text-muted small">{{ item.activityName }} ({{ calculateNights() }} nights × {{ item.occupants.totalChild }} children)</div>
+        </div>
+        <span class="fw-semibold">${{ calculateChildCost() | number:'1.2-2' }}</span>
+      </div>
+    }
+
+
+    <hr class="my-2">
+
+    <!-- Subtotal Section!!!-->
+    <div class="text-muted small mb-2">
+      * Taxes included in fee
     </div>
-    <span class="fw-semibold">${{ calculateAdultCost() | number:'1.2-2' }}</span>
-  </div>
-
-  <!-- Seniors -->
-  <div *ngIf="item.occupants.totalSenior > 0" class="d-flex justify-content-between align-items-center mb-2">
-    <div>
-      <span class="fw-medium text-primary">Backcountry Fee - Senior</span>
-      <div class="text-muted small">{{ item.activityName }} ({{ calculateNights() }} nights × {{ item.occupants.totalSenior }} seniors)</div>
+    <div class="text-muted small mb-2">
+      * No refunds or cancelationson backcountry registrations
     </div>
-    <span class="fw-semibold">${{ calculateSeniorCost() | number:'1.2-2' }}</span>
-  </div>
-
-  <!-- Youth -->
-  <div *ngIf="item.occupants.totalYouth > 0" class="d-flex justify-content-between align-items-center mb-2">
-    <div>
-      <span class="fw-medium text-primary">Backcountry Fee - Youth</span>
-      <div class="text-muted small">{{ item.activityName }} ({{ calculateNights() }} nights × {{ item.occupants.totalYouth }} youth)</div>
+    <div class="d-flex justify-content-between align-items-center">
+      <span class="fw-bold">Subtotal:</span>
+      <span class="fw-bold">${{ calculateSubtotal() | number:'1.2-2' }}</span>
     </div>
-    <span class="fw-semibold">${{ calculateYouthCost() | number:'1.2-2' }}</span>
-  </div>
-
-  <!-- Children -->
-  <div *ngIf="item.occupants.totalChild > 0" class="d-flex justify-content-between align-items-center mb-2">
-    <div>
-      <span class="fw-medium text-primary">Backcountry Fee - Child</span>
-      <div class="text-muted small">{{ item.activityName }} ({{ calculateNights() }} nights × {{ item.occupants.totalChild }} children)</div>
-    </div>
-    <span class="fw-semibold">${{ calculateChildCost() | number:'1.2-2' }}</span>
   </div>
 
 
-  <hr class="my-2">
-  
-  <!-- Subtotal Section!!!-->
-  <div class="text-muted small mb-2">
-    * Taxes included in fee
-  </div>
-  <div class="text-muted small mb-2">
-    * No refunds or cancelationson backcountry registrations
-  </div>
+  <!-- Button Row -->
   <div class="d-flex justify-content-between align-items-center">
-    <span class="fw-bold">Subtotal:</span>
-    <span class="fw-bold">${{ calculateSubtotal() | number:'1.2-2' }}</span>
+    <!-- Remove Button -->
+    <button
+      type="button"
+      class="btn btn-outline-primary"
+      (click)="onRemoveClick()"
+      title="Remove from cart"
+      >
+      <i class="fa-solid fa-trash me-2"></i>
+      Remove
+    </button>
+
+    <!-- Edit Button - Right Side -->
+    <button
+      type="button"
+      class="btn btn-outline-primary"
+      (click)="onEditClick()"
+      title="Edit booking details"
+      >
+      <i class="fa-solid fa-edit me-2"></i>
+      Edit
+    </button>
   </div>
-</div>
-
-
-<!-- Button Row -->
-<div class="d-flex justify-content-between align-items-center">
-  <!-- Remove Button -->
-  <button 
-    type="button"
-    class="btn btn-outline-primary"
-    (click)="onRemoveClick()"
-    title="Remove from cart"
-  >
-    <i class="fa-solid fa-trash me-2"></i>
-    Remove
-  </button>
-  
-  <!-- Edit Button - Right Side -->
-  <button 
-    type="button"
-    class="btn btn-outline-primary"
-    (click)="onEditClick()"
-    title="Edit booking details"
-  >
-    <i class="fa-solid fa-edit me-2"></i>
-    Edit
-  </button>
-</div>
 
 </div>

@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormGroup, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
@@ -10,7 +10,7 @@ import { PROVINCES_STATES } from '../../../../data/provinces-states.data';
 @Component({
   selector: 'app-equipment-step',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, NgdsFormsModule, TypeaheadModule],
+  imports: [ReactiveFormsModule, NgdsFormsModule, TypeaheadModule],
   templateUrl: './equipment-step.component.html',
   styleUrl: './equipment-step.component.scss'
 })

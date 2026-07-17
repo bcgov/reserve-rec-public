@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { Router } from '@angular/router';
 import { CartService } from '../services/cart.service';
 import { CartItemComponent } from './cart-item/cart-item.component'; // Add import
@@ -7,7 +7,7 @@ import { CartItemComponent } from './cart-item/cart-item.component'; // Add impo
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule, CartItemComponent], 
+  imports: [CartItemComponent], 
   templateUrl: './cart.component.html',
   styleUrl: './cart.component.scss'
 })

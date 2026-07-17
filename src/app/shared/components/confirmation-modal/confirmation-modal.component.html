@@ -2,12 +2,16 @@
   <h4 class="modal-title">{{ title }}</h4>
 </div>
 <div class="modal-body">
-  <p *ngIf="body" class="mb-3">{{ body }}</p>
-  <div *ngFor="let row of details">
-    <strong>{{ row.label }}:</strong><br>
-    {{ row.eitherOr ? row.eitherOr(row.value) : row.value }}
-    <br><br>
-  </div>
+  @if (body) {
+    <p class="mb-3">{{ body }}</p>
+  }
+  @for (row of details; track row) {
+    <div>
+      <strong>{{ row.label }}:</strong><br>
+      {{ row.eitherOr ? row.eitherOr(row.value) : row.value }}
+      <br><br>
+    </div>
+  }
 </div>
 <div class="modal-footer">
   <button type="button" class="{{ cancelClass }}" (click)="cancelButton.emit()">{{ cancelText }}</button>

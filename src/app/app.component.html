@@ -6,4 +6,6 @@
   <router-outlet />
 </div>
 
-<app-footer *ngIf="!hideFooter" class="footer"></app-footer>
+@if (!hideFooter) {
+  <app-footer class="footer"></app-footer>
+}

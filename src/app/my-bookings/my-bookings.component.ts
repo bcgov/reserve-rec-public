@@ -2,7 +2,7 @@ import { ActivatedRoute } from '@angular/router';
 import { BookingMainCardComponent } from './bookings-main-card/bookings-main-card.component'
 import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
 import { Component, effect, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { DateTime } from 'luxon'
 
 import { BookingService } from '../services/booking.service';
@@ -13,7 +13,7 @@ import { LoadingService } from '../services/loading.service';
 
 @Component({
   selector: 'app-my-bookings',
-  imports: [CommonModule, BookingMainCardComponent, BreadcrumbComponent],
+  imports: [BookingMainCardComponent, BreadcrumbComponent],
   templateUrl: './my-bookings.component.html',
   styleUrls: ['./my-bookings.component.scss']
 })

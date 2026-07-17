@@ -1,105 +1,117 @@
 <div class="container mt-5 px-4">
   <app-breadcrumb></app-breadcrumb>
-  
+
   <div class="row mb-5">
     <h1 class="fw-bold text-primary">My bookings</h1>
   </div>
 
-  <ng-container *ngIf="!loading">
-    <div *ngIf="hasAnyBookings(); else noBookings">
-      
-      <!-- Active Bookings Section -->
-      <section *ngIf="activeBookings.length > 0" class="mb-5">
-        <h2 class="mb-4 text-primary">Active</h2>
-        <div class="row g-4">
-          <div class="col-lg-6" *ngFor="let booking of activeBookings">
-            <app-bookings-main-card
-              [ariaLabel]="'Booking at ' + booking.geozoneName"
-              [bookingId]="booking.bookingId"
-              [geozoneName]="booking.geozoneName"
-              [facilityName]="booking.facilityName"
-              [productName]="booking.productName"
-              [activityType]="booking.activityType"
-              [formattedDate]="booking.formattedDate"
-              [isCancelled]="booking.isCancelled">
-            </app-bookings-main-card>
-          </div>
+  @if (!loading) {
+    @if (hasAnyBookings()) {
+      <div>
+        <!-- Active Bookings Section -->
+        @if (activeBookings.length > 0) {
+          <section class="mb-5">
+            <h2 class="mb-4 text-primary">Active</h2>
+            <div class="row g-4">
+              @for (booking of activeBookings; track booking) {
+                <div class="col-lg-6">
+                  <app-bookings-main-card
+                    [ariaLabel]="'Booking at ' + booking.geozoneName"
+                    [bookingId]="booking.bookingId"
+                    [geozoneName]="booking.geozoneName"
+                    [facilityName]="booking.facilityName"
+                    [productName]="booking.productName"
+                    [activityType]="booking.activityType"
+                    [formattedDate]="booking.formattedDate"
+                    [isCancelled]="booking.isCancelled">
+                  </app-bookings-main-card>
+                </div>
+              }
+            </div>
+          </section>
+        }
+        <!-- Past Bookings Section -->
+        @if (pastBookings.length > 0) {
+          <section class="mb-5">
+            <h2 class="mb-4 text-primary">Past</h2>
+            <div class="row g-4">
+              @for (booking of pastBookings; track booking) {
+                <div class="col-lg-6">
+                  <app-bookings-main-card
+                    [ariaLabel]="'Booking at ' + booking.geozoneName"
+                    [bookingId]="booking.bookingId"
+                    [geozoneName]="booking.geozoneName"
+                    [facilityName]="booking.facilityName"
+                    [productName]="booking.productName"
+                    [activityType]="booking.activityType"
+                    [formattedDate]="booking.formattedDate"
+                    [isCancelled]="booking.isCancelled">
+                  </app-bookings-main-card>
+                </div>
+              }
+            </div>
+          </section>
+        }
+        <!-- Cancelled Bookings Section -->
+        @if (cancelledBookings.length > 0) {
+          <section class="mb-5">
+            <h2 class="mb-4 text-primary">Cancelled</h2>
+            <div class="row g-4">
+              @for (booking of cancelledBookings; track booking) {
+                <div class="col-lg-6">
+                  <app-bookings-main-card
+                    [ariaLabel]="'Cancelled booking at ' + booking.geozoneName"
+                    [bookingId]="booking.bookingId"
+                    [geozoneName]="booking.geozoneName"
+                    [facilityName]="booking.facilityName"
+                    [productName]="booking.productName"
+                    [activityType]="booking.activityType"
+                    [formattedDate]="booking.formattedDate"
+                    [isCancelled]="booking.isCancelled">
+                  </app-bookings-main-card>
+                </div>
+              }
+            </div>
+          </section>
+        }
+        <!-- Other Bookings Section (Debugging) -->
+        @if (otherBookings.length > 0) {
+          <section class="mb-5">
+            <h2 class="mb-4 text-primary">Other (Debug)</h2>
+            <div class="alert alert-warning mb-3" role="alert">
+              <i class="fa-solid fa-triangle-exclamation me-2"></i>
+              These bookings don't fit the expected categories and may need attention.
+            </div>
+            <div class="row g-4">
+              @for (booking of otherBookings; track booking) {
+                <div class="col-lg-6">
+                  <app-bookings-main-card
+                    [ariaLabel]="'Booking at ' + booking.geozoneName"
+                    [bookingId]="booking.bookingId"
+                    [geozoneName]="booking.geozoneName"
+                    [facilityName]="booking.facilityName"
+                    [productName]="booking.productName"
+                    [activityType]="booking.activityType"
+                    [formattedDate]="booking.formattedDate"
+                    [isCancelled]="booking.isCancelled">
+                  </app-bookings-main-card>
+                </div>
+              }
+            </div>
+          </section>
+        }
+      </div>
+    } @else {
+      <div class="d-flex align-items-center no-bookings border border-primary border-1 rounded-2 fw-bold p-4" role="status" aria-live="polite">
+        <div class="align-self-start pt-1">
+          <i class="fa-regular fa-circle-info text-primary pe-2 d-flex"></i>
         </div>
-      </section>
-
-      <!-- Past Bookings Section -->
-      <section *ngIf="pastBookings.length > 0" class="mb-5">
-        <h2 class="mb-4 text-primary">Past</h2>
-        <div class="row g-4">
-          <div class="col-lg-6" *ngFor="let booking of pastBookings">
-            <app-bookings-main-card
-              [ariaLabel]="'Booking at ' + booking.geozoneName"
-              [bookingId]="booking.bookingId"
-              [geozoneName]="booking.geozoneName"
-              [facilityName]="booking.facilityName"
-              [productName]="booking.productName"
-              [activityType]="booking.activityType"
-              [formattedDate]="booking.formattedDate"
-              [isCancelled]="booking.isCancelled">
-            </app-bookings-main-card>
-          </div>
+        <div class="">
+          There are no bookings to display.
         </div>
-      </section>
-
-      <!-- Cancelled Bookings Section -->
-      <section *ngIf="cancelledBookings.length > 0" class="mb-5">
-        <h2 class="mb-4 text-primary">Cancelled</h2>
-        <div class="row g-4">
-          <div class="col-lg-6" *ngFor="let booking of cancelledBookings">
-            <app-bookings-main-card
-              [ariaLabel]="'Cancelled booking at ' + booking.geozoneName"
-              [bookingId]="booking.bookingId"
-              [geozoneName]="booking.geozoneName"
-              [facilityName]="booking.facilityName"
-              [productName]="booking.productName"
-              [activityType]="booking.activityType"
-              [formattedDate]="booking.formattedDate"
-              [isCancelled]="booking.isCancelled">
-            </app-bookings-main-card>
-          </div>
-        </div>
-      </section>
-
-      <!-- Other Bookings Section (Debugging) -->
-      <section *ngIf="otherBookings.length > 0" class="mb-5">
-        <h2 class="mb-4 text-primary">Other (Debug)</h2>
-        <div class="alert alert-warning mb-3" role="alert">
-          <i class="fa-solid fa-triangle-exclamation me-2"></i>
-          These bookings don't fit the expected categories and may need attention.
-        </div>
-        <div class="row g-4">
-          <div class="col-lg-6" *ngFor="let booking of otherBookings">
-            <app-bookings-main-card
-              [ariaLabel]="'Booking at ' + booking.geozoneName"
-              [bookingId]="booking.bookingId"
-              [geozoneName]="booking.geozoneName"
-              [facilityName]="booking.facilityName"
-              [productName]="booking.productName"
-              [activityType]="booking.activityType"
-              [formattedDate]="booking.formattedDate"
-              [isCancelled]="booking.isCancelled">
-            </app-bookings-main-card>
-          </div>
-        </div>
-      </section>
-
-    </div>
-  </ng-container>
+      </div>
+    }
+  }
 
   <!-- No bookings -->
-  <ng-template #noBookings>
-    <div class="d-flex align-items-center no-bookings border border-primary border-1 rounded-2 fw-bold p-4" role="status" aria-live="polite">
-      <div class="align-self-start pt-1">
-        <i class="fa-regular fa-circle-info text-primary pe-2 d-flex"></i>
-      </div>
-      <div class="">
-        There are no bookings to display.
-      </div>
-    </div>
-  </ng-template>
 </div>

@@ -1,12 +1,12 @@
 import { Component, HostBinding, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-bookings-main-card',
   templateUrl: './bookings-main-card.component.html',
   styleUrls: ['./bookings-main-card.component.scss'],
-  imports: [CommonModule, RouterLink]
+  imports: [RouterLink]
 })
 export class BookingMainCardComponent {
   @Input() bookingId!: string;

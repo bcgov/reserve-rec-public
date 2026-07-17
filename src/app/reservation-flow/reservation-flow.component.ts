@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit } from '@an
 import { Router, RouterModule } from '@angular/router';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
-import { CommonModule } from '@angular/common';
+
 import { AuthService } from '../services/auth.service';
 import { CartService, CartItem } from '../services/cart.service';
 import { BookingService } from '../services/booking.service';
@@ -22,7 +22,6 @@ import Modal from 'bootstrap/js/dist/modal';
 @Component({
   selector: 'app-reservation-flow',
   imports: [
-    CommonModule,
     NgdsFormsModule,
     ProgressIndicatorComponent,
     ConfirmDetailsStepComponent,
@@ -32,7 +31,7 @@ import Modal from 'bootstrap/js/dist/modal';
     AdmissionCountdownComponent,
     RouterModule,
     BreadcrumbComponent
-  ],
+],
   templateUrl: './reservation-flow.component.html',
   styleUrl: './reservation-flow.component.scss'
 })

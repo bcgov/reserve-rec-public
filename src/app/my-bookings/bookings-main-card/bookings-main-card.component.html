@@ -9,7 +9,9 @@
     <div class="text-body-emphasis mb-2">
       {{ activityType }}
     </div>
-    <div *ngIf="isCancelled" class="text-danger mb-2">Cancelled</div>
+    @if (isCancelled) {
+      <div class="text-danger mb-2">Cancelled</div>
+    }
     <div [class]="{ 'text-muted': isCancelled, 'text-body-emphasis': !isCancelled }">
       {{ formattedDate }}
     </div>

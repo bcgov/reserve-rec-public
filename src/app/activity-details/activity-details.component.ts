@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Constants } from '../constants';
 import { DataService } from '../services/data.service';
 import { ActivityService } from '../services/activity.service';
-import { CommonModule } from '@angular/common';
+
 import { SearchMapComponent } from '../search-map/search-map.component';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
@@ -19,7 +19,7 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
 
 @Component({
   selector: 'app-activity-details',
-  imports: [CommonModule, SearchMapComponent, NgdsFormsModule, PartyDetailsComponent],
+  imports: [SearchMapComponent, NgdsFormsModule, PartyDetailsComponent],
   templateUrl: './activity-details.component.html',
   styleUrl: './activity-details.component.scss'
 })

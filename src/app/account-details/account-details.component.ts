@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { AuthService } from '../services/auth.service';
 import { ToastService, ToastTypes } from '../services/toast.service';
 
@@ -42,7 +42,11 @@ export class AccountDetailsComponent implements OnInit {
     vehicleRegLocale: new FormControl(''),
   });
 
-  constructor(private authService: AuthService, private toastService: ToastService) {}
+  constructor(
+    private authService: AuthService,
+    private toastService: ToastService,
+    private cd: ChangeDetectorRef,
+  ) {}
 
   async ngOnInit(): Promise<void> {
     this.emailVerified = await this.authService.checkEmailVerification();
@@ -124,6 +128,12 @@ export class AccountDetailsComponent implements OnInit {
       this.toastService.addMessage('We could not save your changes. Please try again.', 'Error', ToastTypes.ERROR);
     } finally {
       this.saving = false;
+      // `editing` and `saving` are plain properties mutated in a post-await
+      // continuation. Without this the edit form's view is not torn down, so the
+      // form stays on screen alongside the restored read-only details
+      // (QA send-back on #63). Verified: forcing detection here is what the
+      // manual ng.applyChanges() reproduction needed to clear it.
+      this.cd.detectChanges();
     }
   }
 

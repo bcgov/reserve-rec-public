@@ -38,7 +38,8 @@ export const routes: Routes = [
     path: 'account-details',
     canActivate: [UserGuard],
     loadComponent: () => import('./account-details/account-details.component')
-      .then(mod => mod.AccountDetailsComponent)
+      .then(mod => mod.AccountDetailsComponent),
+    data: { breadcrumb: 'Account settings' }
   },
   // {
   //   path: 'activity/:collectionId/:activityType/:identifier',

@@ -2,17 +2,17 @@ import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../services/auth.service';
 import { ToastService, ToastTypes } from '../services/toast.service';
 
-import { RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 import { PROVINCES_STATES } from '../data/provinces-states.data';
+import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
 
 type EditSection = 'contact' | 'vehicle' | null;
 
 @Component({
   selector: 'app-account-details',
   standalone: true,
-  imports: [RouterLink, ReactiveFormsModule, NgdsFormsModule],
+  imports: [BreadcrumbComponent, ReactiveFormsModule, NgdsFormsModule],
   templateUrl: './account-details.component.html',
   styleUrl: './account-details.component.scss'
 })

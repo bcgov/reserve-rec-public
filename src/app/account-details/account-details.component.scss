@@ -36,12 +36,93 @@
     padding-bottom: 5%; 
   }
 
+// Values below come from the ready-for-development Figma frame for this page
+// (PRDT - Public, "Account – Account settings – APRIL", desktop). Ref #634.
 .account-settings {
   .phone-label {
     width: 90px;
     flex: 0 0 90px;
   }
+
+  // #634 item 1: page heading is the primary dark blue, not the default body colour.
+  h1 {
+    color: var(--rr-primary-dark);
+  }
+
+  // #634 item 2: section headers use #F2F2F2 rather than Bootstrap's bg-light,
+  // with the title at 1rem/700. Mobile pads 16px all round; tablet and desktop
+  // widen the horizontal padding to 24px. Heading and button sizing are
+  // identical across all three breakpoints.
   .card-header {
-    font-size: 0.95rem;
+    background-color: #f2f2f2;
+    padding: 1rem;
+    font-size: 1rem;
+
+    .fw-semibold {
+      font-weight: 700;
+    }
+  }
+
+  @media (min-width: 576px) {
+    .card-header {
+      padding: 1rem 1.5rem;
+    }
+  }
+
+  // #634 item 3: buttons are 48px tall with a 4px radius and 12px/16px padding.
+  // Scoped to this page so buttons elsewhere are untouched.
+  .btn {
+    --bs-btn-border-radius: 4px;
+    min-height: 48px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .btn-outline-primary {
+    --bs-btn-color: var(--rr-primary-dark);
+    --bs-btn-border-color: var(--rr-primary-dark);
+    --bs-btn-bg: #fff;
+    --bs-btn-hover-bg: var(--rr-primary-dark);
+    --bs-btn-hover-border-color: var(--rr-primary-dark);
+  }
+
+  .btn-primary {
+    --bs-btn-bg: var(--rr-primary-dark);
+    --bs-btn-border-color: var(--rr-primary-dark);
+  }
+
+  // Link-style Cancel, and anything explicitly small, keep their own sizing
+  // rather than the 48px block treatment.
+  .btn-link,
+  .btn-sm {
+    min-height: auto;
+    padding: revert;
+    font-size: revert;
+  }
+
+  // #634 item 4: verified / not verified use the design's own green and red at
+  // body size, not Bootstrap's semantic colours at 0.875em.
+  .status-verified,
+  .status-unverified {
+    font-size: 1rem;
+  }
+
+  .status-verified {
+    color: #4f8747;
+  }
+
+  .status-unverified {
+    color: #d8292f;
+  }
+
+  // #634 item 5: 4px between a field label and its value; muted values at #656565.
+  .field-label {
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+
+  .field-value {
+    color: #656565;
   }
 }

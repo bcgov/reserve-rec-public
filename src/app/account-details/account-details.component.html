@@ -29,11 +29,11 @@
     <div class="row g-4">
       <!-- Contact information -->
       <div class="col-lg-8">
-        <div class="card h-100" [class.opacity-50]="editing && editing !== 'contact'">
-          <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <div class="card h-100">
+          <div class="card-header d-flex justify-content-between align-items-center">
             <span class="fw-semibold">Contact information</span>
             @if (!isBcsc && editing !== 'contact') {
-              <button class="btn btn-outline-primary btn-sm"
+              <button class="btn btn-outline-primary"
               [disabled]="editing" (click)="startEdit('contact')">Edit</button>
             }
           </div>
@@ -41,11 +41,11 @@
             <!-- Read-only -->
             @if (editing !== 'contact') {
               <div class="mb-3">
-                <div class="fw-semibold">Name</div>
+                <div class="field-label">Name</div>
                 <div>{{ user.given_name }} {{ user.family_name }}</div>
               </div>
               <div class="mb-3">
-                <div class="fw-semibold">Home address</div>
+                <div class="field-label">Home address</div>
                 <div>{{ user['custom:streetAddress'] }}@if (user['custom:unitNumber']) {
                   <span>, {{ user['custom:unitNumber'] }}</span>
                 }</div>
@@ -55,7 +55,7 @@
                 <div>{{ user['custom:country'] }}</div>
               </div>
               <div>
-                <div class="fw-semibold">Phone numbers</div>
+                <div class="field-label">Phone numbers</div>
                 <div class="d-flex"><span class="text-muted phone-label">Mobile:</span><span>{{ user['custom:mobilePhone'] || '—' }}</span></div>
                 <div class="d-flex"><span class="text-muted phone-label">Alternate:</span><span>{{ user['custom:secondaryNumber'] || '—' }}</span></div>
               </div>
@@ -102,40 +102,40 @@
       </div>
       <!-- Account management -->
       <div class="col-lg-4">
-        <div class="card h-100" [class.opacity-50]="editing">
-          <div class="card-header bg-light"><span class="fw-semibold">Account management</span></div>
+        <div class="card h-100">
+          <div class="card-header"><span class="fw-semibold">Account management</span></div>
           <div class="card-body">
             <div class="mb-3">
-              <div class="fw-semibold">Email address</div>
+              <div class="field-label">Email address</div>
               <div>
                 {{ user.email }}
                 @if (emailVerified) {
-                  <span class="text-success small ms-1"><i class="fa-solid fa-circle-check"></i> Verified</span>
+                  <span class="status-verified ms-1"><i class="fa-solid fa-circle-check"></i> Verified</span>
                 }
                 @if (!emailVerified) {
-                  <span class="text-danger small ms-1"><i class="fa-solid fa-circle-xmark"></i> Not verified</span>
+                  <span class="status-unverified ms-1"><i class="fa-solid fa-circle-xmark"></i> Not verified</span>
                 }
               </div>
               <!-- Email change is handled in a follow-up ticket -->
-              <button class="btn btn-outline-primary btn-sm mt-2" disabled title="Coming soon">Change email address</button>
+              <button class="btn btn-outline-primary mt-2" disabled title="Coming soon">Change email address</button>
             </div>
             <hr>
               <div>
-                <div class="fw-semibold">Password</div>
-                <div class="text-muted small">Updated {{ user['custom:pwUpdate'] || 'previously' }}</div>
+                <div class="field-label">Password</div>
+                <div class="field-value">Updated {{ user['custom:pwUpdate'] || 'previously' }}</div>
                 <!-- Password change is handled in a follow-up ticket -->
-                <button class="btn btn-outline-primary btn-sm mt-2" disabled title="Coming soon">Change password</button>
+                <button class="btn btn-outline-primary mt-2" disabled title="Coming soon">Change password</button>
               </div>
             </div>
           </div>
         </div>
         <!-- Vehicle information -->
         <div class="col-lg-8">
-          <div class="card" [class.opacity-50]="editing && editing !== 'vehicle'">
-            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
               <span class="fw-semibold">Vehicle information <span class="text-muted fw-normal">(optional)</span></span>
               @if (editing !== 'vehicle') {
-                <button class="btn btn-outline-primary btn-sm"
+                <button class="btn btn-outline-primary"
                 [disabled]="editing" (click)="startEdit('vehicle')">Edit</button>
               }
             </div>

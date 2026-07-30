@@ -113,6 +113,21 @@ describe('AccountDetailsComponent', () => {
     });
   });
 
+  // #634 item 6: while one section is being edited, the other sections should
+  // still look enabled — only their buttons are disabled.
+  it('does not dim the other cards while editing', () => {
+    component.startEdit('contact');
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelectorAll('.card.opacity-50').length).toBe(0);
+
+    const editButtons = [...el.querySelectorAll('button')]
+      .filter(b => (b.textContent ?? '').trim() === 'Edit') as HTMLButtonElement[];
+    expect(editButtons.length).toBeGreaterThan(0);
+    expect(editButtons.every(b => b.disabled)).toBeTrue();
+  });
+
   it('only allows one card to be edited at a time', () => {
     component.startEdit('contact');
     component.startEdit('vehicle');

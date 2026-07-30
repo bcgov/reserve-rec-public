@@ -120,6 +120,31 @@ describe('AccountDetailsComponent', () => {
     expect(component.editing).toBe('contact');
   });
 
+  // Cancel is the same editing -> null transition as a successful save, and it
+  // needs the same explicit teardown. Both cards share cancelEdit().
+  ([['contact', 0], ['vehicle', 1]] as const).forEach(([section, editIndex]) => {
+    it(`removes the ${section} form after clicking Cancel, without a manual detectChanges`, async () => {
+      fixture.autoDetectChanges(true);
+      const el = fixture.nativeElement as HTMLElement;
+
+      const edit = [...el.querySelectorAll('button')]
+        .filter(b => (b.textContent ?? '').trim() === 'Edit')[editIndex] as HTMLButtonElement;
+      edit.click();
+      await fixture.whenStable();
+      expect(component.editing).toBe(section);
+      expect(el.querySelectorAll('form').length).toBe(1);
+
+      const cancel = Array.from(el.querySelectorAll('form button'))
+        .find(b => (b.textContent ?? '').trim() === 'Cancel') as HTMLButtonElement;
+      cancel.click();
+      await fixture.whenStable();
+
+      expect(component.editing).toBeNull();
+      expect(el.querySelectorAll('form').length).toBe(0);
+      expect(el.textContent).toContain('Phone numbers');
+    });
+  });
+
   // Drives the component the way a browser does — a real click on Save, with
   // zone-driven change detection rather than a manual detectChanges().
   it('removes the form after clicking Save, without a manual detectChanges', async () => {

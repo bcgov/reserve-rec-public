@@ -92,6 +92,9 @@ export class AccountDetailsComponent implements OnInit {
 
   cancelEdit(): void {
     this.editing = null;
+    // Same teardown problem as save(): clearing `editing` on its own leaves the
+    // edit form's view in the DOM alongside the restored read-only details.
+    this.cd.detectChanges();
   }
 
   async saveContact(): Promise<void> {

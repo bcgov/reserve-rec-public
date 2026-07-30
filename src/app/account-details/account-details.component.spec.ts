@@ -113,11 +113,51 @@ describe('AccountDetailsComponent', () => {
     });
   });
 
+  // #634 item 6: while one section is being edited, the other sections should
+  // still look enabled — only their buttons are disabled.
+  it('does not dim the other cards while editing', () => {
+    component.startEdit('contact');
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelectorAll('.card.opacity-50').length).toBe(0);
+
+    const editButtons = [...el.querySelectorAll('button')]
+      .filter(b => (b.textContent ?? '').trim() === 'Edit') as HTMLButtonElement[];
+    expect(editButtons.length).toBeGreaterThan(0);
+    expect(editButtons.every(b => b.disabled)).toBeTrue();
+  });
+
   it('only allows one card to be edited at a time', () => {
     component.startEdit('contact');
     component.startEdit('vehicle');
 
     expect(component.editing).toBe('contact');
+  });
+
+  // Cancel is the same editing -> null transition as a successful save, and it
+  // needs the same explicit teardown. Both cards share cancelEdit().
+  ([['contact', 0], ['vehicle', 1]] as const).forEach(([section, editIndex]) => {
+    it(`removes the ${section} form after clicking Cancel, without a manual detectChanges`, async () => {
+      fixture.autoDetectChanges(true);
+      const el = fixture.nativeElement as HTMLElement;
+
+      const edit = [...el.querySelectorAll('button')]
+        .filter(b => (b.textContent ?? '').trim() === 'Edit')[editIndex] as HTMLButtonElement;
+      edit.click();
+      await fixture.whenStable();
+      expect(component.editing).toBe(section);
+      expect(el.querySelectorAll('form').length).toBe(1);
+
+      const cancel = Array.from(el.querySelectorAll('form button'))
+        .find(b => (b.textContent ?? '').trim() === 'Cancel') as HTMLButtonElement;
+      cancel.click();
+      await fixture.whenStable();
+
+      expect(component.editing).toBeNull();
+      expect(el.querySelectorAll('form').length).toBe(0);
+      expect(el.textContent).toContain('Phone numbers');
+    });
   });
 
   // Drives the component the way a browser does — a real click on Save, with

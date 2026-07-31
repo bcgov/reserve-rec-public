@@ -38,6 +38,7 @@
           <amplify-authenticator
             [loginMechanisms]="['email']"
             [signUpAttributes]="['given_name', 'family_name']"
+            [services]="services"
             [initialState]="initialState">
             <ng-template amplifySlot="sign-up-form-fields">
               <amplify-sign-up-form-fields></amplify-sign-up-form-fields>

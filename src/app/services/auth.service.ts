@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { Amplify } from "aws-amplify";
 import { ConfigService } from './config.service';
-import { Hub } from 'aws-amplify/utils';
+import { Hub, I18n } from 'aws-amplify/utils';
 import { fetchAuthSession, signOut, signInWithRedirect, fetchUserAttributes, sendUserAttributeVerificationCode, updateUserAttributes } from 'aws-amplify/auth';
 import { LoggerService } from './logger.service';
 import { Router } from '@angular/router';
@@ -41,6 +41,19 @@ export class AuthService {
           },
         },
       }
+    });
+
+    // This app only ever verifies sign-up via email (autoVerify: email only in
+    // the Cognito pool). Amplify UI's confirm-sign-up screen falls back to SMS
+    // wording whenever Cognito's codeDeliveryDetails doesn't resolve to a known
+    // medium (e.g. the verification email failed to send), which wrongly tells
+    // users "We Texted You". Force it to the email wording so it never lies
+    // about how the code was (or should have been) delivered.
+    I18n.putVocabularies({
+      en: {
+        'We Texted You': 'We Emailed You',
+        'Your code is on the way. To log in, enter the code we texted to': 'Your code is on the way. To log in, enter the code we emailed to',
+      },
     });
 
     await this.listenToAuthEvents();

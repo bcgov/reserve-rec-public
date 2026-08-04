@@ -116,6 +116,68 @@
     color: #d8292f;
   }
 
+  // #633: the unverified-email alert. The design stacks the resend button under
+  // the message at every breakpoint, so the old side-by-side flex row squeezed
+  // the message into a narrow column on a phone. Values come from the three
+  // "Account – Account settings – APRIL" frames (320 / 744 / 1440 wide); only the
+  // button width differs between them.
+  .verify-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    border: 1px solid #ce3e39;
+    border-radius: 4px;
+    background-color: #f4e1e2;
+    color: #1a1a1a;
+  }
+
+  .verify-alert__icon {
+    flex: 0 0 auto;
+    margin-top: 3px; // drops the 20px icon onto the cap height of the heading
+    color: #ce3e39;
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+
+  .verify-alert__content {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .verify-alert__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .verify-alert__title {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.6;
+  }
+
+  .verify-alert__body {
+    margin-bottom: 0;
+    font-size: 0.8333rem; // 13.33px
+    line-height: 1.6;
+  }
+
+  // Full width everywhere except XL, where the design lets the button hug its label.
+  .verify-alert__action {
+    width: 100%;
+  }
+
+  @media (min-width: 1440px) {
+    .verify-alert__action {
+      width: auto;
+      align-self: flex-start;
+    }
+  }
+
   // #634 item 5: 4px between a field label and its value; muted values at #656565.
   .field-label {
     font-weight: 700;

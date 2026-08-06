@@ -28,13 +28,13 @@ export class WaitingRoomGuard implements CanActivate {
       // The waiting room requires a signed-in user. Send unauthenticated users to
       // login (with a reason) instead of silently bouncing them off the standalone
       // waiting room page back to the landing page.
-      if (!this.requireLogin(state)) {
+      if (!this.isAuthenticatedOrRedirected(state)) {
         return false;
       }
       const today = new Date().toISOString().slice(0, 10);
-      window.location.href = this.waitingRoomService.buildWaitingRoomUrl(
+      this.redirectTo(this.waitingRoomService.buildWaitingRoomUrl(
         'MODE2', 'global', '1', today, state.url
-      );
+      ));
       return false;
     }
 
@@ -58,18 +58,22 @@ export class WaitingRoomGuard implements CanActivate {
       return true;
     }
 
-    if (!this.requireLogin(state)) {
+    if (!this.isAuthenticatedOrRedirected(state)) {
       return false;
     }
 
-    window.location.href = this.waitingRoomService.buildWaitingRoomUrl(
+    this.redirectTo(this.waitingRoomService.buildWaitingRoomUrl(
       waitingRoomItem.collectionId,
       waitingRoomItem.activityType,
       waitingRoomItem.activityId,
       waitingRoomItem.startDate,
       '/checkout'
-    );
+    ));
     return false;
+  }
+
+  private redirectTo(url: string): void {
+    window.location.href = url;
   }
 
   /**
@@ -77,7 +81,7 @@ export class WaitingRoomGuard implements CanActivate {
    * stashes the return URL, routes to login with a waiting-room reason, and
    * returns false so the caller can abort.
    */
-  private requireLogin(state: RouterStateSnapshot): boolean {
+  private isAuthenticatedOrRedirected(state: RouterStateSnapshot): boolean {
     if (this.authService.getCurrentUser()) {
       return true;
     }

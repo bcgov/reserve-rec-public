@@ -332,7 +332,8 @@
     // Preserve the intended return URL and send the user to the login page.
     // The SPA guard normally routes here already; this is the fallback for
     // direct hits on the standalone waiting room page without a valid token.
-    sessionStorage.setItem('returnUrl', getReturnUrl());
+    var p = new URLSearchParams(window.location.search);
+    sessionStorage.setItem('returnUrl', p.get('returnUrl') || window.location.href);
     window.location.href = '/login?reason=waiting-room';
   }
 

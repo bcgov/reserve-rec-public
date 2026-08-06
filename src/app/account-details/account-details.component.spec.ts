@@ -179,4 +179,46 @@ describe('AccountDetailsComponent', () => {
     expect(el.querySelectorAll('form').length).toBe(0);
     expect(el.textContent).toContain('Phone numbers');
   });
+
+  // #634 item 3: Cancel is a button in the design, not a text link.
+  ['contact', 'vehicle'].forEach(section => {
+    it(`renders Cancel as a button rather than a link in the ${section} form`, () => {
+      component.startEdit(section as any);
+      fixture.detectChanges();
+
+      const cancel = Array.from(fixture.nativeElement.querySelectorAll('form button'))
+        .find((b: any) => (b.textContent ?? '').trim() === 'Cancel') as HTMLButtonElement;
+
+      expect(cancel).toBeTruthy();
+      expect(cancel.classList).not.toContain('btn-link');
+      expect(cancel.classList).toContain('btn-outline-primary');
+    });
+  });
+
+  // #634 item 4: on narrow screens the cards read Contact, Vehicle, Account
+  // management. lg+ keeps the original 8 + 4 row followed by Vehicle.
+  it('stacks the cards in the designed order on mobile without changing the lg layout', () => {
+    const columns = Array.from(
+      fixture.nativeElement.querySelectorAll('.row > div[class*="col-lg"]')
+    ) as HTMLElement[];
+
+    const labelled = columns.map(col => ({
+      // The Vehicle header carries a nested "(optional)" span; drop it so the
+      // assertion reads as the card names themselves.
+      title: col.querySelector('.card-header span')!.textContent!.replace(/\s*\(optional\)\s*$/, '').trim(),
+      classes: col.className,
+    }));
+
+    const mobile = (c: string) => Number(/(?:^|\s)order-(\d)(?:\s|$)/.exec(c)![1]);
+    const desktop = (c: string) => {
+      const lg = /order-lg-(\d)/.exec(c);
+      return lg ? Number(lg[1]) : mobile(c);
+    };
+
+    expect([...labelled].sort((a, b) => mobile(a.classes) - mobile(b.classes)).map(c => c.title))
+      .toEqual(['Contact information', 'Vehicle information', 'Account management']);
+
+    expect([...labelled].sort((a, b) => desktop(a.classes) - desktop(b.classes)).map(c => c.title))
+      .toEqual(['Contact information', 'Account management', 'Vehicle information']);
+  });
 });

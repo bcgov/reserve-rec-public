@@ -1,0 +1,62 @@
+<div class="alert alert-danger verify-alert d-flex gap-3" role="alert">
+  <i class="fa-regular fa-circle-exclamation fs-5 verify-alert__icon mt-1 text-danger"></i>
+  
+  <div class="d-flex flex-column verify-alert__content w-100 min-w-0">
+    @if (!verificationEmailSent) {
+      <div class="verify-alert__text">
+        <strong class="verify-alert__title">You will not be able to book a day-use pass until your email has been verified.</strong>
+        <p class="verify-alert__body mt-2 mb-0">Please check your inbox for the verification email or select the button below to resend.</p>
+      </div>
+
+      <div class="d-grid d-lg-flex justify-content-lg-end mt-3">
+        <button class="btn btn-primary verify-alert__action" (click)="resendVerification()">
+          Resend verification
+        </button>
+      </div>
+    } @else {
+      <div class="verify-alert__text">
+        <strong class="verify-alert__title">A verification code has been sent to your email.</strong>
+        <p class="verify-alert__body mb-0">Please check your inbox for the verification code.</p>
+      </div>
+
+      <form [formGroup]="verifyForm" (ngSubmit)="onConfirmVerificationCode()" class="mt-3">
+        <div class="col-12 col-md-10 col-lg-8 verify-digits-container">
+
+          <div class="d-flex gap-1 gap-sm-2 mb-3" (paste)="onPaste($event)">
+            @for (controlName of digitControlNames; track $index) {
+              <input
+                #digitInput
+                type="text"
+                maxLength="6" 
+                inputmode="numeric"
+                pattern="[0-9]*"
+                autocomplete="one-time-code"
+                [formControlName]="controlName"
+                (input)="onInput($event, $index)"
+                (keydown)="onKeyDown($event, $index)"
+                class="form-control text-center fs-5 fw-bold px-0 otp-digit-input"
+                [attr.aria-label]="'Digit ' + ($index + 1)"
+              />
+            }
+          </div>
+          
+          <div class="d-grid d-lg-flex">
+            <button type="submit" class="btn btn-primary verify-alert__action" [disabled]="verifyForm.invalid">
+              Verify account
+            </button>
+          </div>
+          <div class="d-grid d-lg-flex">
+            <button 
+              type="button" 
+              class="btn btn-outline-dark verify-alert__resend mt-2 px-0" 
+              (click)="resendVerification()"
+              [disabled]="resendTimeout > 0"
+              >
+              Resend code {{this.resendTimeout > 0 ? `(${this.resendTimeout}s)` : ``}}
+            </button>
+          </div>
+        </div>
+      </form>
+    }
+  </div>
+</div>

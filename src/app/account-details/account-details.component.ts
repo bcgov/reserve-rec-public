@@ -6,20 +6,22 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 import { PROVINCES_STATES } from '../data/provinces-states.data';
 import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
+import { AccountVerificationComponent } from '../shared/components/account-verification/account-verification.component';
 
 type EditSection = 'contact' | 'vehicle' | null;
 
 @Component({
   selector: 'app-account-details',
   standalone: true,
-  imports: [BreadcrumbComponent, ReactiveFormsModule, NgdsFormsModule],
+  imports: [BreadcrumbComponent, ReactiveFormsModule, NgdsFormsModule, AccountVerificationComponent],
   templateUrl: './account-details.component.html',
   styleUrl: './account-details.component.scss'
 })
 export class AccountDetailsComponent implements OnInit {
   public editing: EditSection = null;
-  public emailVerified = false;
+  public loading = true;
   public saving = false;
+  public emailVerified = false;
 
   public readonly provinces = PROVINCES_STATES;
   public readonly countries = ['Canada', 'United States', 'Other'];
@@ -49,7 +51,15 @@ export class AccountDetailsComponent implements OnInit {
   ) {}
 
   async ngOnInit(): Promise<void> {
-    this.emailVerified = await this.authService.checkEmailVerification();
+    try {
+      this.emailVerified = await this.authService.checkEmailVerification();
+    } catch (error) {
+      console.log('Error getting email verification status: ', error)
+      this.toastService.addMessage("Error getting email verification status.", 'Error', ToastTypes.ERROR);
+    } finally {
+      this.loading = false;
+      this.cd.detectChanges();
+    }
   }
 
   get user() {
@@ -140,8 +150,9 @@ export class AccountDetailsComponent implements OnInit {
     }
   }
 
-  async resendVerification(): Promise<void> {
-    await this.authService.handleResendAttributeCodeToEmail();
-    this.toastService.addMessage('Verification email sent. Please check your inbox.', 'Email sent', ToastTypes.SUCCESS);
+  onEmailVerified() {
+    this.emailVerified = true;
+    this.cd.detectChanges();
   }
+
 }

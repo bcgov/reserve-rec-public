@@ -4,7 +4,7 @@ import { lastValueFrom } from 'rxjs';
 import { DateTime } from 'luxon';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormsModule, UntypedFormGroup } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 import { ProductService } from '../services/product.service';
 import { ProductDateService } from '../services/product-date.service';
@@ -18,11 +18,12 @@ import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { ConfirmationModalComponent } from '../shared/components/confirmation-modal/confirmation-modal.component';
 import { BookingService } from '../services/booking.service';
+import { AccountVerificationComponent } from '../shared/components/account-verification/account-verification.component';
 
 @Component({
   selector: 'app-facility-details',
   host: { class: 'h-100' },
-  imports: [CommonModule, FormsModule, NgdsFormsModule, BreadcrumbComponent, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, NgdsFormsModule, BreadcrumbComponent, RouterLink, AccountVerificationComponent],
   providers: [BsModalService],
   templateUrl: './facility-details.component.html',
   styleUrls: ['./facility-details.component.scss']
@@ -77,7 +78,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private productService: ProductService,
     private productDateService: ProductDateService,
-    private authService: AuthService
+    private authService: AuthService,
   ) {
     this.facility = this.route.snapshot.data['facility'];
     this.geozone = this.facility.geozones[0];
@@ -482,14 +483,12 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  // Method to resend the verification code to the user's email
-  resendVerification() {
-    this.authService.handleResendAttributeCodeToEmail();
-    this.toastService.addMessage('Verification code resent. Please check your email.', 'Verification Sent', ToastTypes.SUCCESS);
+  onEmailVerified() {
+    this.emailVerified = true;
+    this.cdr.detectChanges();
   }
 
   ngOnDestroy(): void {
     this.cdr.detectChanges()
   }
-
 }

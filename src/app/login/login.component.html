@@ -5,6 +5,11 @@
     @if (!showAmplifyAuth) {
       <div class="login-selection-container text-center py-5">
         <div class="login-card">
+          @if (loginReason === 'waiting-room') {
+            <div class="alert alert-info text-start" role="alert">
+              Please sign in to join the waiting room. You'll continue automatically once you're logged in.
+            </div>
+          }
           <h1 class="mb-4 text-start">Log in</h1>
           <div class="d-flex flex-column align-items-center">
             <button

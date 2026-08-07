@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, RouterStateSnapshot } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 import { CartService } from '../services/cart.service';
 import { WaitingRoomService } from '../services/waiting-room.service';
 
@@ -8,7 +9,9 @@ const MODE2_FACILITY_KEY = 'MODE2#global#1';
 @Injectable({ providedIn: 'root' })
 export class WaitingRoomGuard implements CanActivate {
   constructor(
+    private authService: AuthService,
     private cartService: CartService,
+    private router: Router,
     private waitingRoomService: WaitingRoomService
   ) {}
 
@@ -22,10 +25,16 @@ export class WaitingRoomGuard implements CanActivate {
         sessionStorage.removeItem('wr_bypass_guard');
         return true;
       }
+      // The waiting room requires a signed-in user. Send unauthenticated users to
+      // login (with a reason) instead of silently bouncing them off the standalone
+      // waiting room page back to the landing page.
+      if (!this.isAuthenticatedOrRedirected(state)) {
+        return false;
+      }
       const today = new Date().toISOString().slice(0, 10);
-      window.location.href = this.waitingRoomService.buildWaitingRoomUrl(
+      this.redirectTo(this.waitingRoomService.buildWaitingRoomUrl(
         'MODE2', 'global', '1', today, state.url
-      );
+      ));
       return false;
     }
 
@@ -49,13 +58,35 @@ export class WaitingRoomGuard implements CanActivate {
       return true;
     }
 
-    window.location.href = this.waitingRoomService.buildWaitingRoomUrl(
+    if (!this.isAuthenticatedOrRedirected(state)) {
+      return false;
+    }
+
+    this.redirectTo(this.waitingRoomService.buildWaitingRoomUrl(
       waitingRoomItem.collectionId,
       waitingRoomItem.activityType,
       waitingRoomItem.activityId,
       waitingRoomItem.startDate,
       '/checkout'
-    );
+    ));
+    return false;
+  }
+
+  private redirectTo(url: string): void {
+    window.location.href = url;
+  }
+
+  /**
+   * Ensures a user is signed in. Returns true when authenticated. When not,
+   * stashes the return URL, routes to login with a waiting-room reason, and
+   * returns false so the caller can abort.
+   */
+  private isAuthenticatedOrRedirected(state: RouterStateSnapshot): boolean {
+    if (this.authService.getCurrentUser()) {
+      return true;
+    }
+    sessionStorage.setItem('returnUrl', state.url);
+    this.router.navigate(['/login'], { queryParams: { reason: 'waiting-room' } });
     return false;
   }
 }

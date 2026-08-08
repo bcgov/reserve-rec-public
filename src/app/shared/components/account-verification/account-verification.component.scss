@@ -1,0 +1,13 @@
+.verify-digits-container {
+  max-width: 300px;
+}
+
+.verify-alert__resend {
+  border: none;
+  font-size: 0.8rem;
+}
+
+.verify-alert__resend:hover {
+  color: var(--bs-primary);
+  background-color: transparent;
+}

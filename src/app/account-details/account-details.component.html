@@ -3,128 +3,129 @@
   <app-breadcrumb></app-breadcrumb>
   <h1 class="h3 fw-bold mb-4">Account settings</h1>
 
-  <!-- Email not verified -->
-  @if (user && !emailVerified) {
-    <div class="alert alert-danger verify-alert" role="alert">
-      <i class="fa-solid fa-circle-exclamation verify-alert__icon"></i>
-      <div class="verify-alert__content">
-        <div class="verify-alert__text">
-          <strong class="verify-alert__title">You will not be able to book a day-use pass until your email has been verified.</strong>
-          <p class="verify-alert__body">Please check your inbox for the verification e-mail or select the button below to resend.</p>
-        </div>
-        <button class="btn btn-primary verify-alert__action" (click)="resendVerification()">Resend verification</button>
+  <!-- Loading State -->
+  @if (loading) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
       </div>
+      <p class="mt-3">Loading account settings...</p>
     </div>
-  }
+  } @else {
 
-  <!-- BC Services Card notice -->
-  @if (isBcsc) {
-    <div class="alert alert-info" role="alert">
-      <strong><i class="fa-solid fa-circle-info me-2"></i>Some information cannot be edited, as it is based off your BC Services Card.</strong>
-      <div class="small mt-1">
-        If any of the below information is incorrect or out of date,
-        <a href="https://www.bceid.ca/" target="_blank" rel="noopener">click here to find out how to update your information</a>.
-      </div>
-    </div>
-  }
+    <!-- Email not verified -->
+    @if (user && !emailVerified) {
+      <app-account-verification (emailVerified)="onEmailVerified()" />
+    }
 
-  @if (user) {
-    <div class="row g-4">
-      <!-- Contact information -->
-      <!-- Cards stack Contact / Vehicle / Account management on narrow screens
-           (#634 item 4); lg+ keeps the DOM order so the 8+4 row is unchanged. -->
-      <div class="col-lg-8 order-1">
-        <div class="card h-100">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <span class="fw-semibold">Contact information</span>
-            @if (!isBcsc && editing !== 'contact') {
-              <button class="btn btn-outline-primary"
-              [disabled]="editing" (click)="startEdit('contact')">Edit</button>
-            }
-          </div>
-          <div class="card-body">
-            <!-- Read-only -->
-            @if (editing !== 'contact') {
-              <div class="mb-3">
-                <div class="field-label">Name</div>
-                <div>{{ user.given_name }} {{ user.family_name }}</div>
-              </div>
-              <div class="mb-3">
-                <div class="field-label">Home address</div>
-                <div>{{ user['custom:streetAddress'] }}@if (user['custom:unitNumber']) {
-                  <span>, {{ user['custom:unitNumber'] }}</span>
-                }</div>
-                <div>{{ user['custom:city'] }}@if (user['custom:province']) {
-                  <span>, {{ user['custom:province'] }}</span>
-                } {{ user['custom:postalCode'] }}</div>
-                <div>{{ user['custom:country'] }}</div>
-              </div>
-              <div>
-                <div class="field-label">Phone numbers</div>
-                <div class="d-flex"><span class="text-muted phone-label">Mobile:</span><span>{{ user['custom:mobilePhone'] || '—' }}</span></div>
-                <div class="d-flex"><span class="text-muted phone-label">Alternate:</span><span>{{ user['custom:secondaryNumber'] || '—' }}</span></div>
-              </div>
-            }
-            <!-- Edit -->
-            @if (editing === 'contact') {
-              <form [formGroup]="contactForm" (ngSubmit)="saveContact()">
-                <div class="row g-3">
-                  <div class="col-md-6"><ngds-text-input label="Surname" [control]="contactForm.get('family_name')"></ngds-text-input></div>
-                  <div class="col-md-6"><ngds-text-input label="Given names" [control]="contactForm.get('given_name')"></ngds-text-input></div>
-                  <div class="col-12"><ngds-text-input label="Street address" [control]="contactForm.get('streetAddress')"></ngds-text-input></div>
-                  <div class="col-12"><ngds-text-input label="Suite, apartment or unit" [control]="contactForm.get('unitNumber')"></ngds-text-input></div>
-                  <div class="col-md-6"><ngds-text-input label="City" [control]="contactForm.get('city')"></ngds-text-input></div>
-                  <div class="col-md-6">
-                    <label class="form-label" for="province-select">Province or state</label>
-                    <select id="province-select" class="form-select" formControlName="province">
-                      <option value="">Select…</option>
-                      @for (p of provinces; track p) {
-                        <option [value]="p">{{ p }}</option>
-                      }
-                    </select>
-                  </div>
-                  <div class="col-md-6"><ngds-text-input label="Postal or zip code" [control]="contactForm.get('postalCode')"></ngds-text-input></div>
-                  <div class="col-md-6">
-                    <label class="form-label" for="country-select">Country</label>
-                    <select id="country-select" class="form-select" formControlName="country">
-                      <option value="">Select…</option>
-                      @for (c of countries; track c) {
-                        <option [value]="c">{{ c }}</option>
-                      }
-                    </select>
-                  </div>
-                  <div class="col-md-6"><ngds-text-input label="Mobile phone" [control]="contactForm.get('mobilePhone')"></ngds-text-input></div>
-                  <div class="col-md-6"><ngds-text-input label="Alternate phone (optional)" [control]="contactForm.get('secondaryNumber')"></ngds-text-input></div>
-                </div>
-                <div class="d-flex justify-content-end gap-2 mt-3">
-                  <button type="button" class="btn btn-outline-primary" [disabled]="saving" (click)="cancelEdit()">Cancel</button>
-                  <button type="submit" class="btn btn-primary" [disabled]="saving">Save</button>
-                </div>
-              </form>
-            }
-          </div>
+    <!-- BC Services Card notice -->
+    @if (isBcsc) {
+      <div class="alert alert-info" role="alert">
+        <strong><i class="fa-solid fa-circle-info me-2"></i>Some information cannot be edited, as it is based off your BC Services Card.</strong>
+        <div class="small mt-1">
+          If any of the below information is incorrect or out of date,
+          <a href="https://www.bceid.ca/" target="_blank" rel="noopener">click here to find out how to update your information</a>.
         </div>
       </div>
-      <!-- Account management -->
-      <div class="col-lg-4 order-3 order-lg-2">
-        <div class="card h-100">
-          <div class="card-header"><span class="fw-semibold">Account management</span></div>
-          <div class="card-body">
-            <div class="mb-3">
-              <div class="field-label">Email address</div>
-              <div>
-                {{ user.email }}
-                @if (emailVerified) {
-                  <span class="status-verified ms-1"><i class="fa-solid fa-circle-check"></i> Verified</span>
-                }
-                @if (!emailVerified) {
-                  <span class="status-unverified ms-1"><i class="fa-solid fa-circle-xmark"></i> Not verified</span>
-                }
-              </div>
-              <!-- Email change is handled in a follow-up ticket -->
-              <button class="btn btn-outline-primary mt-2" disabled title="Coming soon">Change email address</button>
+    }
+
+    @if (user) {
+      <div class="row g-4">
+        <!-- Contact information -->
+        <!-- Cards stack Contact / Vehicle / Account management on narrow screens
+             (#634 item 4); lg+ keeps the DOM order so the 8+4 row is unchanged. -->
+        <div class="col-lg-8 order-1">
+          <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span class="fw-semibold">Contact information</span>
+              @if (!isBcsc && editing !== 'contact') {
+                <button class="btn btn-outline-primary"
+                [disabled]="editing" (click)="startEdit('contact')">Edit</button>
+              }
             </div>
-            <hr>
+            <div class="card-body">
+              <!-- Read-only -->
+              @if (editing !== 'contact') {
+                <div class="mb-3">
+                  <div class="field-label">Name</div>
+                  <div>{{ user.given_name }} {{ user.family_name }}</div>
+                </div>
+                <div class="mb-3">
+                  <div class="field-label">Home address</div>
+                  <div>{{ user['custom:streetAddress'] }}@if (user['custom:unitNumber']) {
+                    <span>, {{ user['custom:unitNumber'] }}</span>
+                  }</div>
+                  <div>{{ user['custom:city'] }}@if (user['custom:province']) {
+                    <span>, {{ user['custom:province'] }}</span>
+                  } {{ user['custom:postalCode'] }}</div>
+                  <div>{{ user['custom:country'] }}</div>
+                </div>
+                <div>
+                  <div class="field-label">Phone numbers</div>
+                  <div class="d-flex"><span class="text-muted phone-label">Mobile:</span><span>{{ user['custom:mobilePhone'] || '—' }}</span></div>
+                  <div class="d-flex"><span class="text-muted phone-label">Alternate:</span><span>{{ user['custom:secondaryNumber'] || '—' }}</span></div>
+                </div>
+              }
+              <!-- Edit -->
+              @if (editing === 'contact') {
+                <form [formGroup]="contactForm" (ngSubmit)="saveContact()">
+                  <div class="row g-3">
+                    <div class="col-md-6"><ngds-text-input label="Surname" [control]="contactForm.get('family_name')"></ngds-text-input></div>
+                    <div class="col-md-6"><ngds-text-input label="Given names" [control]="contactForm.get('given_name')"></ngds-text-input></div>
+                    <div class="col-12"><ngds-text-input label="Street address" [control]="contactForm.get('streetAddress')"></ngds-text-input></div>
+                    <div class="col-12"><ngds-text-input label="Suite, apartment or unit" [control]="contactForm.get('unitNumber')"></ngds-text-input></div>
+                    <div class="col-md-6"><ngds-text-input label="City" [control]="contactForm.get('city')"></ngds-text-input></div>
+                    <div class="col-md-6">
+                      <label class="form-label" for="province-select">Province or state</label>
+                      <select id="province-select" class="form-select" formControlName="province">
+                        <option value="">Select…</option>
+                        @for (p of provinces; track p) {
+                          <option [value]="p">{{ p }}</option>
+                        }
+                      </select>
+                    </div>
+                    <div class="col-md-6"><ngds-text-input label="Postal or zip code" [control]="contactForm.get('postalCode')"></ngds-text-input></div>
+                    <div class="col-md-6">
+                      <label class="form-label" for="country-select">Country</label>
+                      <select id="country-select" class="form-select" formControlName="country">
+                        <option value="">Select…</option>
+                        @for (c of countries; track c) {
+                          <option [value]="c">{{ c }}</option>
+                        }
+                      </select>
+                    </div>
+                    <div class="col-md-6"><ngds-text-input label="Mobile phone" [control]="contactForm.get('mobilePhone')"></ngds-text-input></div>
+                    <div class="col-md-6"><ngds-text-input label="Alternate phone (optional)" [control]="contactForm.get('secondaryNumber')"></ngds-text-input></div>
+                  </div>
+                  <div class="d-flex justify-content-end gap-2 mt-3">
+                    <button type="button" class="btn btn-outline-primary" [disabled]="saving" (click)="cancelEdit()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" [disabled]="saving">Save</button>
+                  </div>
+                </form>
+              }
+            </div>
+          </div>
+        </div>
+        <!-- Account management -->
+        <div class="col-lg-4 order-3 order-lg-2">
+          <div class="card h-100">
+            <div class="card-header"><span class="fw-semibold">Account management</span></div>
+            <div class="card-body">
+              <div class="mb-3">
+                <div class="field-label">Email address</div>
+                <div>
+                  {{ user.email }}
+                  @if (emailVerified) {
+                    <span class="status-verified ms-1"><i class="fa-solid fa-circle-check"></i> Verified</span>
+                  }
+                  @if (!emailVerified) {
+                    <span class="status-unverified ms-1"><i class="fa-solid fa-circle-xmark"></i> Not verified</span>
+                  }
+                </div>
+                <!-- Email change is handled in a follow-up ticket -->
+                <button class="btn btn-outline-primary mt-2" disabled title="Coming soon">Change email address</button>
+              </div>
+              <hr>
               <div>
                 <div class="field-label">Password</div>
                 <div class="field-value">Updated {{ user['custom:pwUpdate'] || 'previously' }}</div>
@@ -180,4 +181,5 @@
         </div>
       </div>
     }
-  </div>
+  }
+</div>

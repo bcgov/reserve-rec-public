@@ -123,6 +123,21 @@
                 type="text"
                 [required]="false">
               </amplify-text-field>
+              <div class="collection-notice">
+                <h6>Information collection</h6>
+                <hr>
+                <p>
+                  This information is collected by BC Parks, under Section 26(c) and 26(e) of the
+                  Freedom of Information and Protection of Privacy Act for the purpose of making and
+                  maintaining a reservation at a day use location and to evaluate the reservation
+                  system and process.
+                </p>
+                <p>
+                  Questions regarding this collection can be directed to
+                  <a href="mailto:parkinfo@gov.bc.ca">parkinfo&#64;gov.bc.ca</a> or Information Officer,
+                  BC Parks, PO BOX 9351 STN PROV GOVT, Victoria, BC, V8W 9V1, Canada.
+                </p>
+              </div>
             </ng-template>
             <ng-template amplifySlot="authenticated" let-user="user" let-signOut="signOut">
               <button (click)="signOut()">Sign Out</button>

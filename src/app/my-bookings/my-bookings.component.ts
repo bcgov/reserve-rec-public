@@ -140,6 +140,11 @@ export class MyBookingsComponent implements OnInit {
 
       this.loading = false;
     });
+
+    // Active ascending (soonest first); past/cancelled descending (most recent first)
+    this.activeBookings.sort((a, b) => DateTime.fromISO(a.startDate).toMillis() - DateTime.fromISO(b.startDate).toMillis());
+    this.pastBookings.sort((a, b) => DateTime.fromISO(b.startDate).toMillis() - DateTime.fromISO(a.startDate).toMillis());
+    this.cancelledBookings.sort((a, b) => DateTime.fromISO(b.startDate).toMillis() - DateTime.fromISO(a.startDate).toMillis());
   }
 
   // Format date range with time of day info

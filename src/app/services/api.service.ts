@@ -47,7 +47,9 @@ export class ApiService implements OnDestroy {
         this.apiPath = this.configService.config['API_LOCATION'];
       }
     } else {
-      this.apiPath = window.location.origin + '/api';
+      // Resolve against <base href> so the app works both at the domain root
+      // (-> origin/api) and path-mounted behind the front door (-> origin/dayuse/api).
+      this.apiPath = new URL('api', document.baseURI).toString();
     }
 
     this.headers = new HttpHeaders({

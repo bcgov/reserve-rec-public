@@ -67,7 +67,9 @@ export class ConfigService {
       try {
         // Add blank Auth header to prevent 401
         const headers = new HttpHeaders().set('Authorization', 'config');
-        let url = '/api/config?config=public';
+        // Resolve against <base href> so the app works both at the domain root and
+        // path-mounted behind the front door (e.g. /dayuse/ -> /dayuse/api/config).
+        let url = new URL('api/config?config=public', document.baseURI).toString();
         if (this.configuration['CONFIG_URL']) {
           url = this.configuration['CONFIG_URL'] + '/api/config?config=public';
         }

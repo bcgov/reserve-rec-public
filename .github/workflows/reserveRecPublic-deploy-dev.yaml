@@ -100,6 +100,21 @@ jobs:
           aws s3 rm s3://$S3_BUCKET/ --recursive --exclude "*" --include "latest/*"
           aws s3 sync dist s3://$S3_BUCKET/latest
 
+      ### Publish the /dayuse copy for the front door ###
+      # Same artifacts as latest/, but served path-mounted at reserve-rec front door's
+      # /dayuse* behavior (path-preserving S3 origin, originPath ''). The only file that
+      # differs is index.html's <base href>, which anchors the router, asset URLs, and
+      # relative API calls under the /dayuse/ prefix.
+      - name: Deploy /dayuse prefix to S3
+        env:
+          S3_BUCKET: ${{ vars.S3_BUCKET }}
+        run: |
+          cp -r dist/reserve-rec-public/browser dayuse-dist
+          sed -i 's@<base href="/">@<base href="/dayuse/">@' dayuse-dist/index.html
+          grep -q '<base href="/dayuse/">' dayuse-dist/index.html || { echo "base href rewrite failed"; exit 1; }
+          aws s3 rm s3://$S3_BUCKET/dayuse --recursive
+          aws s3 sync dayuse-dist s3://$S3_BUCKET/dayuse
+
       ### Invalidate CloudFront Cache ###
       - name: Invalidate CloudFront Cache
         env:
@@ -107,4 +122,13 @@ jobs:
         run: |
           echo "Invalidating CloudFront Distribution ID: $DISTRIBUTION_ID"
           aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
+
+      ### Invalidate Front Door Cache (skipped until the front door exists and the var is set) ###
+      - name: Invalidate Front Door Cache
+        if: ${{ vars.FRONT_DOOR_DISTRIBUTION_ID != '' }}
+        env:
+          DISTRIBUTION_ID: ${{ vars.FRONT_DOOR_DISTRIBUTION_ID }}
+        run: |
+          echo "Invalidating Front Door Distribution ID: $DISTRIBUTION_ID"
+          aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/dayuse/*"
 

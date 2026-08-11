@@ -2,6 +2,7 @@ const cdk = require('aws-cdk-lib');
 const { logger } = require('../lib/helpers/utils.js');
 const { createDistributionStack } = require('../lib/distribution-stack/distribution-stack.js');
 const { createWaitingRoomEdgeStack } = require('../lib/waiting-room-edge-stack/waiting-room-edge-stack.js');
+const { createFrontDoorStack } = require('../lib/front-door-stack/front-door-stack.js');
 
 class CDKProject {
   constructor() {
@@ -199,6 +200,16 @@ class CDKProject {
 
     if (distributionStack && edgeStack) {
       distributionStack.addDependency(edgeStack);
+    }
+
+    // Front door: the shared multi-product entry point (reserve.bcparks.ca shape).
+    // Opt-in per environment (DEPLOY_FRONT_DOOR=true) while it rolls out dev → test → prod.
+    // Depends on distributionStack for the dist-bucket-name SSM export it consumes.
+    if (this.context?.DEPLOY_FRONT_DOOR === 'true') {
+      const frontDoorStack = await this.addStack('frontDoorStack', createFrontDoorStack);
+      if (frontDoorStack && distributionStack) {
+        frontDoorStack.addDependency(distributionStack);
+      }
     }
 
   }

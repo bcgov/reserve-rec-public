@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { Amplify } from "aws-amplify";
 import { ConfigService } from './config.service';
 import { Hub, I18n } from 'aws-amplify/utils';
-import { fetchAuthSession, signOut, signInWithRedirect, fetchUserAttributes, sendUserAttributeVerificationCode, updateUserAttributes } from 'aws-amplify/auth';
+import { fetchAuthSession, signOut, signInWithRedirect, fetchUserAttributes, sendUserAttributeVerificationCode, updateUserAttributes, confirmUserAttribute } from 'aws-amplify/auth';
 import { LoggerService } from './logger.service';
 import { Router } from '@angular/router';
 
@@ -302,4 +302,18 @@ export class AuthService {
     }
   }
 
+  // Submit activation code
+  async handleConfirmAttributeCode(code: string) {
+    try {
+      await confirmUserAttribute({
+        userAttributeKey: 'email',
+        confirmationCode: code
+      });
+      console.log('Email attribute verified successfully');
+      return true
+    } catch (error) {
+      console.error('Error verifying email attribute code:', error);
+      throw error;
+    }
+  }
 }

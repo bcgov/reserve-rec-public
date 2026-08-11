@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AmplifyAuthenticatorModule } from '@aws-amplify/ui-angular';
+import { AmplifyAuthenticatorModule, AuthenticatorService } from '@aws-amplify/ui-angular';
 import { AuthService } from '../services/auth.service';
 import {
   signIn,
@@ -65,7 +65,8 @@ export class LoginComponent implements OnInit{
   constructor(
     private authService: AuthService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private authenticator: AuthenticatorService
   ) {}
   currentDate = '';
   ngOnInit() {
@@ -101,11 +102,13 @@ export class LoginComponent implements OnInit{
   showBCParksLogin() {
     this.initialState = 'signIn';
     this.showAmplifyAuth = true;
+    this.authenticator.toSignIn();
   }
 
   showBCParksSignUp() {
     this.initialState = 'signUp';
     this.showAmplifyAuth = true;
+    this.authenticator.toSignUp();
   }
   
   goBack() {

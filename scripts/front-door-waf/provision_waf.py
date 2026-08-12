@@ -220,7 +220,7 @@ def main():
             print(f"  ipset exists  {ip_name}")
         elif args.apply:
             r = waf.create_ip_set(Name=ip_name, Scope="CLOUDFRONT", IPAddressVersion=ver,
-                                  Addresses=[], Description="reserve-rec front-door edge; populated by datacenter_feed.py")
+                                  Addresses=[], Description="reserve-rec front-door edge - populated by datacenter_feed.py")
             ipset_arns[ip_name] = r["Summary"]["ARN"]
             print(f"  ipset CREATE  {ip_name}")
         else:

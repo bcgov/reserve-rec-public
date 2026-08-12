@@ -97,7 +97,7 @@
       "IS_OFFLINE": "false",
       "FAIL_FAST": "false",
       "DEPLOY_EDGE_STACK": "false",
-      "DEPLOY_FRONT_DOOR": "false"
+      "DEPLOY_FRONT_DOOR": "true"
     },
     "prod": {
       "DEPLOYMENT_NAME": "prod",

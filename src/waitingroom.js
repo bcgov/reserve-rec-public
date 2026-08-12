@@ -4,6 +4,11 @@
 (function () {
   'use strict';
 
+  // App base derived from this page's own path ('/waitingroom.html' or
+  // '/dayuse/waitingroom.html') so the page works both at the domain root and
+  // path-mounted behind the front door.
+  var APP_BASE = window.location.pathname.replace(/waitingroom\.html$/, '');
+
   // ── State ────────────────────────────────────────────────────────────────
   let config = null;
   let queueId = null;
@@ -57,7 +62,7 @@
 
   // ── Config ────────────────────────────────────────────────────────────────
   async function fetchConfig() {
-    var resp = await fetch('/api/config?config=public');
+    var resp = await fetch(APP_BASE + 'api/config?config=public');
     if (!resp.ok) throw new Error('Failed to fetch config (HTTP ' + resp.status + ')');
     var json = await resp.json();
     if (!json.data) throw new Error('Config response missing data');
@@ -96,7 +101,7 @@
 
   function getReturnUrl() {
     var p = new URLSearchParams(window.location.search);
-    return p.get('returnUrl') || '/';
+    return p.get('returnUrl') || APP_BASE;
   }
 
   // ── Countdown ─────────────────────────────────────────────────────────────
@@ -119,7 +124,7 @@
 
   // ── API calls ─────────────────────────────────────────────────────────────
   async function joinQueue(token, params) {
-    var resp = await fetch('/api/waiting-room/join', {
+    var resp = await fetch(APP_BASE + 'api/waiting-room/join', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -154,7 +159,7 @@
   }
 
   async function claimAdmission(token, claimQueueId) {
-    var resp = await fetch('/api/waiting-room/claim', {
+    var resp = await fetch(APP_BASE + 'api/waiting-room/claim', {
       method: 'POST',
       credentials: 'include',   // Needed to receive the HttpOnly Set-Cookie
       headers: {
@@ -183,7 +188,7 @@
     var currentToken = getAmplifyToken(config.PUBLIC_USER_POOL_CLIENT_ID) || wsToken;
     if (!currentToken) {
       console.warn('[WaitingRoom] Cannot connect WebSocket: no valid token');
-      window.location.href = '/login';
+      window.location.href = APP_BASE + 'login';
       return;
     }
     wsToken = currentToken;

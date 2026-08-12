@@ -78,6 +78,7 @@ export class WaitingRoomService {
   buildWaitingRoomUrl(collectionId: string, activityType: string, activityId: string, startDate: string, returnUrl: string, facilityName?: string): string {
     const p: Record<string, string> = { collectionId, activityType, activityId, startDate, returnUrl };
     if (facilityName) p['facilityName'] = facilityName;
-    return `/waitingroom.html?${new URLSearchParams(p).toString()}`;
+    // Resolve against <base href> so this works at / and path-mounted (/dayuse/).
+    return new URL(`waitingroom.html?${new URLSearchParams(p).toString()}`, document.baseURI).toString();
   }
 }

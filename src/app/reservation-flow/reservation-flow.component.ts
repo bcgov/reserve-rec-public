@@ -313,7 +313,7 @@ async onStepCompleted(completed: boolean): Promise<void> {
           startDate: this.cartItem.startDate,
           returnUrl: '/checkout',
         });
-        window.location.href = `/waitingroom.html?${params.toString()}`;
+        window.location.href = new URL(`waitingroom.html?${params.toString()}`, document.baseURI).toString();
         return;
       }
       

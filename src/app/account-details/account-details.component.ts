@@ -109,6 +109,31 @@ export class AccountDetailsComponent implements OnInit {
 
   async saveContact(): Promise<void> {
     const v = this.contactForm.getRawValue();
+    
+    // Check for empty mandatory fields
+    const missingFields: string[] = [];
+    
+    if (!v.given_name?.trim()) missingFields.push('Given names');
+    if (!v.family_name?.trim()) missingFields.push('Surname');
+    if (!v.streetAddress?.trim()) missingFields.push('Street address');
+    if (!v.city?.trim()) missingFields.push('City');
+    if (!v.province?.trim()) missingFields.push('Province or state');
+    if (!v.postalCode?.trim()) missingFields.push('Postal or zip code');
+    if (!v.country?.trim()) missingFields.push('Country');
+    if (!v.mobilePhone?.trim()) missingFields.push('Mobile phone');
+    
+    if (missingFields.length > 0) {
+      const fieldList = missingFields.join(', ');
+      this.toastService.addMessage(`Please fill in the following required fields: ${fieldList}`, 'Validation Error', ToastTypes.ERROR);
+      // Mark fields as touched to show error states
+      Object.keys(this.contactForm.controls).forEach(key => {
+        if (key !== 'unitNumber' && key !== 'secondaryNumber') {
+          this.contactForm.get(key)?.markAsTouched();
+        }
+      });
+      return;
+    }
+
     await this.save({
       given_name: v.given_name ?? '',
       family_name: v.family_name ?? '',

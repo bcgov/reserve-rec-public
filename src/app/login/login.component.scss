@@ -70,6 +70,7 @@ padding: var(--amplify-space-medium);
 }
 
 .collection-notice {
+  margin-top: 2.5rem; // gap above "Information collection" per Figma (#673)
   font-size: 1rem;
   line-height: 1.6;
   color: #495057;

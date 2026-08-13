@@ -3,6 +3,7 @@ import { Component, ElementRef, HostListener} from '@angular/core';
 import { AuthService } from '../services/auth.service';
 import { RouterModule, Router } from '@angular/router';
 import { ConfigService } from '../services/config.service';
+import { CartService } from '../services/cart.service';
 
 @Component({
     selector: 'app-header',
@@ -19,7 +20,8 @@ export class HeaderComponent {
     private authService: AuthService, 
     private router: Router, 
     private configService: ConfigService,
-    private el: ElementRef
+    private el: ElementRef,
+    private cartService: CartService
   ) {
     this.envName = this.configService.config['ENVIRONMENT'] || 'local';
     // Hide banner in production
@@ -33,6 +35,15 @@ export class HeaderComponent {
 
   logout() {
     this.authService.logout(); // Call the sign-out logic
+  }
+
+  get cartItemCount() {
+    return this.cartService.itemCount();
+  }
+
+  navigateToCart() {
+    this.router.navigate(['/cart']);
+    this.closeMenu();
   }
   
   toggleHamburger() {

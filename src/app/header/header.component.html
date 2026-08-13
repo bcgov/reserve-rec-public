@@ -5,21 +5,44 @@
         alt="BC Parks" height="45">
     </a>
 
-    <!-- Hamburger only visible only when collapsed -->
-    <button
-      class="navbar-toggler border-0"
-      type="button"
-      aria-controls="navbarSupportedContent"
-      [attr.aria-expanded]="!hamburgerIcon"
-      aria-label="Toggle navigation"
-      (click)="toggleHamburger()"
-      >
-      <i [class]="'bi fa-2xl text-light'" [ngClass]="hamburgerIcon ? 'bi-list' : 'bi-x'"></i>
-    </button>
+    <!-- Mobile layout: Cart and Hamburger in flex container -->
+    <div class="d-sm-none d-flex gap-2 ms-auto">
+      <!-- Cart icon visible only on smallest screens -->
+       @if (user) {
+      <a class="btn text-light d-flex align-items-center gap-1" routerLink="/cart" title="Cart">
+        <i class="fa-regular fa-cart-shopping fa-lg"></i>
+        @if (cartItemCount > 0) {
+          <span class="badge rounded-circle bg-white text-dark">{{ cartItemCount }}</span>
+        }
+      </a>
+      }
+
+      <!-- Hamburger only visible only when collapsed -->
+      <button
+        class="navbar-toggler border-0"
+        type="button"
+        aria-controls="navbarSupportedContent"
+        [attr.aria-expanded]="!hamburgerIcon"
+        aria-label="Toggle navigation"
+        (click)="toggleHamburger()"
+        >
+        <i [class]="'bi fa-2xl text-light'" [ngClass]="hamburgerIcon ? 'bi-list' : 'bi-x'"></i>
+      </button>
+    </div>
 
     <!-- Full width menu -->
     <div class="collapse navbar-collapse" id="navbarSupportedContentFull">
       <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          @if (user){
+          <a class="btn text-light fw-bold d-flex align-items-center gap-1" routerLink="/cart">
+            <i class="fa-regular fa-cart-shopping"></i>
+            @if (cartItemCount > 0) {
+              <span class="badge rounded-circle bg-white text-dark">{{ cartItemCount }}</span>
+            }
+          </a>
+          }
+        </li>
         <li class="nav-item dropdown">
           @if (user) {
             <button

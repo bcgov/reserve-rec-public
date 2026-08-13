@@ -115,11 +115,14 @@
                 <div class="field-label">Email address</div>
                 <div>
                   {{ user.email }}
+                  <!-- Icons match the Figma status chips: an outline circle-check
+                       (node 6231:190938) and a bare xmark with no circle around it
+                       (node 6231:191327) — both the regular weight, not solid. -->
                   @if (emailVerified) {
-                    <span class="status-verified ms-1"><i class="fa-solid fa-circle-check"></i> Verified</span>
+                    <span class="status-verified ms-1"><i class="fa-regular fa-circle-check"></i> Verified</span>
                   }
                   @if (!emailVerified) {
-                    <span class="status-unverified ms-1"><i class="fa-solid fa-circle-xmark"></i> Not verified</span>
+                    <span class="status-unverified ms-1"><i class="fa-regular fa-xmark"></i> Not verified</span>
                   }
                 </div>
                 <!-- Email change is handled in a follow-up ticket -->

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { AuthService } from '../services/auth.service';
 import { ToastService, ToastTypes } from '../services/toast.service';
 
@@ -17,7 +17,7 @@ type EditSection = 'contact' | 'vehicle' | null;
   templateUrl: './account-details.component.html',
   styleUrl: './account-details.component.scss'
 })
-export class AccountDetailsComponent implements OnInit {
+export class AccountDetailsComponent implements OnInit, OnDestroy {
   public editing: EditSection = null;
   public loading = true;
   public saving = false;
@@ -178,6 +178,11 @@ export class AccountDetailsComponent implements OnInit {
   onEmailVerified() {
     this.emailVerified = true;
     this.cd.detectChanges();
+  }
+
+  ngOnDestroy(): void {
+    // TODO: this is a temporary fix
+    this.cd.detectChanges()
   }
 
 }

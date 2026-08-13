@@ -12,7 +12,10 @@
     @if (isCancelled) {
       <div class="text-danger mb-2">Cancelled</div>
     }
-    <div [class]="{ 'text-muted': isCancelled, 'text-body-emphasis': !isCancelled }">
+    @if (isInProgress) {
+      <div class="text-warning mb-2">In progress</div>
+    }
+    <div [class]="{ 'text-muted': isCancelled || isInProgress, 'text-body-emphasis': !isCancelled && !isInProgress }">
       {{ formattedDate }}
     </div>
   </div>

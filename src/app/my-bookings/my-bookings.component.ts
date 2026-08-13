@@ -10,6 +10,7 @@ import { BookingUtils } from '../utils/booking-utils';
 import { Constants } from '../constants';
 import { DataService } from '../services/data.service';
 import { LoadingService } from '../services/loading.service';
+import { ConfigService } from '../services/config.service';
 
 @Component({
   selector: 'app-my-bookings',
@@ -18,6 +19,7 @@ import { LoadingService } from '../services/loading.service';
   styleUrls: ['./my-bookings.component.scss']
 })
 export class MyBookingsComponent implements OnInit {
+  public env;
 
   public activeBookings: any[] = [];
   public pastBookings: any[] = [];
@@ -34,6 +36,8 @@ export class MyBookingsComponent implements OnInit {
     private loadingService: LoadingService,
     private bookingService: BookingService,
     private dataService: DataService,
+    private configService: ConfigService,
+
   ) {
     effect(() => {
       this.loading = this.loadingService.isLoading();
@@ -42,6 +46,8 @@ export class MyBookingsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.env = this.configService.config['ENVIRONMENT'];
+
     this.clearBookings();
     this.dataService.clearItemValue(Constants.dataIds.MY_BOOKINGS_RESULT);
 
@@ -103,8 +109,8 @@ export class MyBookingsComponent implements OnInit {
     bookings.forEach(item => {
       const rangeEnd = DateTime.fromISO(item.endDate).endOf('day');
       const isCancelled = item.status === 'cancelled' || item.bookingStatus === 'cancelled';
+      const isInProgress = item.status === 'in progress' || item.bookingStatus === 'in progress';
       const hasEnded = this.today > rangeEnd;
-      const isPending = item.isPending === 'PENDING';
 
       // Get the display name of the activity type from constants
       const activityType = Constants.activityTypes?.[item.activityType]?.display || BookingUtils.getActivityType(item);
@@ -119,6 +125,7 @@ export class MyBookingsComponent implements OnInit {
         endDate: item.endDate,
         formattedDate: this.formatDateRange(item),
         isCancelled: isCancelled,
+        isInProgress: isInProgress,
         status: item.status || item.bookingStatus
       };
 
@@ -129,7 +136,7 @@ export class MyBookingsComponent implements OnInit {
       // 4. Other - catch-all for debugging
       if (isCancelled) {
         this.cancelledBookings.push(booking);
-      } else if (!hasEnded && !isPending) {
+      } else if (!hasEnded && !isInProgress) {
         this.activeBookings.push(booking);
       } else if (hasEnded) {
         this.pastBookings.push(booking);

@@ -221,4 +221,33 @@ describe('AccountDetailsComponent', () => {
     expect([...labelled].sort((a, b) => desktop(a.classes) - desktop(b.classes)).map(c => c.title))
       .toEqual(['Contact information', 'Account management', 'Vehicle information']);
   });
+
+  // #634 item 2: the Figma status chips use an outline circle-check and a bare
+  // xmark with no circle around it. Solid weights and a circled x were the
+  // mismatch QA flagged, so pin the exact classes.
+  describe('email verification status icon', () => {
+    function statusIcon(selector: string): HTMLElement {
+      return fixture.nativeElement.querySelector(`${selector} i`);
+    }
+
+    it('marks a verified email with an outline circle-check', () => {
+      component.emailVerified = true;
+      fixture.detectChanges();
+
+      const icon = statusIcon('.status-verified');
+      expect(icon.classList).toContain('fa-regular');
+      expect(icon.classList).toContain('fa-circle-check');
+      expect(icon.classList).not.toContain('fa-solid');
+    });
+
+    it('marks an unverified email with a bare xmark rather than a circled one', () => {
+      component.emailVerified = false;
+      fixture.detectChanges();
+
+      const icon = statusIcon('.status-unverified');
+      expect(icon.classList).toContain('fa-regular');
+      expect(icon.classList).toContain('fa-xmark');
+      expect(icon.classList).not.toContain('fa-circle-xmark');
+    });
+  });
 });

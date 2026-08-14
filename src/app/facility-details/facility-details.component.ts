@@ -424,11 +424,10 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
 
       this.cartService.addToCart(cartItem);
       this.toastService.addMessage('Item added to cart', 'Success', ToastTypes.SUCCESS);
-
-      this.router.navigate(['/reservation-flow']).then(() => {
-        window.scrollTo(0, 0);
-        this.cdr.detectChanges();
-      });
+      this.cdr.detectChanges();
+      
+      // Redirect to cart on success
+      await this.router.navigate(['/cart']);
     } catch (error: any) {
       console.error('Error creating booking:', error);
       // API returns error text under `msg`; walk the usual shapes before

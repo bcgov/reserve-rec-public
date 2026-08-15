@@ -33,6 +33,12 @@ export class HeaderComponent {
     return this.authService.getCurrentUser(); // Directly bind to the signal
   }
 
+  get userInitials() {
+    const u = this.user;
+    if (!u) return '';
+    return `${u.given_name?.[0] || ''}${u.family_name?.[0] || ''}`.toUpperCase();
+  }
+
   logout() {
     this.authService.logout(); // Call the sign-out logic
   }

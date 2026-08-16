@@ -365,6 +365,12 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const existingCartItem = this.cartService.items()[0];
+    if (existingCartItem) {
+      const proceed = await this.confirmReplaceCart(existingCartItem);
+      if (!proceed) return;
+    }
+
     // Create booking immediately to reserve the inventory
     try {
       const bookingData = {

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BookingService } from '../services/booking.service';
+import { CartService } from '../services/cart.service';
 import { LoadingService } from '../services/loading.service';
 import { QrPrintService } from '../services/qr-print.service';
 import { Constants } from '../constants';
@@ -29,6 +30,7 @@ export class BookingConfirmationComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private bookingService: BookingService,
+    private cartService: CartService,
     private qrPrintService: QrPrintService,
     protected loadingService: LoadingService
   ) {}
@@ -47,6 +49,10 @@ export class BookingConfirmationComponent implements OnInit {
     }
 
     if (this.bookingId) {
+      // Reaching this page with a bookingId means checkout succeeded — the
+      // single-item cart's job is done regardless of whether the detail
+      // fetch below succeeds.
+      this.cartService.clearCart();
       await this.loadBooking();
     } else {
       this.error = 'No booking ID provided';

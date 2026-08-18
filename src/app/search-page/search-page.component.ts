@@ -1,4 +1,4 @@
-import { AfterViewChecked, ChangeDetectorRef, Component, inject, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, ElementRef, inject, OnDestroy, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { SearchService } from '../services/search.service';
 
 import { FormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
@@ -12,8 +12,9 @@ import { NgdsFormsModule } from "@digitalspace/ngds-forms";
     templateUrl: './search-page.component.html',
     styleUrl: './search-page.component.scss'
 })
-export class SearchPageComponent implements OnInit, AfterViewChecked {
+export class SearchPageComponent implements OnInit, OnDestroy {
   private searchService = inject(SearchService);
+  private elementRef = inject(ElementRef);
   searchBox = '';
   isAccordionOpen = false;
 
@@ -37,8 +38,7 @@ export class SearchPageComponent implements OnInit, AfterViewChecked {
   ];
 
   constructor(
-    private router: Router,
-    private cdr: ChangeDetectorRef
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -52,10 +52,6 @@ export class SearchPageComponent implements OnInit, AfterViewChecked {
     });
   }
 
-  ngAfterViewChecked(): void {
-    this.cdr.detectChanges();
-  }
-
   redirect(): void {
     const facility = this.form.get('facilitySelect')?.value;
     if (facility) {
@@ -65,5 +61,14 @@ export class SearchPageComponent implements OnInit, AfterViewChecked {
 
   toggleAccordion(): void {
     this.isAccordionOpen = !this.isAccordionOpen;
+  }
+
+  // ngds-forms is compiled against Angular ^16 while this app runs Angular ^21;
+  // that Ivy version skew corrupts the router-outlet's DOM removal step on this
+  // route (ngOnDestroy fires, but the host element is left in the DOM, so the
+  // next route renders underneath the stale view). Manually detach it here
+  // until ngds-forms is rebuilt against a compatible Angular version.
+  ngOnDestroy(): void {
+    this.elementRef.nativeElement.remove();
   }
 }

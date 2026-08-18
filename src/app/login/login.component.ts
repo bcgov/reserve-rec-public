@@ -38,7 +38,7 @@ export class LoginComponent implements OnInit{
     },
   };
 
-  private readonly requiredSignUpFields: Array<[string, string]> = [
+  private readonly requiredSignUpFields: [string, string][] = [
     ['given_name', 'Given name'],
     ['family_name', 'Family name'],
   ];

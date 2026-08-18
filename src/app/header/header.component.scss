@@ -2,6 +2,14 @@
     border: none;
 }
 
+.account-avatar {
+    width: 32px;
+    height: 32px;
+    font-weight: bold;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
 // Show focus for account button, for accessibility
 .account-btn:focus {
     border: 2px solid white;
@@ -34,7 +42,18 @@
 // Get full-width menu to be a bit bigger, and a bit to the left
 @media (min-width: 400px) {
     .dropdown-menu {
-        width: 246px;
-        margin-left: -120px;
+        width: 300px;
+        margin-left: -150px;
+    }
+}
+
+// Truncate long names/emails instead of overflowing the dropdown
+.dropdown-menu .account-info {
+    min-width: 0;
+
+    > div {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }

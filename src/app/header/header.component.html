@@ -32,7 +32,7 @@
 
     <!-- Full width menu -->
     <div class="collapse navbar-collapse" id="navbarSupportedContentFull">
-      <ul class="navbar-nav ms-auto">
+      <ul class="navbar-nav ms-auto align-items-center">
         <li class="nav-item">
           @if (user){
           <a class="btn text-light fw-bold d-flex align-items-center gap-1" routerLink="/cart">
@@ -46,18 +46,25 @@
         <li class="nav-item dropdown">
           @if (user) {
             <button
-              class="account-btn btn dropdown-toggle text-light fw-bold"
+              class="account-btn btn dropdown-toggle text-light fw-bold d-flex align-items-center gap-1"
               type="button"
               id="accountDropdown"
               data-bs-toggle="dropdown"
               [attr.aria-expanded]="!hamburgerIcon"
               >
-              Account
+              <span class="account-avatar bg-info text-dark rounded-circle d-flex align-items-center justify-content-center">{{ userInitials }}</span>
             </button>
             <div class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
-              <li class="nav-item"><a class="dropdown-item p-3 text-primary" routerLink="/my-bookings">My bookings</a></li>
-              <li class="nav-item"><a class="dropdown-item p-3 border-top border-info border-1 text-primary" routerLink="/account-details">Account settings</a></li>
-              <button class="dropdown-item p-3 border-top border-info border-1 text-primary" (click)="logout()">Log out</button>
+              <li class="nav-item d-flex align-items-center gap-2 p-3">
+                <span class="account-avatar bg-info text-dark rounded-circle d-flex align-items-center justify-content-center">{{ userInitials }}</span>
+                <div class="account-info">
+                  <div class="fw-bold text-uppercase text-dark">{{ user.given_name }} {{ user.family_name }}</div>
+                  <div class="text-muted small">{{ user.email }}</div>
+                </div>
+              </li>
+              <li class="nav-item"><a class="dropdown-item p-3 border-top border-1 text-dark" routerLink="/my-bookings"><i class="fa-regular fa-calendar-week me-2 text-secondary"></i>My bookings</a></li>
+              <li class="nav-item"><a class="dropdown-item p-3 text-dark" routerLink="/account-details"><i class="fa-solid fa-user-gear me-2 text-secondary"></i>Account settings</a></li>
+              <button class="dropdown-item p-3 border-top border-1 text-danger" (click)="logout()"><i class="fa-solid fa-right-from-bracket me-2"></i>Log out</button>
             </div>
           }
           @if (!user) {
@@ -79,9 +86,16 @@
     <ul class="navbar-nav ms-auto text-primary bg-light mt-3">
       <li class="nav-item dropdown my-2">
         @if (user) {
-          <li class="nav-item"><a class="dropdown-item p-3" routerLink="/my-bookings">My bookings</a></li>
-          <li class="nav-item"><a class="dropdown-item p-3 border-top border-info border-1 text-primary" routerLink="/account-details">Account settings</a></li>
-          <li class="nav-item"><a class="dropdown-item p-3 border-top border-info border-1 text-primary" (click)="logout()">Log out</a></li>
+          <li class="nav-item d-flex align-items-center gap-2 p-3">
+            <span class="account-avatar bg-info text-dark rounded-circle d-flex align-items-center justify-content-center">{{ userInitials }}</span>
+            <div>
+              <div class="fw-bold text-uppercase text-dark">{{ user.given_name }} {{ user.family_name }}</div>
+              <div class="text-muted small">{{ user.email }}</div>
+            </div>
+          </li>
+          <li class="nav-item"><a class="dropdown-item p-3 border-top border-1 text-dark" routerLink="/my-bookings"><i class="fa-regular fa-calendar-week me-2 text-secondary"></i>My bookings</a></li>
+          <li class="nav-item"><a class="dropdown-item p-3 text-dark" routerLink="/account-details"><i class="fa-solid fa-user-gear me-2 text-secondary"></i>Account settings</a></li>
+          <li class="nav-item"><a class="dropdown-item p-3 border-top border-1 text-danger" (click)="logout()"><i class="fa-solid fa-right-from-bracket me-2"></i>Log out</a></li>
         }
         @if (!user) {
           <li class="nav-item"><a class="dropdown-item p-3" routerLink="/login">Log In</a></li>

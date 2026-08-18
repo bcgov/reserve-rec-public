@@ -333,6 +333,22 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
     }
 
     const date = this.selectedDateStr || this.form.get('selectedDate').value;
+
+    // Check Mode 1 (facility-specific) waiting room — status cached when date was selected
+    if (this.waitingRoomActive && this.selectedCollectionId && this.selectedActivityType && this.selectedActivityId && date) {
+      const facilityKey = `${this.selectedCollectionId}#${this.selectedActivityType}#${this.selectedActivityId}`;
+      if (!this.waitingRoomService.hasValidAdmission(facilityKey, date)) {
+        window.location.href = this.waitingRoomService.buildWaitingRoomUrl(
+          this.selectedCollectionId,
+          this.selectedActivityType,
+          this.selectedActivityId,
+          date,
+          this.router.url,
+          this.facility?.displayName || ''
+        );
+        return;
+      }
+    }
     const visitors = Number(this.form.get('selectedVisitors').value);
     const selectedProductValue = this.form.get('selectedProduct').value;
     const selectedProductName = this.availableProducts.find(product => product.value === selectedProductValue)?.display || '';
@@ -413,28 +429,9 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
       };
 
       this.cartService.addToCart(cartItem);
-
-      // Check Mode 1 (facility-specific) waiting room now that the cart holds
-      // the booking, so admission sends the user back into the checkout flow
-      // with their selections intact instead of an empty cart.
-      if (this.waitingRoomActive) {
-        const facilityKey = `${this.selectedCollectionId}#${this.selectedActivityType}#${this.selectedActivityId}`;
-        if (!this.waitingRoomService.hasValidAdmission(facilityKey, date)) {
-          window.location.href = this.waitingRoomService.buildWaitingRoomUrl(
-            this.selectedCollectionId,
-            this.selectedActivityType,
-            this.selectedActivityId,
-            date,
-            '/checkout',
-            this.facility?.displayName || ''
-          );
-          return;
-        }
-      }
-
       this.toastService.addMessage('Item added to cart', 'Success', ToastTypes.SUCCESS);
       this.cdr.detectChanges();
-
+      
       // Redirect to cart on success
       await this.router.navigate(['/cart']);
     } catch (error: any) {

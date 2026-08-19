@@ -1,12 +1,13 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { AuthService } from '../services/auth.service';
-import { ToastService, ToastTypes } from '../services/toast.service';
-
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ChangeDetectorRef, Component, DestroyRef, inject, OnDestroy, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 import { PROVINCES_STATES } from '../data/provinces-states.data';
+import { AuthService } from '../services/auth.service';
+import { ToastService, ToastTypes } from '../services/toast.service';
 import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
 import { AccountVerificationComponent } from '../shared/components/account-verification/account-verification.component';
+import { debounceTime } from 'rxjs/operators';
 
 type EditSection = 'contact' | 'vehicle' | null;
 
@@ -18,6 +19,8 @@ type EditSection = 'contact' | 'vehicle' | null;
   styleUrl: './account-details.component.scss'
 })
 export class AccountDetailsComponent implements OnInit, OnDestroy {
+  private destroyRef = inject(DestroyRef);
+
   public editing: EditSection = null;
   public loading = true;
   public saving = false;
@@ -27,16 +30,16 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
   public readonly countries = ['Canada', 'United States', 'Other'];
 
   public contactForm = new FormGroup({
-    given_name: new FormControl(''),
-    family_name: new FormControl(''),
-    streetAddress: new FormControl(''),
+    given_name: new FormControl('', [Validators.required, this.nameValidator.bind(this)]),
+    family_name: new FormControl('', [Validators.required, this.nameValidator.bind(this)]),
+    streetAddress: new FormControl('', Validators.required),
     unitNumber: new FormControl(''),
-    city: new FormControl(''),
-    province: new FormControl(''),
-    postalCode: new FormControl(''),
-    country: new FormControl(''),
-    mobilePhone: new FormControl(''),
-    secondaryNumber: new FormControl(''),
+    city: new FormControl('', Validators.required),
+    province: new FormControl('', Validators.required),
+    postalCode: new FormControl('', Validators.required),
+    country: new FormControl('', Validators.required),
+    mobilePhone: new FormControl('', [Validators.required, this.phoneValidator.bind(this)]),
+    secondaryNumber: new FormControl('', [this.phoneOptionalValidator.bind(this)]),
   });
 
   public vehicleForm = new FormGroup({
@@ -48,14 +51,19 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private toastService: ToastService,
     private cd: ChangeDetectorRef,
-  ) {}
+  ) {
+    this.setupNameFormatter(this.contactForm.controls.given_name);
+    this.setupNameFormatter(this.contactForm.controls.family_name);
+    this.setupPhoneFormatter(this.contactForm.controls.mobilePhone);
+    this.setupPhoneFormatter(this.contactForm.controls.secondaryNumber);
+  }
 
   async ngOnInit(): Promise<void> {
     try {
       this.emailVerified = await this.authService.checkEmailVerification();
     } catch (error) {
-      console.log('Error getting email verification status: ', error)
-      this.toastService.addMessage("Error getting email verification status.", 'Error', ToastTypes.ERROR);
+      console.error('Error getting email verification status: ', error);
+      this.toastService.addMessage('Error getting email verification status.', 'Error', ToastTypes.ERROR);
     } finally {
       this.loading = false;
       this.cd.detectChanges();
@@ -121,6 +129,20 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
     if (!v.postalCode?.trim()) missingFields.push('Postal or zip code');
     if (!v.country?.trim()) missingFields.push('Country');
     if (!v.mobilePhone?.trim()) missingFields.push('Mobile phone');
+
+    
+    // Change numbers to be E.164 format on save if they have the country code attached
+    // TODO: should probably have people specify country separately in an input, then enter phone in another input
+    if (v.mobilePhone.length > 14) {
+      v.mobilePhone = v.mobilePhone.replace(/(?!^\+)\D/g, '');
+    } else {
+      v.mobilePhone = v.mobilePhone.replace(/\D/g, '');
+    }
+    if (v.secondaryNumber.length > 14) {
+      v.secondaryNumber = v.secondaryNumber.replace(/(?!^\+)\D/g, '');
+    } else {
+      v.secondaryNumber = v.secondaryNumber.replace(/\D/g, '');
+    }
     
     if (missingFields.length > 0) {
       const fieldList = missingFields.join(', ');
@@ -175,14 +197,104 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  onEmailVerified() {
+  onEmailVerified(): void {
     this.emailVerified = true;
     this.cd.detectChanges();
+  }
+
+  nameValidator(control: AbstractControl): ValidationErrors | null {
+    const val = (control.value ?? '').toString().trim();
+
+    // Let empty values pass so Validators.required can handle empty state independently
+    if (!val) {
+      return null;
+    }
+
+    const nameRegex = /^\p{sc=Latin}[\p{sc=Latin}\s'\-.]*$/u;
+
+    if (!nameRegex.test(val)) {
+      return { pattern: true }; // Match the error key configured in your template
+    }
+
+    return null;
+  }
+
+  setupNameFormatter(control: FormControl<string | null>): void {
+    control.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef),
+      debounceTime(500)
+    ).subscribe((value) => {
+      if (!value) return;
+
+
+      // TODO: temporary fix to prevent stacking
+      this.cd.detectChanges();
+    });
+  }
+
+  // required actual data first (phone number entered), then we check the pattern
+  phoneValidator(control: AbstractControl): ValidationErrors | null {
+    const val = (control.value ?? '').toString();
+    const digits = val.replace(/\D/g, '').slice(0,12);
+
+    if (!digits) return { required: true };
+    if (digits.length < 10 || digits.length > 12) return { pattern: true };
+    return null;
+  }
+
+  phoneOptionalValidator(control: AbstractControl): ValidationErrors | null {
+    const val = (control.value ?? '').toString();
+    const digits = val.replace(/\D/g, '');
+
+    if (!digits) return null;
+    if (digits.length < 10 || digits.length > 12) return { pattern: true };
+    return null;
+  }
+
+  // Pass the digits into the formatter after a short debounce
+  // which allow them to go back and edit digits before formatter kicks in
+  setupPhoneFormatter(control: FormControl<string | null>): void {
+    control.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef),
+      debounceTime(500)
+    ).subscribe((value) => {
+      if (!value) return;
+
+      // Extract up to 12 digits
+      const digits = value.replace(/\D/g, '').slice(0,12);
+      const formatted = this.formatPhone(digits);
+      
+      // Only update if the value actually changed to avoid infinite loop
+      if (formatted !== value) {
+        control.setValue(formatted, { emitEvent: false });
+      }
+
+      // TODO: temporary fix to prevent stacking
+      this.cd.detectChanges();
+    });
+  }
+
+  formatPhone(digits: string): string {
+    let d = digits
+
+    // Remove starting "+" if it's on there
+    if (d.slice(0,1) == "+") {
+      d = d.slice(1,d.length)
+    }
+
+    if (d.length <= 3) return d;
+    // hyphen
+    if (d.length <= 7) return `${d.slice(0, 3)}-${d.slice(3)}`;
+    // parenthesis and hyphen
+    if (d.length <= 10) return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+    // 11 or 12 digits -> include "+" and country code
+    if (d.length === 11) return `+${d.slice(0, 1)} (${d.slice(1, 4)}) ${d.slice(4, 7)}-${d.slice(7)}`;
+    if (d.length === 12) return `+${d.slice(0, 2)} (${d.slice(2, 5)}) ${d.slice(5, 8)}-${d.slice(8)}`;
+    return d;
   }
 
   ngOnDestroy(): void {
     // TODO: this is a temporary fix
     this.cd.detectChanges()
   }
-
 }

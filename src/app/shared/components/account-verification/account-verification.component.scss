@@ -1,10 +1,7 @@
-.verify-digits-container {
-  max-width: 300px;
-}
-
 .verify-alert__resend {
   border: none;
-  font-size: 0.8rem;
+  font-weight: bold;
+  color: var(--bs-primary)
 }
 
 .verify-alert__resend:hover {

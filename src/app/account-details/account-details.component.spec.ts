@@ -1,9 +1,10 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 
 import { AccountDetailsComponent } from './account-details.component';
 import { AuthService } from '../services/auth.service';
 import { ToastService } from '../services/toast.service';
 import { provideRouter } from '@angular/router';
+import { FormControl } from '@angular/forms';
 
 const MOCK_USER = {
   given_name: 'Test',
@@ -249,5 +250,88 @@ describe('AccountDetailsComponent', () => {
       expect(icon.classList).toContain('fa-xmark');
       expect(icon.classList).not.toContain('fa-circle-xmark');
     });
+  });
+
+  // Allow latin letters, reject unicode and unlikely punctuation
+  describe('validation and formatting', () => {
+    it('validates names using the custom name rule', () => {
+      const validNames = [
+        'Joe',
+        'Joe Camper',
+        "Jo'Connor",
+        'Jose-Campere',
+        '',
+        'J. C.',
+        'Camper-Joe',
+        'Quiñones'
+      ];
+
+      validNames.forEach((name) => {
+        expect(component.nameValidator(new FormControl(name))).toBeNull();
+      });
+
+      const invalidNames = [
+        'Joe123',
+        'J0e',
+        'Joe@Doe',
+        'Joe_Doe',
+        'Joe!',
+        '123',
+        '毛泽东',
+        'Иосифовна'
+      ];
+
+      invalidNames.forEach((name) => {
+        expect(component.nameValidator(new FormControl(name))).toEqual({ pattern: true });
+      });
+
+      expect(component.nameValidator(new FormControl(''))).toBeNull();
+    });
+
+    it('requires a phone number when the mobile phone control is empty', () => {
+
+      // Empty mobile phone is invalid
+      const empty = component.phoneValidator(new FormControl(''));
+      expect(empty).toEqual({ required: true });
+
+      // Valid
+      const valid = component.phoneValidator(new FormControl('2505551234'));
+      expect(valid).toBeNull();
+
+      // Short one digit
+      const short = component.phoneValidator(new FormControl('250555123'));
+      expect(short).toEqual({ pattern: true });
+    });
+
+    it('validates optional phone numbers without requiring them', () => {
+
+      // Valid
+      expect(component.phoneOptionalValidator(new FormControl(''))).toBeNull();
+      expect(component.phoneOptionalValidator(new FormControl('2505551234'))).toBeNull();
+
+      // Short one digit
+      const short = component.phoneOptionalValidator(new FormControl('250555123'));
+      expect(short).toEqual({ pattern: true });
+    });
+
+    // Formatting works
+    it('formats phone numbers in the display format used by the component', () => {
+      expect(component.formatPhone('2505551234')).toBe('(250) 555-1234');
+      expect(component.formatPhone('12505551234')).toBe('+1 (250) 555-1234');
+      expect(component.formatPhone('123456789012')).toBe('+12 (345) 678-9012');
+    });
+
+    it('auto-formats typed phone values after the debounce window', fakeAsync(() => {
+      const mobile = component.contactForm.get('mobilePhone')!;
+      const alt = component.contactForm.get('secondaryNumber')!;
+
+      mobile.setValue('2505551234');
+      tick(500);
+      expect(mobile.value).toBe('(250) 555-1234');
+
+      alt.setValue('12505551234');
+      tick(500);
+      expect(alt.value).toBe('+1 (250) 555-1234');
+    }));
   });
 });

@@ -316,6 +316,7 @@ describe('AccountDetailsComponent', () => {
 
     // Formatting works
     it('formats phone numbers in the display format used by the component', () => {
+      expect(component.formatPhone('')).toBe('');
       expect(component.formatPhone('2505551234')).toBe('(250) 555-1234');
       expect(component.formatPhone('12505551234')).toBe('+1 (250) 555-1234');
       expect(component.formatPhone('123456789012')).toBe('+12 (345) 678-9012');

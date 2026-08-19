@@ -276,6 +276,8 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
 
   formatPhone(digits: string): string {
     let d = digits
+    
+    if (!d) return '';
 
     // Remove starting "+" if it's on there
     if (d.slice(0,1) == "+") {

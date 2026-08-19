@@ -20,7 +20,7 @@ export class AccountVerificationComponent implements AfterViewChecked {
 
   public verifyForm: FormGroup;
   public verificationEmailSent = false;
-  public resendTimeout = TIMEOUT;
+  public resendTimeout = 0; // On page load, allow use to send immediately
 
   constructor(
     private authService: AuthService,
@@ -30,6 +30,7 @@ export class AccountVerificationComponent implements AfterViewChecked {
   ) {
     this.verifyForm = this.fb.group({
       number: ['', [
+        Validators.required,
         Validators.pattern(/^\d{6}$/)
       ]]
     });

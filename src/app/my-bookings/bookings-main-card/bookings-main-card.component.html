@@ -1,7 +1,7 @@
 <a [routerLink]="['/account/bookings', bookingId]" class="text-decoration-none text-dark d-block h-100 booking-card-link" [attr.aria-label]="ariaLabel || 'View booking details'">
   <div class="card h-100 p-3 booking-card">
     <div class="mb-1">
-      <strong class="text-primary fs-5">{{ geozoneName }}</strong>
+      <strong class="text-primary fs-5 booking-card-title">{{ geozoneName }}</strong>
     </div>
     <div class="text-muted mb-3 fs-5">
       {{ facilityName }}

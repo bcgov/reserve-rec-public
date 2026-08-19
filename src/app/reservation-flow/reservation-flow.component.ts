@@ -280,7 +280,7 @@ async onStepCompleted(completed: boolean): Promise<void> {
         const completionPayload = this.getCompletionPayload(formValue, this.currentSessionId);
         await this.bookingService.completeBooking(this.currentBookingId, completionPayload);
         if (this.currentBookingId) {
-          window.location.assign(`/booking-confirmation/${this.currentBookingId}`);
+          window.location.assign(this.absoluteUrl(`booking-confirmation/${this.currentBookingId}`));
         }
         return;
       }
@@ -551,12 +551,21 @@ async onStepCompleted(completed: boolean): Promise<void> {
       this.cartService.clearCart();
 
       // Full page reload to home
-      window.location.href = '/';
+      window.location.href = this.absoluteUrl('');
     } catch (error) {
       console.error('Error cancelling booking:', error);
       // Even if the API call fails, still clear the cart and reload
       this.cartService.clearCart();
-      window.location.href = '/';
+      window.location.href = this.absoluteUrl('');
     }
+  }
+
+  // Resolve against <base href> so full-page navigations work both at the
+  // domain root and path-mounted behind the front door (/dayuse/), where the
+  // deploy rewrites <base href> to the prefix. A leading-slash path would
+  // escape the mount and land on a route that does not exist there
+  // (bcgov/reserve-rec-public#704). An empty path resolves to the base itself.
+  private absoluteUrl(path: string): string {
+    return new URL(path, document.baseURI).toString();
   }
 }

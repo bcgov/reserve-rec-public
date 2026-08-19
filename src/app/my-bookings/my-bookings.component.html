@@ -23,7 +23,8 @@
                     [productName]="booking.productName"
                     [activityType]="booking.activityType"
                     [formattedDate]="booking.formattedDate"
-                    [isCancelled]="booking.isCancelled">
+                    [isCancelled]="booking.isCancelled"
+                    [isInProgress]="booking.isInProgress">
                   </app-bookings-main-card>
                 </div>
               }
@@ -45,7 +46,8 @@
                     [productName]="booking.productName"
                     [activityType]="booking.activityType"
                     [formattedDate]="booking.formattedDate"
-                    [isCancelled]="booking.isCancelled">
+                    [isCancelled]="booking.isCancelled"
+                    [isInProgress]="booking.isInProgress">
                   </app-bookings-main-card>
                 </div>
               }
@@ -67,15 +69,16 @@
                     [productName]="booking.productName"
                     [activityType]="booking.activityType"
                     [formattedDate]="booking.formattedDate"
-                    [isCancelled]="booking.isCancelled">
+                    [isCancelled]="booking.isCancelled"
+                    [isInProgress]="booking.isInProgress">
                   </app-bookings-main-card>
                 </div>
               }
             </div>
           </section>
         }
-        <!-- Other Bookings Section (Debugging) -->
-        @if (otherBookings.length > 0) {
+        @if (env && env !== 'prod' && env !== 'production' && otherBookings.length > 0) {
+          <!-- Other Bookings Section (Debugging - don't show if undefined or on production) -->
           <section class="mb-5">
             <h2 class="mb-4 text-primary">Other (Debug)</h2>
             <div class="alert alert-warning mb-3" role="alert">
@@ -93,7 +96,8 @@
                     [productName]="booking.productName"
                     [activityType]="booking.activityType"
                     [formattedDate]="booking.formattedDate"
-                    [isCancelled]="booking.isCancelled">
+                    [isCancelled]="booking.isCancelled"
+                    [isInProgress]="booking.isInProgress">
                   </app-bookings-main-card>
                 </div>
               }

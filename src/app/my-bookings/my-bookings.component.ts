@@ -46,7 +46,7 @@ export class MyBookingsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.env = this.configService.config['ENVIRONMENT'];
+    this.env = (this.configService.config['ENVIRONMENT'] || '').toLowerCase();
 
     this.clearBookings();
     this.dataService.clearItemValue(Constants.dataIds.MY_BOOKINGS_RESULT);
@@ -108,8 +108,8 @@ export class MyBookingsComponent implements OnInit {
 
     bookings.forEach(item => {
       const rangeEnd = DateTime.fromISO(item.endDate).endOf('day');
-      const isCancelled = item.status === 'cancelled' || item.bookingStatus === 'cancelled';
-      const isInProgress = item.status === 'in progress' || item.bookingStatus === 'in progress';
+      const isCancelled = BookingUtils.isCancelled(item);
+      const isInProgress = BookingUtils.isInProgress(item);
       const hasEnded = this.today > rangeEnd;
 
       // Get the display name of the activity type from constants
@@ -126,7 +126,7 @@ export class MyBookingsComponent implements OnInit {
         formattedDate: this.formatDateRange(item),
         isCancelled: isCancelled,
         isInProgress: isInProgress,
-        status: item.status || item.bookingStatus
+        status: BookingUtils.getStatus(item)
       };
 
       // Categorize bookings:
@@ -138,7 +138,7 @@ export class MyBookingsComponent implements OnInit {
         this.cancelledBookings.push(booking);
       } else if (!hasEnded && !isInProgress) {
         this.activeBookings.push(booking);
-      } else if (hasEnded) {
+      } else if (hasEnded && !isInProgress) {
         this.pastBookings.push(booking);
       } else {
         // Catch-all for any edge cases

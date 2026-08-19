@@ -21,9 +21,9 @@ export class HeaderComponent {
     private configService: ConfigService,
     private el: ElementRef
   ) {
-    this.envName = this.configService.config['ENVIRONMENT'] || 'local';
+    this.envName = (this.configService.config['ENVIRONMENT'] || 'local').toLowerCase();
     // Hide banner in production
-    if (this.envName === 'prod') {
+    if (this.envName === 'prod' || this.envName === 'production') {
       this.showBanner = false;
     }
   }

@@ -116,10 +116,7 @@ export class BookingDetailsComponent implements OnInit {
   isCancelled(): boolean {
     return BookingUtils.isCancelled(this.booking);
   }
-  
-  isInProgress(): boolean {
-    return BookingUtils.isInProgress(this.booking);
-  }
+
 
   isExpired(): boolean {
     return BookingUtils.isExpired(this.booking);

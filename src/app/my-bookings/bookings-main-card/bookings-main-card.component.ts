@@ -16,6 +16,7 @@ export class BookingMainCardComponent {
   @Input() activityType!: string;
   @Input() formattedDate!: string;
   @Input() isCancelled = false;
+  @Input() isInProgress = false;
 
   // Add aria label to component
   @HostBinding('attr.aria-label') @Input() ariaLabel: string;

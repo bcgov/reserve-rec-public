@@ -117,6 +117,7 @@ export class BookingDetailsComponent implements OnInit {
     return BookingUtils.isCancelled(this.booking);
   }
 
+
   isExpired(): boolean {
     return BookingUtils.isExpired(this.booking);
   }

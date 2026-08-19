@@ -47,6 +47,13 @@ export class BookingUtils {
   static isCancelled(booking: any): boolean {
     return BookingUtils.getStatus(booking) === 'cancelled';
   }
+  
+  /**
+   * Check whether booking is in progress (not completed yet)
+   */
+  static isInProgress(booking: any): boolean {
+    return BookingUtils.getStatus(booking) === 'in progress';
+  }
 
   /**
    * Whether the booking date has already passed (an expired / "old" pass).

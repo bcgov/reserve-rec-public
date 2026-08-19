@@ -26,6 +26,35 @@ export class LoginComponent implements OnInit{
 
   loginReason: string | null = null;
 
+  // given_name/family_name are natively `required` by Amplify's defaults,
+  // which blocks submission silently with no visible message (Amplify's own
+  // validators never check for blank required fields). Turn off the native
+  // required attribute for these two so our own check below can run and
+  // name exactly what's missing (#685).
+  formFields = {
+    signUp: {
+      given_name: { isRequired: false },
+      family_name: { isRequired: false },
+    },
+  };
+
+  private readonly requiredSignUpFields: [string, string][] = [
+    ['given_name', 'Given name'],
+    ['family_name', 'Family name'],
+  ];
+
+  private validateSignUpFields(input: Parameters<typeof signUp>[0]): void {
+    const attributes = input.options?.userAttributes ?? {};
+    const missing = this.requiredSignUpFields
+      .filter(([key]) => !String((attributes as Record<string, unknown>)[key] ?? '').trim())
+      .map(([, label]) => label);
+    if (!input.username?.trim()) missing.unshift('Email');
+    if (!input.password?.trim()) missing.push('Password');
+    if (missing.length) {
+      throw new Error(`Please fill in the following required fields: ${missing.join(', ')}.`);
+    }
+  }
+
   // Amplify surfaces the raw Cognito error in the authenticator's alert, which
   // leaked infrastructure detail to end users — e.g. "User pool client
   // <id> does not exist." (#628). Wrapping the handlers keeps Cognito's own
@@ -36,9 +65,11 @@ export class LoginComponent implements OnInit{
       this.withGenericError(() => signIn(input),
         'We could not sign you in. Check your email and password and try again.'),
 
-    handleSignUp: (input: Parameters<typeof signUp>[0]) =>
-      this.withGenericError(() => signUp(input),
-        'We could not create your account. Please check your details and try again.'),
+    handleSignUp: async (input: Parameters<typeof signUp>[0]) => {
+      this.validateSignUpFields(input);
+      return this.withGenericError(() => signUp(input),
+        'We could not create your account. Please check your details and try again.');
+    },
 
     handleConfirmSignUp: (input: Parameters<typeof confirmSignUp>[0]) =>
       this.withGenericError(() => confirmSignUp(input),

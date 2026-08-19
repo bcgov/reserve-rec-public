@@ -125,16 +125,6 @@
           <div class="col-md-6">
             <ngds-picklist-input
               [class]="'text-white rounded-1'"
-              [control]="this.form.get('selectedActivity')"
-              [selectionListItems]="availableActivities"
-              [label]="'Activity'"
-              [placeholder]="'Choose an activity'"
-              [disabled]="availableActivities.length === 0"
-            ></ngds-picklist-input>
-          </div>
-          <div class="col-md-6">
-            <ngds-picklist-input
-              [class]="'text-white rounded-1'"
               [control]="this.form.get('selectedProduct')"
               [selectionListItems]="availableProducts"
               [label]="'Pass type'"

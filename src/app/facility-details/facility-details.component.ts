@@ -84,10 +84,11 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
     this.geozone = this.facility.geozones[0];
     if (!this.facility?.isOpen) this.facilityOpen = false;
 
-    // If this facility has activities, add them to relatedActivities for first dropdown ("Activity")
+    // If this facility has activities, add them to relatedActivities. The activity
+    // is no longer user-selectable (#705) — it is resolved from the facility and
+    // drives the product lookup below.
     this.relatedActivities = this.facility?.activities || []
 
-    // Map each activity related to the facility as dropdown items
     this.availableActivities = this.relatedActivities.map(activity => {
       return {
         display: activity?.displayName,
@@ -111,8 +112,11 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
     }
 
 
-    // If there's only one activity, auto-select it and pre-load its products
-    if (this.availableActivities.length === 1) {
+    // The Activity picker was removed (#705) — a facility-level day-use pass has
+    // no meaningful choice to offer, so resolve the activity here and pre-load its
+    // products. Falls back to the first activity if a facility ever carries more
+    // than one, so the rest of the flow still has an activity to book against.
+    if (this.availableActivities.length) {
       const activity = this.availableActivities[0].value;
       // Set the control value without emitting so the valueChanges subscription doesn't fire a duplicate call
       this.form.get('selectedActivity').setValue(activity, { emitEvent: false });

@@ -9,6 +9,7 @@ export interface CartItem {
   productName?: string;
   collectionId: string;
   activityType: string;
+  activitySubType?: string;
   productId?: string;
   quantity?: number;
   dateRange: [string, string];

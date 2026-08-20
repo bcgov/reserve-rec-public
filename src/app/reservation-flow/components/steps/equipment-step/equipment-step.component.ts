@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 
-import { FormGroup, ReactiveFormsModule, FormControl } from '@angular/forms';
+import { FormGroup, ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
 import { StepperService } from '../../../services/stepper.service';
@@ -40,19 +40,25 @@ export class EquipmentStepComponent implements OnInit {
   
   private initializeEquipmentFormControls(): void {
     if (!this.form) return;
-    
+
+    const validators = this.isParkingPass ? [Validators.required] : [];
+
     if (!this.form.get('equipmentInfo')) {
       this.form.addControl('equipmentInfo', new FormGroup({
-        licensePlate: new FormControl(''),
-        registeredProvince: new FormControl('')
+        licensePlate: new FormControl('', validators),
+        registeredProvince: new FormControl('', validators)
       }));
     }
-    
+
     if (!this.form.get('equipmentDetails')) {
       this.form.addControl('equipmentDetails', new FormControl(''));
     }
   }
-  
+
+  get isParkingPass(): boolean {
+    return this.cartItem?.activitySubType === 'vehicleParking';
+  }
+
   get totalOccupants(): number {
     if (!this.cartItem?.occupants) return 0;
     const { totalAdult = 0, totalSenior = 0, totalYouth = 0, totalChild = 0 } = this.cartItem.occupants;
@@ -68,7 +74,11 @@ export class EquipmentStepComponent implements OnInit {
   }
   
   isStepValid(): boolean {
-    return !!this.form;
+    if (!this.form) return false;
+    if (this.isParkingPass) {
+      return !!this.form.get('equipmentInfo')?.valid;
+    }
+    return true;
   }
   
   validateStep(): void {

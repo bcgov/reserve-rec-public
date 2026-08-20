@@ -5,13 +5,18 @@
   </div>
   <div class="card-body">
     <h5 class="mb-3">Vehicle information</h5>
-    <p class="text-muted mb-4">Please enter the following details of the vehicle you'll be travelling in. You can change this after the booking.</p>
+    <p class="text-muted mb-4">
+      Please enter the following details of the vehicle you'll be travelling in. You can change this after the booking.
+      @if (!isParkingPass) {
+        This information is optional.
+      }
+    </p>
 
     <!-- Vehicle Information Form -->
     <div class="row">
       <div class="col-md-6">
         <ngds-text-input
-          label="Plate number"
+          [label]="isParkingPass ? 'Plate number' : 'Plate number (optional)'"
           [control]="form?.get('equipmentInfo')?.get('licensePlate')"
           placeholder="Enter license plate number"
         >
@@ -22,7 +27,12 @@
       </div>
       <div class="col-md-6">
         <div class="mb-3">
-          <label for="registeredProvince" class="form-label">Province, state or territory</label>
+          <label for="registeredProvince" class="form-label">
+            Province, state or territory
+            @if (!isParkingPass) {
+              (optional)
+            }
+          </label>
           <div class="input-group">
             <span class="input-group-text">
               <i class="fa-solid fa-map-location-dot"></i>
@@ -31,12 +41,16 @@
               id="registeredProvince"
               type="text"
               class="form-control"
+              [class.is-invalid]="form?.get('equipmentInfo')?.get('registeredProvince')?.invalid && form?.get('equipmentInfo')?.get('registeredProvince')?.touched"
               placeholder="Start typing to search..."
               [formControl]="$any(form?.get('equipmentInfo')?.get('registeredProvince'))"
               [typeahead]="provincesStates"
               [typeaheadOptionsLimit]="5"
               [typeaheadMinLength]="0"
             />
+            @if (form?.get('equipmentInfo')?.get('registeredProvince')?.invalid && form?.get('equipmentInfo')?.get('registeredProvince')?.touched) {
+              <div class="invalid-feedback">Province, state or territory is required.</div>
+            }
           </div>
           <small class="form-text text-muted">Select or type your province, state or territory</small>
         </div>

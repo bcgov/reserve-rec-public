@@ -410,6 +410,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
         id: '',
         collectionId: this.selectedCollectionId || '',
         activityType: this.selectedActivityType || '',
+        activitySubType: this.selectedActivitySubType || '',
         activityId: this.selectedActivityId || '',
         productId: productId,
         quantity: visitors,

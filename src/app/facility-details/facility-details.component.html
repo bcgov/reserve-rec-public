@@ -122,6 +122,30 @@
       <div class="col-lg-8 mx-auto bg-primary rounded-1 px-5 pt-3 pb-4">
         <h4 class="text-white mb-3 pt-3">Request your pass</h4>
         <div class="row g-3 align-items-end mb-3">
+          <div class="col-12">
+            <ngds-date-input
+              [class]="'text-white rounded-1'"
+              [disablePast]="true"
+              [control]="this.form.get('selectedDate')"
+              [label]="'Date of visit'"
+              [placeholder]="loadingDates ? 'Loading...' : 'Select a date'"
+              [dateFormat]="'yyyy-LL-dd'"
+              [dateDisplayFormat]="'EEEE, LLLL d, yyyy'"
+              [dateRange]="false"
+              [hideInvalidState]="true"
+              [minDate]="startDate"
+              [maxDate]="endDate"
+              [disabled]="!this.form.get('selectedProduct').value || this.availableProducts.length === 0 || loadingDates"
+              (displayChange)="onCalendarDisplayChange()"
+              >
+              <i
+                ngdsInputPrepend
+                class="me-1 ms-3 fa-solid fa-calendar text-black-50"
+              ></i>
+            </ngds-date-input>
+          </div>
+        </div>
+        <div class="row g-3 align-items-end">
           <div class="col-md-6">
             <ngds-picklist-input
               [class]="'text-white rounded-1'"
@@ -132,43 +156,17 @@
               [disabled]="!this.form.get('selectedActivity').value || this.availableProducts.length === 0 || loadingProducts"
             ></ngds-picklist-input>
           </div>
-        </div>
-        @if (this.form.get('selectedProduct').value && this.facilityOpen) {
-          <div class="row g-3 align-items-end">
-            <div class="col-md-6">
-              <ngds-date-input
-                [class]="'text-white rounded-1'"
-                [disablePast]="true"
-                [control]="this.form.get('selectedDate')"
-                [label]="'Day of visit'"
-                [placeholder]="loadingDates ? 'Loading...' : 'Select a date'"
-                [dateFormat]="'yyyy-LL-dd'"
-                [dateDisplayFormat]="'EEEE, LLLL d, yyyy'"
-                [dateRange]="false"
-                [hideInvalidState]="true"
-                [minDate]="startDate"
-                [maxDate]="endDate"
-                [disabled]="!this.form.get('selectedProduct').value || this.availableProducts.length === 0 || loadingDates"
-                (displayChange)="onCalendarDisplayChange()"
-                >
-                <i
-                  ngdsInputPrepend
-                  class="me-1 ms-3 fa-solid fa-calendar text-black-50"
-                ></i>
-              </ngds-date-input>
-            </div>
-            <div class="col-md-6">
-              <ngds-picklist-input
-                [class]="'text-white rounded-1'"
-                [control]="this.form.get('selectedVisitors')"
-                [selectionListItems]="availableVisitorsAllowed"
-                [label]="'Number of passes'"
-                [placeholder]="passesAvailable ? 'Select number of passes' : 'Unavailable'"
-                [disabled]="!this.form.get('selectedProduct').value || this.availableProducts.length === 0 || !passesAvailable"
-              ></ngds-picklist-input>
-            </div>
+          <div class="col-md-6">
+            <ngds-picklist-input
+              [class]="'text-white rounded-1'"
+              [control]="this.form.get('selectedVisitors')"
+              [selectionListItems]="availableVisitorsAllowed"
+              [label]="'Number of passes'"
+              [placeholder]="passesAvailable ? 'Select number of passes' : 'Unavailable'"
+              [disabled]="!this.form.get('selectedProduct').value || this.availableProducts.length === 0 || !passesAvailable"
+            ></ngds-picklist-input>
           </div>
-        }
+        </div>
         <div class="row mt-4 mb-2">
           <div class="col-12 mt-3">
             @if (isLoggedIn && facilityOpen && emailVerified) {

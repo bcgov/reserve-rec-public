@@ -1,7 +1,8 @@
-import { Component, ChangeDetectorRef, EventEmitter, Output, ViewChildren, QueryList, ElementRef } from '@angular/core';
+import { Component, ChangeDetectorRef, EventEmitter, Output, ViewChildren, QueryList, ElementRef, AfterViewChecked } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ToastService, ToastTypes } from '../../../services/toast.service';
 import { AuthService } from '../../../services/auth.service';
+import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 
 const TIMEOUT = 60;
 
@@ -10,91 +11,34 @@ const TIMEOUT = 60;
   templateUrl: './account-verification.component.html',
   styleUrls: ['./account-verification.component.scss'],
   standalone: true,
-  imports: [ReactiveFormsModule]
+  imports: [ReactiveFormsModule, NgdsFormsModule]
 })
 
-export class AccountVerificationComponent {
+export class AccountVerificationComponent implements AfterViewChecked {
   @Output() emailVerified = new EventEmitter<boolean>();
   @ViewChildren('digitInput') digitInputs!: QueryList<ElementRef<HTMLInputElement>>;
 
   public verifyForm: FormGroup;
   public verificationEmailSent = false;
-  public readonly digitControlNames = ['d0', 'd1', 'd2', 'd3', 'd4', 'd5'];
-  public resendTimeout = TIMEOUT;
+  public resendTimeout = 0; // On page load, allow use to send immediately
 
   constructor(
     private authService: AuthService,
+    private fb: FormBuilder,
     private toastService: ToastService,
-    private cdr: ChangeDetectorRef,
-    private fb: FormBuilder
+    private cdr: ChangeDetectorRef
   ) {
-    const groupConfig: Record<string, any> = {};
-    this.digitControlNames.forEach(name => {
-      groupConfig[name] = ['', [Validators.required, Validators.pattern('^[0-9]$')]];
+    this.verifyForm = this.fb.group({
+      number: ['', [
+        Validators.required,
+        Validators.pattern(/^\d{6}$/)
+      ]]
     });
-    this.verifyForm = this.fb.group(groupConfig);
   }
 
-  // Handle single typing, auto-advance, and multi-digit auto-fill
-  onInput(event: Event, index: number): void {
-    const input = event.target as HTMLInputElement;
-    const value = input.value;
-
-    // Mobile OS Auto-fill dumps all 6 digits into the first input at once
-    if (value.length > 1) {
-      this.distributeCode(value);
-      return;
-    }
-
-    // Single digit typed -> advance focus to next box
-    if (value && index < 5) {
-      this.digitInputs.toArray()[index + 1]?.nativeElement.focus();
-    }
-  }
-
-  // Handle Backspace navigation across boxes
-  onKeyDown(event: KeyboardEvent, index: number): void {
-    if (event.key === 'Backspace' && !this.verifyForm.get(this.digitControlNames[index])?.value && index > 0) {
-      const prevInput = this.digitInputs.toArray()[index - 1]?.nativeElement;
-      if (prevInput) {
-        prevInput.focus();
-      }
-    }
-  }
-
-  // Handle manual paste events
-  onPaste(event: ClipboardEvent): void {
-    event.preventDefault();
-    const pastedData = event.clipboardData?.getData('text').trim() || '';
-    this.distributeCode(pastedData);
-  }
-
-  // Distributes 6-digit code across form controls
-  private distributeCode(code: string): void {
-    // Strip non-numeric characters and limit to 6 digits
-    const digits = code.replace(/\D/g, '').slice(0, 6).split('');
-
-    // Clear all inputs first so we don't leave stale digits behind
-    this.digitControlNames.forEach(name => {
-      this.verifyForm.get(name)?.setValue('', { emitEvent: false });
-    });
-
-    // Distribute the new digits
-    digits.forEach((digit, i) => {
-      this.verifyForm.get(this.digitControlNames[i])?.setValue(digit);
-    });
-
-    // Focus the correct box (the last filled box, or the end)
-    // If digits.length is 6, we want to focus index 5 (the last box).
-    const targetIndex = digits.length > 0 ? Math.min(digits.length, 5) : 0;
-
-    // Use setTimeout to allow Angular to finish rendering the formControl updates
-    // before we force focus on the DOM element. This (supposedly) solves a common iOS glitch.
-    setTimeout(() => {
-      this.digitInputs.toArray()[targetIndex]?.nativeElement.focus();
-    }, 0);
-
-    this.cdr.detectChanges();
+  // TODO: this is a temporary fix to error prevent error message stacking
+  ngAfterViewChecked(): void {
+    this.cdr.detectChanges()
   }
 
   countdown() {

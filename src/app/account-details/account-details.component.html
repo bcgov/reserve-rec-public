@@ -62,16 +62,38 @@
                 </div>
                 <div>
                   <div class="field-label">Phone numbers</div>
-                  <div class="d-flex"><span class="text-muted phone-label">Mobile:</span><span>{{ user['custom:mobilePhone'] || '—' }}</span></div>
-                  <div class="d-flex"><span class="text-muted phone-label">Alternate:</span><span>{{ user['custom:secondaryNumber'] || '—' }}</span></div>
+                  <div class="d-flex"><span class="text-muted phone-label">Mobile:</span><span>{{ formatPhone(user['custom:mobilePhone']) || '—' }}</span></div>
+                  <div class="d-flex"><span class="text-muted phone-label">Alternate:</span><span>{{ formatPhone(user['custom:secondaryNumber']) || '—' }}</span></div>
                 </div>
               }
               <!-- Edit -->
               @if (editing === 'contact') {
                 <form [formGroup]="contactForm" (ngSubmit)="saveContact()">
                   <div class="row g-3">
-                    <div class="col-md-6"><ngds-text-input label="Surname" [control]="contactForm.get('family_name')"></ngds-text-input></div>
-                    <div class="col-md-6"><ngds-text-input label="Given names" [control]="contactForm.get('given_name')"></ngds-text-input></div>
+                    <div class="col-md-6">
+                      <ngds-text-input
+                        label="Surname"
+                        [control]="contactForm.get('family_name')"
+                        [invalidConfig]="{
+                          messages: {
+                            required: 'Surname is required.',
+                            pattern: 'Please use only letters, spaces, hyphens, apostrophes, or periods.',
+                          }
+                        }">
+                      </ngds-text-input>
+                    </div>
+                    <div class="col-md-6">
+                      <ngds-text-input
+                        label="Given name"
+                        [control]="contactForm.get('given_name')"
+                        [invalidConfig]="{
+                          messages: {
+                            required: 'Given name is required.',
+                            pattern: 'Please use only letters, spaces, hyphens, apostrophes, or periods.',
+                          }
+                        }">
+                      </ngds-text-input>
+                    </div>
                     <div class="col-12"><ngds-text-input label="Street address" [control]="contactForm.get('streetAddress')"></ngds-text-input></div>
                     <div class="col-12"><ngds-text-input label="Suite, apartment or unit" [control]="contactForm.get('unitNumber')"></ngds-text-input></div>
                     <div class="col-md-6"><ngds-text-input label="City" [control]="contactForm.get('city')"></ngds-text-input></div>
@@ -94,8 +116,28 @@
                         }
                       </select>
                     </div>
-                    <div class="col-md-6"><ngds-text-input label="Mobile phone" [control]="contactForm.get('mobilePhone')"></ngds-text-input></div>
-                    <div class="col-md-6"><ngds-text-input label="Alternate phone (optional)" [control]="contactForm.get('secondaryNumber')"></ngds-text-input></div>
+                    <div class="col-md-6">
+                      <ngds-text-input
+                        label="Mobile phone"
+                        [control]="contactForm.get('mobilePhone')"
+                        [invalidConfig]="{
+                          messages: {
+                            required: 'Mobile phone is required.',
+                            pattern: 'Enter a valid phone number, e.g. +1 (250) 555-1234',
+                          }
+                        }">
+                      </ngds-text-input>
+                    </div>
+                    <div class="col-md-6">
+                      <ngds-text-input label="Alternate phone (optional)"
+                        [control]="contactForm.get('secondaryNumber')"
+                        [invalidConfig]="{
+                          messages: {
+                            pattern: 'Enter a valid phone number, e.g. +1 (250) 555-1234'
+                          }
+                        }">
+                      </ngds-text-input>
+                    </div>
                   </div>
                   <div class="d-flex justify-content-end gap-2 mt-3">
                     <button type="button" class="btn btn-outline-primary" [disabled]="saving" (click)="cancelEdit()">Cancel</button>
@@ -113,7 +155,7 @@
             <div class="card-body">
               <div class="mb-3">
                 <div class="field-label">Email address</div>
-                <div>
+                <div class="col-12 col-md-6">
                   {{ user.email }}
                   <!-- Icons match the Figma status chips: an outline circle-check
                        (node 6231:190938) and a bare xmark with no circle around it
@@ -126,15 +168,14 @@
                   }
                 </div>
                 <!-- Email change is handled in a follow-up ticket -->
-                <button class="btn btn-outline-primary mt-2" disabled title="Coming soon">Change email address</button>
+                <!-- <button class="btn btn-outline-primary mt-2" disabled title="Coming soon">Change email address</button> -->
               </div>
-              <hr>
-              <div>
+              <!-- <div>
                 <div class="field-label">Password</div>
                 <div class="field-value">Updated {{ user['custom:pwUpdate'] || 'previously' }}</div>
-                <!-- Password change is handled in a follow-up ticket -->
+                
                 <button class="btn btn-outline-primary mt-2" disabled title="Coming soon">Change password</button>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>

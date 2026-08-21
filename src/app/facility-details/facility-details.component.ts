@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, DestroyRef, EventEmitter, inject, OnDestr
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { lastValueFrom } from 'rxjs';
 import { DateTime } from 'luxon';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
@@ -112,6 +112,15 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
     }
 
 
+    // Returning from the waiting room admits the user back to this page with their
+    // prior selections in the query params (#259) — restore those instead of the
+    // activity auto-select below.
+    const qp = this.route.snapshot.queryParamMap;
+    if (qp.get('activity')) {
+      await this.restoreSelectionsFromQueryParams(qp);
+      return;
+    }
+
     // The Activity picker was removed (#705) — a facility-level day-use pass has
     // no meaningful choice to offer, so resolve the activity here and pre-load its
     // products. Falls back to the first activity if a facility ever carries more
@@ -121,6 +130,29 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
       // Set the control value without emitting so the valueChanges subscription doesn't fire a duplicate call
       this.form.get('selectedActivity').setValue(activity, { emitEvent: false });
       await this.setFormProduct(activity);
+    }
+  }
+
+  private async restoreSelectionsFromQueryParams(qp: ParamMap) {
+    const activity = qp.get('activity');
+    this.form.get('selectedActivity').setValue(activity, { emitEvent: false });
+    await this.setFormProduct(activity);
+
+    const product = qp.get('product');
+    if (!product) return;
+    this.form.get('selectedProduct').setValue(product, { emitEvent: false });
+    await this.loadProductDates(product);
+
+    const date = qp.get('date');
+    if (!date) return;
+    this.form.get('selectedDate').setValue(date, { emitEvent: false });
+    await this.loadPassesAvailable(date);
+
+    // Inventory can move while the user waits, so only restore a count the
+    // recomputed availability still offers — otherwise fail it here, not at booking.
+    const visitors = qp.get('visitors');
+    if (visitors && this.availableVisitorsAllowed.some(v => v.value === visitors)) {
+      this.form.get('selectedVisitors').setValue(visitors, { emitEvent: false });
     }
   }
 
@@ -198,49 +230,56 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
   }
 
   setFormProductDates() {
-    this.form.get('selectedProduct').valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(async (product) => {
+    this.form.get('selectedProduct').valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((product) => {
       if (!product) return;
-      
-      const pk = product.split('#')[0];
-      const selectedProductId = product.split('#')[1];
-      const collectionId = pk.split('::')[1];
-      const activityType = pk.split('::')[2];
-      const activityId = pk.split('::')[3];
-      const productId = selectedProductId || null;
-
-      this.loadingDates = true;
-
-      // The productDates are found using the product's pk/sk and providing the available dates
-      // which is between now and two days in the future
-      const dates = (await this.productDateService.getProductDates(
-        collectionId,
-        activityType,
-        activityId,
-        productId,
-        DateTime.now().toISODate(),
-        DateTime.now().plus({ days: 2 }).toISODate()
-      ))?.items || [];
-      this.loadingDates = false;
-
-      if (dates.length === 0) {
-        this.passesAvailable = false;
-      }
-
-      // Convert this.availableDates to an object with sk: {availableDate}
-      const availableDatesMap = {}
-      for (const date of dates) {
-        availableDatesMap[date.sk] = date;
-      }
-
-      this.availableDates = availableDatesMap;
+      this.loadProductDates(product);
     });
   }
 
-  setFormPassesAvailable() {
-    this.form.get('selectedDate').valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(async (date) => {
-      if (!date) return;
+  private async loadProductDates(product: string) {
+    const pk = product.split('#')[0];
+    const selectedProductId = product.split('#')[1];
+    const collectionId = pk.split('::')[1];
+    const activityType = pk.split('::')[2];
+    const activityId = pk.split('::')[3];
+    const productId = selectedProductId || null;
 
-      this.selectedDateStr = typeof date === 'string' ? date : (date?.toISODate ? date.toISODate() : String(date));
+    this.loadingDates = true;
+
+    // The productDates are found using the product's pk/sk and providing the available dates
+    // which is between now and two days in the future
+    const dates = (await this.productDateService.getProductDates(
+      collectionId,
+      activityType,
+      activityId,
+      productId,
+      DateTime.now().toISODate(),
+      DateTime.now().plus({ days: 2 }).toISODate()
+    ))?.items || [];
+    this.loadingDates = false;
+
+    if (dates.length === 0) {
+      this.passesAvailable = false;
+    }
+
+    // Convert this.availableDates to an object with sk: {availableDate}
+    const availableDatesMap = {}
+    for (const date of dates) {
+      availableDatesMap[date.sk] = date;
+    }
+
+    this.availableDates = availableDatesMap;
+  }
+
+  setFormPassesAvailable() {
+    this.form.get('selectedDate').valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((date) => {
+      if (!date) return;
+      this.loadPassesAvailable(date);
+    });
+  }
+
+  private async loadPassesAvailable(date: any) {
+      this.selectedDateStr = typeof date === 'string' ? date : (date?.['toISODate'] ? date['toISODate']() : String(date));
       this.waitingRoomActive = false;
 
       // Check Mode 1 waiting room status for the selected date
@@ -294,9 +333,6 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
         });
       }
       this.availableVisitorsAllowed = allowedVisitors;
-
-
-    });
   }
 
   private parseDateTimeValue(value: unknown): DateTime {
@@ -325,13 +361,33 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
     return Constants.activityTypes[activityType]?.subTypes[activitySubType]?.iconClass || 'fa-solid fa-person-hiking';
   }
 
+  // Waiting room admission returns the user to this page fresh (#259) — carry the
+  // in-progress selections as query params so ngOnInit can restore them.
+  private buildReturnUrlWithSelections(): string {
+    const params = new URLSearchParams();
+    const activity = this.form.get('selectedActivity').value;
+    const product = this.form.get('selectedProduct').value;
+    const date = this.selectedDateStr || this.form.get('selectedDate').value;
+    const visitors = this.form.get('selectedVisitors').value;
+    if (activity) params.set('activity', activity);
+    if (product) params.set('product', product);
+    if (date) params.set('date', date);
+    if (visitors) params.set('visitors', visitors);
+
+    const query = params.toString();
+    // router.url excludes <base href>, and the waiting room assigns this value to
+    // window.location.href verbatim — resolve it so it survives the /dayuse/ mount.
+    const basePath = this.router.url.split('?')[0].replace(/^\//, '');
+    return new URL(query ? `${basePath}?${query}` : basePath, document.baseURI).toString();
+  }
+
   async submit(): Promise<void> {
     // Gate the booking action when Mode 2 is active and user lacks admission
     if (this.waitingRoomService.mode2Active() &&
         !this.waitingRoomService.hasValidAdmission('MODE2#global#1', '')) {
       const today = new Date().toISOString().slice(0, 10);
       window.location.href = this.waitingRoomService.buildWaitingRoomUrl(
-        'MODE2', 'global', '1', today, this.router.url
+        'MODE2', 'global', '1', today, this.buildReturnUrlWithSelections()
       );
       return;
     }
@@ -347,7 +403,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
           this.selectedActivityType,
           this.selectedActivityId,
           date,
-          this.router.url,
+          this.buildReturnUrlWithSelections(),
           this.facility?.displayName || ''
         );
         return;

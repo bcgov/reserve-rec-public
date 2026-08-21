@@ -148,8 +148,12 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
     this.form.get('selectedDate').setValue(date, { emitEvent: false });
     await this.loadPassesAvailable(date);
 
+    // Inventory can move while the user waits, so only restore a count the
+    // recomputed availability still offers — otherwise fail it here, not at booking.
     const visitors = qp.get('visitors');
-    if (visitors) this.form.get('selectedVisitors').setValue(visitors, { emitEvent: false });
+    if (visitors && this.availableVisitorsAllowed.some(v => v.value === visitors)) {
+      this.form.get('selectedVisitors').setValue(visitors, { emitEvent: false });
+    }
   }
 
   private initializeForm() {
@@ -371,8 +375,10 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
     if (visitors) params.set('visitors', visitors);
 
     const query = params.toString();
-    const basePath = this.router.url.split('?')[0];
-    return query ? `${basePath}?${query}` : this.router.url;
+    // router.url excludes <base href>, and the waiting room assigns this value to
+    // window.location.href verbatim — resolve it so it survives the /dayuse/ mount.
+    const basePath = this.router.url.split('?')[0].replace(/^\//, '');
+    return new URL(query ? `${basePath}?${query}` : basePath, document.baseURI).toString();
   }
 
   async submit(): Promise<void> {

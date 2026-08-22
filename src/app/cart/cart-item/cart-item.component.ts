@@ -1,6 +1,8 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CartItem } from '../../services/cart.service';
+import { Constants } from '../../constants';
+import { FeatureFlagService } from '../../services/feature-flag.service';
 
 @Component({
   selector: 'app-cart-item',
@@ -9,13 +11,84 @@ import { CartItem } from '../../services/cart.service';
   templateUrl: './cart-item.component.html',
   styleUrl: './cart-item.component.scss'
 })
-export class CartItemComponent {
+export class CartItemComponent implements OnInit {
   @Input() item!: CartItem;
+  @Input() removeBool: boolean;
   @Output() removeItem = new EventEmitter<string>();
+  
+  public paymentsEnabled;
+  public hideBookingCostsBool = false;
 
-  getTotalOccupants(occupants: any): number {
-    return occupants.totalAdult + occupants.totalSenior + 
-           occupants.totalYouth + occupants.totalChild;
+  constructor(private featureFlagService: FeatureFlagService) { }
+
+  async ngOnInit() {
+    try {
+      // Check if payments are enabled
+      this.paymentsEnabled = this.featureFlagService.isEnabled('enablePayments');
+    } catch (error) {
+      console.error('Failed to fetch feature flags:', error);
+    }
+  }
+
+  getActivityDisplayName(): string {
+    const activityType = this.item?.activityType;
+    return Constants.activityTypes[activityType]?.display || this.item?.productName || 'Activity';
+  }
+
+  getTotalOccupants(occupants: any) {
+    return occupants.totalAdult + occupants.totalSenior +
+      occupants.totalYouth + occupants.totalChild;
+  }
+
+  getTotalPasses() {
+    const occupants = this.item?.occupants || { totalAdult: 0, totalSenior: 0, totalYouth: 0, totalChild: 0 };
+    return this.getTotalOccupants(occupants);
+  }
+
+  getDisplayDate(timestamp) {
+    const date = this.getDateFromTimestamp(timestamp);
+    if (!date) {
+      return 'N/A';
+    }
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  }
+
+  getDisplayTime(timestamp) {
+    const date = this.getDateFromTimestamp(timestamp);
+    if (!date) {
+      return 'N/A';
+    }
+
+    const hour = date.getHours();
+    const minute = date.getMinutes();
+    const isPm = hour >= 12;
+    const normalizedHour = hour % 12 || 12;
+
+    if (minute === 0) {
+      return `${normalizedHour} ${isPm ? 'pm' : 'am'}`;
+    }
+
+    return `${normalizedHour}:${String(minute).padStart(2, '0')} ${isPm ? 'pm' : 'am'}`;
+  }
+
+  getDateFromTimestamp(timestamp) {
+    if (!timestamp) {
+      return null;
+    }
+
+    const numericValue = Number(timestamp);
+    if (!Number.isFinite(numericValue)) {
+      return null;
+    }
+
+    const milliseconds = numericValue > 1_000_000_000_000 ? numericValue : numericValue * 1000;
+    const date = new Date(milliseconds);
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
   calculateNights(): number {
@@ -29,33 +102,37 @@ export class CartItemComponent {
     this.removeItem.emit(this.item.id);
   }
 
-calculateAdultCost(): number {
-  const adultRate = 0; // GET THIS FROM FEE REG
-  return this.calculateNights() * this.item.occupants.totalAdult * adultRate;
-}
+  calculateAdultCost(): number {
+    const adultRate = 0; // GET THIS FROM FEE REG
+    return this.calculateNights() * this.item.occupants.totalAdult * adultRate;
+  }
 
-calculateSeniorCost(): number {
-  const seniorRate = 0; // GET THIS FROM FEE REG
-  return this.calculateNights() * this.item.occupants.totalSenior * seniorRate;
-}
+  calculateSeniorCost(): number {
+    const seniorRate = 0; // GET THIS FROM FEE REG
+    return this.calculateNights() * this.item.occupants.totalSenior * seniorRate;
+  }
 
-calculateYouthCost(): number {
-  const youthRate = 0; // GET THIS FROM FEE REG
-  return this.calculateNights() * this.item.occupants.totalYouth * youthRate;
-}
+  calculateYouthCost(): number {
+    const youthRate = 0; // GET THIS FROM FEE REG
+    return this.calculateNights() * this.item.occupants.totalYouth * youthRate;
+  }
 
-calculateChildCost(): number {
-  const childRate = 0; // GET THIS FROM FEE REG
-  return this.calculateNights() * this.item.occupants.totalChild * childRate;
-}
+  calculateChildCost(): number {
+    const childRate = 0; // GET THIS FROM FEE REG
+    return this.calculateNights() * this.item.occupants.totalChild * childRate;
+  }
 
-calculateSubtotal(): number {
-  return this.calculateAdultCost() + this.calculateSeniorCost() + 
-         this.calculateYouthCost() + this.calculateChildCost();
-}
+  calculateSubtotal(): number {
+    return this.calculateAdultCost() + this.calculateSeniorCost() +
+      this.calculateYouthCost() + this.calculateChildCost();
+  }
 
-onEditClick(): void {
-  console.log('No one has determined how edit will function. Edit clicked for item:', this.item.id);
-}
+  onEditClick(): void {
+    console.log('No one has determined how edit will function. Edit clicked for item:', this.item.id);
+  }
+
+  onHideBookingCosts() {
+    this.hideBookingCostsBool = !this.hideBookingCostsBool;
+  }
 
 }

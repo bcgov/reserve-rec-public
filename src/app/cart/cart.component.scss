@@ -1,0 +1,38 @@
+.checkout-container {
+  background-color: #ECF6FF;
+}
+
+.checkout-mobile {
+  display: none;
+  width: 100%;
+}
+
+.shadow-top {
+  box-shadow: 0 0rem 0.3rem rgba(0, 0, 0, 0.45) !important;
+}
+
+@media (max-width: 991px) {
+  .cart-page {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: space-between;
+    // Not a magic number, I promise - 100% screen height, minus the header
+    height: calc(100vh - 83.78px); 
+  }
+
+  .cart-container {
+    // Ok so this is a magic number
+    margin-bottom: 250px;
+  }
+
+  .checkout-desktop {
+    display: none;
+  }
+
+  .checkout-mobile {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    z-index: 10;
+  }
+}

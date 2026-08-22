@@ -62,8 +62,8 @@
                 </div>
                 <div>
                   <div class="field-label">Phone numbers</div>
-                  <div class="d-flex"><span class="text-muted phone-label">Mobile:</span><span>{{ formatPhone(user['custom:mobilePhone']) || '—' }}</span></div>
-                  <div class="d-flex"><span class="text-muted phone-label">Alternate:</span><span>{{ formatPhone(user['custom:secondaryNumber']) || '—' }}</span></div>
+                  <div class="d-flex"><span class="text-muted phone-label">Mobile:</span><span>{{ utils.formatPhone(user['custom:mobilePhone']) || '—' }}</span></div>
+                  <div class="d-flex"><span class="text-muted phone-label">Alternate:</span><span>{{ utils.formatPhone(user['custom:secondaryNumber']) || '—' }}</span></div>
                 </div>
               }
               <!-- Edit -->

@@ -6,71 +6,22 @@
       <div class="alert alert-info mb-4 border border-2 border-primary" role="alert">
         <div class="d-flex">
           <div class="flex-shrink-0">
-            <i class="fa-regular fa-circle-info me-2"></i>
+            <i class="text-primary fa-regular fa-circle-info me-2"></i>
           </div>
           <div>
             <div class="mb-1">
-              <strong>Passes cannot be transferred or changed.</strong>
+              <strong class="text-dark">Passes cannot be transferred or changed.</strong>
             </div>
-            <div>Please review your booking details below carefully.</div>
+            <div class="text-dark">Please review your booking details below carefully.</div>
           </div>
         </div>
       </div>
 
-      <!-- Pass Details Card -->
-      <div class="card mb-4">
-        <div class="card-header bg-booking-header">
-          <h5 class="card-title mb-1 fw-bold">{{ cartItem?.geoZoneName }}</h5>
-          <p class="card-text text-muted mb-0">{{ cartItem?.activityName }}</p>
-        </div>
-        <div class="card-body">
-          <!-- Row 1: Arrival and Departure Dates -->
-          <div class="row mb-3">
-            <div class="col-md-6 mb-3 mb-md-0">
-              <div class="rounded p-3">
-                <h6 class="text-muted mb-2 fw-semibold">Arrival</h6>
-                <p class="mb-0 fw-medium">{{ cartItem?.startDate | date:'fullDate' }}</p>
-                @if (cartItem?.checkInAnchor) {
-                  <p class="mb-0 mt-1 text-muted small">
-                    {{ cartItem?.checkInAnchor | date:'shortTime' }}
-                  </p>
-                }
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="rounded p-3">
-                <h6 class="text-muted mb-2 fw-semibold">Departure</h6>
-                <p class="mb-0 fw-medium">{{ cartItem?.endDate | date:'fullDate' }}</p>
-                @if (cartItem?.checkOutAnchor) {
-                  <p class="mb-0 mt-1 text-muted small">
-                    {{ cartItem?.checkOutAnchor | date:'shortTime' }}
-                  </p>
-                }
-              </div>
-            </div>
-          </div>
-
-          <!-- Row 2: Pass Type and Number of Passes -->
-          <div class="row">
-            <div class="col-md-6 mb-3 mb-md-0">
-              <div class="rounded p-3">
-                <h6 class="text-muted mb-2 fw-semibold">Pass type</h6>
-                <p class="mb-0 fw-medium"><i class="fa-regular fa-location-dot me-2"></i>{{ cartItem?.productName || 'Product Name Unavailable' }}</p>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="rounded p-3">
-                <h6 class="text-muted mb-2 fw-semibold">Passes</h6>
-                <p class="mb-0 fw-medium"><i class="fa-regular fa-tickets-simple me-2"></i>{{ totalOccupants }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <app-cart-item [item]="cartItem"></app-cart-item>
 
       <!-- Acknowledgement Checkbox -->
-      <div class="mb-4 p-3 border border-2 rounded border-medium-grey bg-light-blue-nav">
-        <div class="form-check">
+      <div class="mt-4 mb-4 p-3 border border-1 rounded-1 border-medium-grey bg-light-blue-nav">
+        <div class="form-check align-items-center d-flex gap-3 justify-content-center">
           <input
             class="form-check-input"
             type="checkbox"

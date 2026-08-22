@@ -90,4 +90,19 @@ export class ProgressIndicatorComponent {
 
     return stepCompletionMap[stepIndex] || false;
   }
+
+  isStepClickable(index: number): boolean {
+    // Step 1 is always accessible
+    if (index === 0) return true;
+
+    // The step is currently active or already completed
+    const steps = this.stepperService.getSteps();
+    if (steps[index]?.isActive || this.isStepCompletedForCurrentItem(steps[index], index)) {
+      return true;
+    }
+
+    // The step is clickable if the PREVIOUS step is completed
+    const previousStep = steps[index - 1];
+    return this.isStepCompletedForCurrentItem(previousStep, index - 1);
+  }
 }

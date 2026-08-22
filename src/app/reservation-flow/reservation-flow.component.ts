@@ -17,7 +17,7 @@ import { FeatureFlagService } from '../services/feature-flag.service';
 import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
 import { ViewChild } from '@angular/core';
 import { lastValueFrom, Subscription } from 'rxjs';
-import Modal from 'bootstrap/js/dist/modal';
+// import Modal from 'bootstrap/js/dist/modal';
 
 @Component({
   selector: 'app-reservation-flow',
@@ -445,12 +445,6 @@ async onStepCompleted(completed: boolean): Promise<void> {
     this.router.navigate(['/']);
   }
 
-  // Navigation bar methods
-  cancelBooking(): void {
-    // Now handled by modal
-    this.openCancelModal();
-  }
-
   goBack(): void {
     this.stepperService.goPrevious();
   }
@@ -520,21 +514,25 @@ async onStepCompleted(completed: boolean): Promise<void> {
   @ViewChild('cancelBookingModal', { static: false }) cancelBookingModal?: ElementRef;
   private cancelModalInstance: any;
 
-  openCancelModal(): void {
-    if (!this.cancelModalInstance && this.cancelBookingModal) {
-      this.cancelModalInstance = new Modal(this.cancelBookingModal.nativeElement);
-    }
-    if (this.cancelModalInstance) {
-      this.cancelModalInstance.show();
-    } else {
-      // fallback for static template
-      const modalEl = document.getElementById('cancelBookingModal');
-      if (modalEl) {
-        this.cancelModalInstance = new Modal(modalEl);
-        this.cancelModalInstance.show();
-      }
-    }
+  backToCart() {
+    this.router.navigate(['/cart'])
   }
+
+  // openCancelModal(): void {
+  //   if (!this.cancelModalInstance && this.cancelBookingModal) {
+  //     this.cancelModalInstance = new Modal(this.cancelBookingModal.nativeElement);
+  //   }
+  //   if (this.cancelModalInstance) {
+  //     this.cancelModalInstance.show();
+  //   } else {
+  //     // fallback for static template
+  //     const modalEl = document.getElementById('cancelBookingModal');
+  //     if (modalEl) {
+  //       this.cancelModalInstance = new Modal(modalEl);
+  //       this.cancelModalInstance.show();
+  //     }
+  //   }
+  // }
 
   async confirmCancelBooking(): Promise<void> {
     if (this.cancelModalInstance) {

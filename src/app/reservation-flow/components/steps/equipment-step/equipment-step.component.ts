@@ -18,6 +18,7 @@ export class EquipmentStepComponent implements OnInit {
   @Input() form: FormGroup | null = null;
   @Input() cartItem: CartItem | null = null;
   @Input() bookingSummary: any = null;
+  @Input() user: any;
   
   @Output() stepCompleted = new EventEmitter<boolean>();
   @Output() stepValidated = new EventEmitter<boolean>();
@@ -28,7 +29,7 @@ export class EquipmentStepComponent implements OnInit {
   
   ngOnInit(): void {
     this.initializeEquipmentFormControls();
-    
+
     if (this.form) {
       this.form.valueChanges.subscribe(() => {
         this.validateStep();
@@ -45,8 +46,8 @@ export class EquipmentStepComponent implements OnInit {
 
     if (!this.form.get('equipmentInfo')) {
       this.form.addControl('equipmentInfo', new FormGroup({
-        licensePlate: new FormControl('', validators),
-        registeredProvince: new FormControl('', validators)
+        licensePlate: new FormControl(this.user?.['custom:licensePlate'] || '', validators),
+        registeredProvince: new FormControl(this.user?.['custom:vehicleRegLocale'] || '', validators)
       }));
     }
 

@@ -8,6 +8,7 @@ import { ToastService, ToastTypes } from '../services/toast.service';
 import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
 import { AccountVerificationComponent } from '../shared/components/account-verification/account-verification.component';
 import { debounceTime } from 'rxjs/operators';
+import { Utils } from '../utils/utils';
 
 type EditSection = 'contact' | 'vehicle' | null;
 
@@ -21,6 +22,7 @@ type EditSection = 'contact' | 'vehicle' | null;
 export class AccountDetailsComponent implements OnInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
 
+  public utils = Utils;
   public editing: EditSection = null;
   public loading = true;
   public saving = false;
@@ -262,7 +264,7 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
 
       // Extract up to 12 digits
       const digits = value.replace(/\D/g, '').slice(0,12);
-      const formatted = this.formatPhone(digits);
+      const formatted = this.utils.formatPhone(digits);
       
       // Only update if the value actually changed to avoid infinite loop
       if (formatted !== value) {
@@ -275,24 +277,7 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
   }
 
   formatPhone(digits: string): string {
-    let d = digits
-    
-    if (!d) return '';
-
-    // Remove starting "+" if it's on there
-    if (d.slice(0,1) == "+") {
-      d = d.slice(1,d.length)
-    }
-
-    if (d.length <= 3) return d;
-    // hyphen
-    if (d.length <= 7) return `${d.slice(0, 3)}-${d.slice(3)}`;
-    // parenthesis and hyphen
-    if (d.length <= 10) return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
-    // 11 or 12 digits -> include "+" and country code
-    if (d.length === 11) return `+${d.slice(0, 1)} (${d.slice(1, 4)}) ${d.slice(4, 7)}-${d.slice(7)}`;
-    if (d.length === 12) return `+${d.slice(0, 2)} (${d.slice(2, 5)}) ${d.slice(5, 8)}-${d.slice(8)}`;
-    return d;
+    return this.utils.formatPhone(digits);
   }
 
   ngOnDestroy(): void {

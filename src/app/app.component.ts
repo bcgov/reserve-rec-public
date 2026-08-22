@@ -21,7 +21,7 @@ export class AppComponent {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {
-      this.hideFooter = event.url.includes('/reservation-flow');
+      this.hideFooter = event.url.includes('/reservation-flow') || event.url.includes('/cart');
     });
   }
 }

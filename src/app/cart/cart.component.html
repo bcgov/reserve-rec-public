@@ -1,84 +1,102 @@
-<div class="container-fluid">
-  <div class="row justify-content-center">
-    <div class="col-lg-10 col-12">
-      <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item">
-            <a routerLink="/" class="text-decoration-none">Home</a>
-          </li>
-          <li class="breadcrumb-item active" aria-current="page">Cart</li>
-        </ol>
-      </nav>
+<div class="cart-page">
+  <div class="container cart-items">
+    <div class="row">
+      <div class="col-12">
+        <nav aria-label="breadcrumb" class="mb-3">
+          <ol class="breadcrumb mt-5 bg-white">
+            <li class="breadcrumb-item">
+              <a routerLink="/" class="text-decoration-none">Home</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Cart</li>
+          </ol>
+        </nav>
 
-      <h2 class="text-dark fw-bold mb-4">Cart</h2>
+        <h2 class="text-primary fw-bold mt-5 mb-4">Cart</h2>
 
-      <div class="row">
-        <div class="col-lg-8 col-12 mb-4">
-          <div class="bg-light rounded p-4 h-100">
-            @if (cartService.items().length === 0) {
-              <div class="text-center py-5">
-                <h4>Your cart is empty</h4>
-                <p class="text-muted">Add some reservations to get started!</p>
-              </div>
-            }
-
-            @if (cartService.items().length > 0) {
-              <div>
-                @for (item of cartService.items(); track trackByItemId(i, item); let i = $index) {
-                  <h5 class="text-primary mb-3">Booking #{{ i + 1 }} of {{ cartService.items().length }}</h5>
-                  <app-cart-item
-                    [item]="item"
-                    (removeItem)="removeItem($event)"
-                  ></app-cart-item>
-                  @if (i !== cartService.items().length - 1) {
-                    <hr class="my-4">
-                  }
-                }
-              </div>
-            }
-          </div>
-        </div>
-
-        <div class="col-lg-4 col-12">
-          <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-bottom">
-              <h5 class="mb-0 fw-bold">Estimated Costs</h5>
-            </div>
-            <div class="card-body">
+        <div class="row">
+          <div class="col-lg-8 col-12 cart-container">
+            <div class="bg-light rounded h-100">
               @if (cartService.items().length === 0) {
-                <div class="text-center text-muted py-3">
-                  <p class="mb-0">No items in cart</p>
+                <div class="text-center py-5">
+                  <h4>Your cart is empty</h4>
+                  <p class="text-muted">Add some reservations to get started!</p>
                 </div>
               }
 
               @if (cartService.items().length > 0) {
                 <div>
-                  <div class="d-flex justify-content-between mb-2">
-                    <span>Subtotal:</span>
-                    <span>$0.00</span>
+                  @for (item of cartService.items(); track trackByItemId(i, item); let i = $index) {
+                    <app-cart-item
+                      [item]="item"
+                      [removeBool]="true"
+                      (removeItem)="removeItem($event)"
+                    ></app-cart-item>
+                    @if (i !== cartService.items().length - 1) {
+                      <hr class="my-4">
+                    }
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Desktop checkout button, hide at 991px breakpoint -->
+          <div class="col-lg-4 col-12 checkout-desktop">
+            <div class="p-4 border rounded checkout-container">
+              @if (paymentsEnabled) {
+              <div class="mb-3">
+                <div class="d-flex justify-content-between gap-2">
+                  <div class="d-flex flex-column align-items-between me-5">
+                    <span class="fs-5 fw-bold text-primary mb-2">Est. Total (CAD)</span>
                   </div>
-                  <div class="d-flex justify-content-between mb-2">
-                    <span>Fees:</span>
-                    <span>$0.00</span>
+                  <div class="d-flex flex-column align-items-end">
+                    <!-- Est. Total -->
+                    <span class="text-primary fw-bold">$0</span>
                   </div>
-                  <hr>
-                    <div class="d-flex justify-content-between fw-bold mb-3">
-                      <span>Total:</span>
-                      <span>$0.00</span>
-                    </div>
-                    <button
-                      class="btn btn-primary w-100 fw-bold"
-                      [disabled]="cartService.itemCount() === 0"
-                      (click)="proceedToCheckout()"
-                      >
-                      Proceed to Checkout
-                    </button>
-                  </div>
-                }
+                </div>
+                <span class="text-muted mb-5">Additional fees to be determined</span>
               </div>
+              }
+              <button class="btn btn-primary w-100 fw-bold p-2" [disabled]="cartService.itemCount() === 0"
+                (click)="proceedToCheckout()">
+                Checkout
+                <i class="fa-solid fa-circle-chevron-right ms-2"></i>
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <div class="checkout-mobile checkout-container shadow-top">
+    <div class="container">
+      <div class="row">
+        <div class="py-4 w-100">
+          @if (paymentsEnabled) {
+          <div class="mb-3">
+            <div class="d-flex justify-content-between gap-2">
+              <div class="d-flex flex-column align-items-between me-5">
+                <span class="fs-5 fw-bold text-primary mb-2">Est. Total (CAD)</span>
+              </div>
+              <div class="d-flex flex-column align-items-end">
+                <!-- Est. Total -->
+                <span class="text-primary fw-bold">$0</span>
+              </div>
+            </div>
+            <span class="text-muted mb-5">Additional fees to be determined</span>
+          </div>
+          }
+
+          <div class="col-12">
+            <button class="btn btn-primary w-100 fw-bold p-2" [disabled]="cartService.itemCount() === 0"
+              (click)="proceedToCheckout()">
+              Checkout
+              <i class="fa-solid fa-circle-chevron-right ms-2"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

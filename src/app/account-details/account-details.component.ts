@@ -276,6 +276,10 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
+  formatPhone(digits: string): string {
+    return this.utils.formatPhone(digits);
+  }
+
   ngOnDestroy(): void {
     // TODO: this is a temporary fix
     this.cd.detectChanges()

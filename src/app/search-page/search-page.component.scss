@@ -21,13 +21,15 @@ input::placeholder {
 }
 
 .search-container {
-  background-color: #c6c6c6;
-  min-height: 50vh;
-  padding-top: 25vh;
-  padding-bottom: 25vh;
   background-image: url('https://nrs.objectstore.gov.bc.ca/kuwyyf/RS_5254_3_Kinney_Lake_Fall_Colours_gal_e6e48135f5.jpg');
   background-size: cover;
   background-position: center;
+  // Figma anchors the hero at 320px tall up to SM and 600px at XL (1440px).
+  // 41.67vw = 600/1440, so both land exactly and the 745-1399px range, which
+  // has no mockup, interpolates rather than jumping.
+  min-height: clamp(320px, 41.67vw, 600px);
+  display: flex;
+  align-items: center;
 }
 
 ::ng-deep .grouped-picklist .dropdown-item:not([disabled]) {

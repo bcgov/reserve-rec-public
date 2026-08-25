@@ -2,65 +2,77 @@
   <div class="row justify-content-center">
     <div class="col-lg-10 col-12">
 
-      <!-- Visitor Details Card -->
-      <div class="card mb-4">
-        <div class="card-header bg-booking-header">
-          <h4 class="mb-0">Visitor details</h4>
+      <!-- Occupant Details Card -->
+      <div class="card occupant-card border mb-4 shadow-none">
+        <div class="card-header bg-booking-header border-1 px-4 py-3">
+          <h4 class="fs-6 mb-0 py-3 fw-semibold">Occupant details</h4>
         </div>
-        <div class="card-body">
+        <div class="card-body p-4">
           <!-- Explanation Text -->
           <div class="mb-4">
-            <p class="mb-2">Day-use passes can only be redeemed by the account holder that booked the reservation.</p>
-            <p class="mb-0">We will use the following information from your account in this booking:</p>
+            <p class="fs-6 mb-4">Day-use passes can only be redeemed by the account holder that booked the reservation.
+            </p>
+            <p class="text-muted fw-bold fs-6 mb-4">We will use the following information from your account in this booking:</p>
           </div>
 
           <!-- Account Information -->
-          <div class="border rounded p-4 bg-booking-header mb-4">
-            <div class="row mb-3">
+          <div class="border rounded p-4 bg-booking-header mb-4 occupant-info">
+            <div class="row g-4">
               <div class="col-md-6">
-                <strong>Name</strong>
-                <p class="mb-0">{{ user?.given_name || 'N/A' }} {{ user?.family_name || '' }}</p>
+                <div>
+                  <p class="info-label fw-bold mb-2">Name</p>
+                  <p class="info-value mb-0">{{ user?.given_name || 'N/A' }} {{ user?.family_name || '' }}</p>
+                </div>
               </div>
               <div class="col-md-6">
-                <strong>Email address</strong>
-                <p class="mb-0">{{ user?.email || 'N/A' }}</p>
+                <div class="mb-3">
+                  <p class="info-label fw-bold mb-2">Email address</p>
+                  <p class="info-value mb-0">{{ user?.email || 'N/A' }}</p>
+                </div>
               </div>
             </div>
-            <div class="row">
+
+            <div class="row g-4">
               <div class="col-md-6">
-                <strong>Home address</strong>
-                <p class="mb-0">{{ user['custom:streetAddress'] || 'N/A' }}</p>
-                <p class="mb-0">{{ user['custom:city'] }}, {{ user['custom:province'] || '' }}</p>
-                <p class="mb-0">{{ user['custom:postalCode'] }}</p>
-                <p class="mb-0">{{ user['custom:country'] }}</p>
+                <div class="mb-0">
+                  <p class="info-label fw-bold mb-2">Home address</p>
+                  <p class="info-value mb-0">{{ user['custom:streetAddress'] || 'N/A' }}</p>
+                  <p class="info-value mb-0">{{ user['custom:city'] || '' }}{{ user['custom:city'] &&
+                    user['custom:province'] ? ', ' : '' }}{{ user['custom:province'] || '' }}</p>
+                  <p class="info-value mb-0">{{ user['custom:postalCode'] || '' }}</p>
+                  <p class="info-value mb-0">{{ user['custom:country'] || '' }}</p>
+                </div>
               </div>
-              <div class="col-md-6">
-                <strong>Phone number</strong>
-                <p class="mb-0">Mobile: {{ user['custom:mobilePhone'] || 'N/A' }}</p>
-                <p class="mb-0">Secondary: {{ user['custom:secondaryNumber'] || 'N/A' }}</p>
+              <div class="col-md-6"><div class="mb-0">
+                <p class="info-label fw-bold mb-2">Phone number</p>
+                <div class="phone-container d-flex flex-column">
+                  <div class="d-flex justify-content-between flex-wrap">
+                    <p class="phone-label info-value mb-0 text-muted" >Mobile:</p>
+                    <p class="phone-value text-dark mb-0" >{{ utils.formatPhone(user['custom:mobilePhone']) || 'N/A' }}</p>
+                  </div>
+                  <div class="d-flex justify-content-between flex-wrap">
+                    <p class="phone label info-value mb-0 text-muted" >Secondary:</p>
+                    <p class="phone-value text-dark mb-0" >{{ utils.formatPhone(user['custom:secondaryNumber']) || 'N/A' }}</p>
+                  </div>
+                </div>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Text Message Reminders -->
-          <div class="rounded p-4 bg-white">
-            <h5 class="mb-3">Text message reminders opt-in</h5>
-            <div class="form-check p-3 rounded bg-light">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                id="smsReminders"
-                [(ngModel)]="smsOptIn"
-                [disabled]="!hasMobilePhone()"
-                (change)="onSmsOptInChange()"
-                >
-              <label class="form-check-label" for="smsReminders">
+          <div class="rounded bg-white">
+            <h5 class="mb-2 fs-6 fw-semibold">Text message reminders opt-in</h5>
+            <div class="d-flex align-items-center form-check sms-optin py-3 px-0">
+              <input class="form-check-input ms-1 me-3" type="checkbox" id="smsReminders" [(ngModel)]="smsOptIn"
+                [disabled]="!hasMobilePhone()" (change)="onSmsOptInChange()">
+              <label class="form-check-label mt-1" for="smsReminders">
                 I would like to receive reminders via text message
               </label>
               @if (!hasMobilePhone()) {
-                <p class="small text-muted mb-0 mt-2">
-                  Add a mobile phone number to your account to enable text message reminders.
-                </p>
+              <p class="small text-muted mb-0 mt-2">
+                Add a mobile phone number to your account to enable text message reminders.
+              </p>
               }
             </div>
           </div>

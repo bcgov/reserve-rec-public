@@ -32,3 +32,24 @@
 .card-header {
   background-color: #f2f2f2;
 }
+
+.province-input-wrapper {
+  position: relative;
+}
+
+.province-input {
+  padding-right: 2.5rem;
+}
+
+.province-input-icon {
+  pointer-events: none;
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+ngds-input-header > label {
+  font-weight: 0;
+  color: red;
+}

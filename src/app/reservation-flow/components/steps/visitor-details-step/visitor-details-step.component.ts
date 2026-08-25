@@ -3,6 +3,7 @@ import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { StepperService } from '../../../services/stepper.service';
 import { CartItem } from '../../../../services/cart.service';
+import { Utils } from '../../../../utils/utils';
 
 @Component({
   selector: 'app-visitor-details-step',
@@ -23,7 +24,8 @@ export class VisitorDetailsStepComponent implements OnInit {
   @Output() stepCompleted = new EventEmitter<boolean>();
   @Output() stepValidated = new EventEmitter<boolean>();
   
-  smsOptIn = false;
+  public utils = Utils;
+  public smsOptIn = false;
 
   constructor(private stepperService: StepperService) {}
 
@@ -76,4 +78,5 @@ export class VisitorDetailsStepComponent implements OnInit {
   goToPrevious(): void {
     this.stepperService.goPrevious();
   }
+
 }

@@ -5,11 +5,13 @@ import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 import { StepperService } from '../../../services/stepper.service';
 import { CartItem } from '../../../../services/cart.service';
 import { Subscription } from 'rxjs';
+import { Constants } from '../../../../constants';
+import { CartItemComponent } from '../../../../cart/cart-item/cart-item.component';
 
 @Component({
   selector: 'app-confirm-details-step',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, NgdsFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, NgdsFormsModule, CartItemComponent],
   templateUrl: './confirm-details-step.component.html',
   styleUrl: './confirm-details-step.component.scss',
 })
@@ -52,6 +54,11 @@ export class ConfirmDetailsStepComponent implements OnInit, OnChanges, OnDestroy
       this.validateStep();
     }
   }
+
+  getActivityDisplayName(): string {
+    const activityType = this.cartItem?.activityType;
+    return Constants.activityTypes[activityType]?.display || this.cartItem?.productName || 'Activity';
+  }
   
   private unsubscribeFromForm(): void {
     if (this.formSubscription) {
@@ -83,6 +90,7 @@ export class ConfirmDetailsStepComponent implements OnInit, OnChanges, OnDestroy
       
     // Check if user has acknowledged the booking details
     const acknowledgeDetails = this.form?.get('acknowledgeDetails')?.value;
+
     const isValid = !!acknowledgeDetails;
 
     this.stepperService.markStepValid(0, isValid);

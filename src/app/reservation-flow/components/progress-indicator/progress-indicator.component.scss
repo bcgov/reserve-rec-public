@@ -1,68 +1,43 @@
-/* filepath: /home/cwalsh/Projects/reserve-rec-public/src/app/reservation-flow/components/progress-indicator/progress-indicator.component.scss */
-
-/* Minimal custom styles - mostly using Bootstrap */
 .nav-link {
-  border-radius: 0 !important;
-  margin: 0 0.5rem !important; /* Add horizontal margin to create gaps */
-  padding: 0.75rem 1rem !important; /* Add consistent padding to maintain height */
+  color: inherit;
   transition: all 0.2s ease;
-  border: none !important;
-  background-color: transparent !important;
-  position: relative;
 }
 
-/* Create bottom border with pseudo-element at 75% width */
 .nav-link::after {
   content: '';
   position: absolute;
   bottom: 0;
-  left: 7.5%; /* Center the 85% border */
-  width: 85%;
-  height: 3px;
-  background-color: #dee2e6; /* Grey bottom border for default */
+  left: 2%;      
+  width: 95%;
+  height: 3px;   
+  background-color: #dee2e6; 
   transition: background-color 0.2s ease;
 }
 
 .nav-link.active::after {
-  background-color: #013366; /* Blue bottom border for active */
+  background-color: #013366; 
 }
 
 .nav-link.completed::after {
-  background-color: #198754; /* Green bottom border for completed */
+  background-color: #198754; 
 }
 
-.nav-link i.fa-circle-check {
-  font-size: 27px !important; /* Make checkmark icon larger to match number size */
-}
 
 .nav-link:hover:not(.disabled):not(.completed) {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background-color: rgba(0, 0, 0, 0.03); 
 }
 
 .nav-link.disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
-  color: #6c757d !important; // upcoming steps render gray instead of inheriting blue
-
-  // Inner text/numbers inherit the muted colour even when text-primary is on
-  // the parent — Angular template applies it conditionally based on isActive.
-  span,
-  i {
-    color: inherit !important;
-  }
 }
 
-@media (max-width: 768px) {
-  .nav-pills {
-    flex-direction: column;
+// Slightly nicer widths/spacing for stepper underlines
+@media (max-width: 991px) {
+  .nav-link::after {
+    width: 80%;
   }
-  
-  .nav-item {
-    margin-bottom: 8px;
-  }
-  
-  .nav-link {
-    margin: 0;
+  .nav-link:has(.text-primary)::after {
+    width: 95%;
   }
 }

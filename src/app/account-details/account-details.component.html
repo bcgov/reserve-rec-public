@@ -50,16 +50,36 @@
                   <div class="field-label">Name</div>
                   <div>{{ user.given_name }} {{ user.family_name }}</div>
                 </div>
-                <div class="mb-3">
-                  <div class="field-label">Home address</div>
-                  <div>{{ user['custom:streetAddress'] }}@if (user['custom:unitNumber']) {
-                    <span>, {{ user['custom:unitNumber'] }}</span>
-                  }</div>
-                  <div>{{ user['custom:city'] }}@if (user['custom:province']) {
-                    <span>, {{ user['custom:province'] }}</span>
-                  } {{ user['custom:postalCode'] }}</div>
-                  <div>{{ user['custom:country'] }}</div>
-                </div>
+
+                <!-- BCSC Address (read-only from BC Services Card) -->
+                @if (isBcsc) {
+                  @let bcscAddr = getBcscAddress();
+                  @if (bcscAddr) {
+                    <div class="mb-3">
+                      <div class="field-label">Home address</div>
+                      <div>{{ bcscAddr.street_address }}</div>
+                      <div>{{ bcscAddr.locality }}@if (bcscAddr.region) {
+                        <span>, {{ bcscAddr.region }}</span>
+                      } {{ bcscAddr.postal_code }}</div>
+                      <div>{{ getCountryName(bcscAddr.country) | uppercase }}</div>
+                    </div>
+                  }
+                }
+
+                <!-- Non-BCSC Address (editable) -->
+                @if (!isBcsc) {
+                  <div class="mb-3">
+                    <div class="field-label">Home address</div>
+                    <div>{{ user['custom:streetAddress'] }}@if (user['custom:unitNumber']) {
+                      <span>, {{ user['custom:unitNumber'] }}</span>
+                    }</div>
+                    <div>{{ user['custom:city'] }}@if (user['custom:province']) {
+                      <span>, {{ user['custom:province'] }}</span>
+                    } {{ user['custom:postalCode'] }}</div>
+                    <div>{{ user['custom:country'] }}</div>
+                  </div>
+                }
+
                 <div>
                   <div class="field-label">Phone numbers</div>
                   <div class="d-flex"><span class="text-muted phone-label">Mobile:</span><span>{{ formatPhone(user['custom:mobilePhone']) || '—' }}</span></div>

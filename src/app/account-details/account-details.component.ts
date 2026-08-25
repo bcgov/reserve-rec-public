@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, DestroyRef, inject, OnDestroy, OnInit } f
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
+import { UpperCasePipe } from '@angular/common';
 import { PROVINCES_STATES } from '../data/provinces-states.data';
 import { AuthService } from '../services/auth.service';
 import { ToastService, ToastTypes } from '../services/toast.service';
@@ -14,7 +15,7 @@ type EditSection = 'contact' | 'vehicle' | null;
 @Component({
   selector: 'app-account-details',
   standalone: true,
-  imports: [BreadcrumbComponent, ReactiveFormsModule, NgdsFormsModule, AccountVerificationComponent],
+  imports: [BreadcrumbComponent, ReactiveFormsModule, NgdsFormsModule, AccountVerificationComponent, UpperCasePipe],
   templateUrl: './account-details.component.html',
   styleUrl: './account-details.component.scss'
 })
@@ -293,6 +294,41 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
     if (d.length === 11) return `+${d.slice(0, 1)} (${d.slice(1, 4)}) ${d.slice(4, 7)}-${d.slice(7)}`;
     if (d.length === 12) return `+${d.slice(0, 2)} (${d.slice(2, 5)}) ${d.slice(5, 8)}-${d.slice(8)}`;
     return d;
+  }
+
+  /**
+   * Extract BCSC address from UserAttributes array
+   * BCSC returns address as a JSON string in the UserAttributes array
+   */
+  getBcscAddress(): any {
+    try {
+      const user = this.user;
+      
+      if (!user) {
+        return null;
+      }
+      
+      // BCSC user object has address as a direct property (JSON string), not in UserAttributes array
+      if (!user.address) {
+        console.log('getBcscAddress - no address property on user object');
+        return null;
+      }
+      
+      const parsed = JSON.parse(user.address);
+      return parsed;
+    } catch (error) {
+      console.error('Error parsing BCSC address:', error);
+      return null;
+    }
+  }
+
+  //Return country as capitalized for settings. If their mailing address is elesewhere jsut display the country code. 
+  getCountryName(code: string): string {
+    if (code === 'CA') {
+      return 'CANADA';
+    } else {
+      return code;
+    }
   }
 
   ngOnDestroy(): void {

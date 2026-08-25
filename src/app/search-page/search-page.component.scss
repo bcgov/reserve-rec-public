@@ -109,3 +109,13 @@ input::placeholder {
     background-color: transparent !important;
   }
 }
+
+// Figma: 80x3 BC Yellow rule, 16px below the section heading.
+.section-underline {
+  width: 80px;
+  height: 3px;
+  border: none;
+  opacity: 1;
+  background-color: #FCBA19;
+  margin-top: 1rem;
+}

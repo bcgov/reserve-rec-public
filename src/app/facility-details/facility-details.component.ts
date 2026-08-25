@@ -248,14 +248,16 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
 
     // The productDates are found using the product's pk/sk and providing the available dates
     // which is between now and two days in the future
-    const dates = (await this.productDateService.getProductDates(
+    const productDatesResult = await this.productDateService.getProductDates(
       collectionId,
       activityType,
       activityId,
       productId,
       DateTime.now().toISODate(),
       DateTime.now().plus({ days: 2 }).toISODate()
-    ))?.items || [];
+    );
+    // API returns a plain array of ProductDates; fall back to `.items` for any legacy wrapped shape
+    const dates = Array.isArray(productDatesResult) ? productDatesResult : (productDatesResult?.items || []);
     this.loadingDates = false;
 
     if (dates.length === 0) {

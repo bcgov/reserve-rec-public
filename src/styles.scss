@@ -39,6 +39,8 @@ body {
 
 app-root {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 body.booking-cancel-action-mode app-footer {

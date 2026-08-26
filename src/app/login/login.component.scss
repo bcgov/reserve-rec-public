@@ -1,13 +1,13 @@
 .amplify-auth-container {
-    padding-top: 5rem;
-    padding-bottom: 5rem;
+    padding-top: 5rem;      // 80px / 160px above and below the card per Figma (#696)
+    padding-bottom: 10rem;
     width: 50%; /* Set the width to 50% of the screen */
     margin: 0 auto; /* Center the container horizontally */
-    max-width: 500px; /* Match Amplify authenticator size */
+    max-width: 546px; /* Figma card width */
 }
 
 .login-selection-container {
-    max-width: 500px;
+    max-width: 546px;
     margin: 0 auto;
 }
 

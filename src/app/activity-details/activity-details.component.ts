@@ -120,6 +120,10 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
       equipmentStepCompleted: false,
       paymentStepCompleted: false,
       areAllStepsCompleted: false,
+      namedOccupant: {
+        firstName: '',
+        lastName: ''
+      },
       occupants: this.form.get('occupants')?.value || {
         totalAdult: 0,
         totalSenior: 0,
@@ -133,6 +137,12 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
         total: 0
       },
       waitingRoomActive: !!this.data?.waitingRoomActive,
+      vehicleInformation: [
+        {
+          licensePlate: '',
+          licensePlateRegistrationRegion: ''
+        }
+      ]
     };
 
     const existing = this.cartService.items()[0];

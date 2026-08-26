@@ -302,7 +302,7 @@ export class PaymentStepComponent implements OnInit {
 
   // Helper methods for template
   getParkName(): string {
-    return this.cartItem?.geoZoneName || 'Unknown Park';
+    return this.cartItem?.geozoneName || 'Unknown Park';
   }
   
   getActivityName(): string {

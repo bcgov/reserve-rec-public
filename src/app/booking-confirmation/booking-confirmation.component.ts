@@ -8,11 +8,12 @@ import { QrPrintService } from '../services/qr-print.service';
 import { Constants } from '../constants';
 import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
 import { BookingUtils } from '../utils/booking-utils';
+import { CartItemComponent } from '../cart/cart-item/cart-item.component';
 
 @Component({
   selector: 'app-booking-confirmation',
   standalone: true,
-  imports: [CommonModule, BreadcrumbComponent],
+  imports: [CommonModule, BreadcrumbComponent, CartItemComponent],
   templateUrl: './booking-confirmation.component.html',
   styleUrls: ['./booking-confirmation.component.scss']
 })
@@ -30,8 +31,8 @@ export class BookingConfirmationComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private bookingService: BookingService,
-    private cartService: CartService,
     private qrPrintService: QrPrintService,
+    public cartService: CartService,
     protected loadingService: LoadingService
   ) {}
 
@@ -39,15 +40,16 @@ export class BookingConfirmationComponent implements OnInit {
     // Get bookingId from route parameter
     this.bookingId = this.route.snapshot.paramMap.get('bookingId');
 
+    
     // Get all query parameters from URL
     this.queryParams = this.route.snapshot.queryParams;
-
+    
     // Extract ref1 (bookingId) from query params if not in route
     const ref1BookingId = this.queryParams['ref1'];
     if (ref1BookingId && !this.bookingId) {
       this.bookingId = ref1BookingId;
     }
-
+    
     if (this.bookingId) {
       // Reaching this page with a bookingId means checkout succeeded — the
       // single-item cart's job is done regardless of whether the detail
@@ -65,7 +67,7 @@ export class BookingConfirmationComponent implements OnInit {
       this.loadingService.addToFetchList(Constants.dataIds.BOOKING_DETAILS_RESULT);
       // Fetch booking from API (don't fetch access points since they're optional)
       const bookingData: any = await this.bookingService.getBookingByGlobalId(this.bookingId!, false);
-      this.booking = bookingData;
+      this.booking = this.formatBooking(bookingData);
 
       // Extract QR code if available
       if (this.booking?.qrCode?.dataUrl) {
@@ -77,6 +79,51 @@ export class BookingConfirmationComponent implements OnInit {
     } finally {
       this.loading = false;
       this.loadingService.removeFromFetchList(Constants.dataIds.BOOKING_DETAILS_RESULT);
+    }
+  }
+
+  // Format booking so it can be rendered using app-cart-item component
+  formatBooking(booking: any) {
+    return {
+      collectionId: booking.collectionId,
+      activityType: booking.activityType,
+      activitySubType: booking.activitySubType,
+      activityId: booking.activityId,
+      productId: booking.productId,
+      quantity: booking.quantity,
+      activityName: booking.activityName,
+      productName: BookingUtils.getProductDisplayName(booking),
+      geozoneName: BookingUtils.getGeozoneName(booking),
+      dateRange: [
+        booking.startDate,
+        booking.endDate
+      ],
+      startDate: booking.startDate,
+      endDate: booking.endDate,
+      namedOccupant: {
+        firstName: booking.namedOccupant.firstName,
+        lastName: booking.namedOccupant.lastName,
+      },
+      occupants: {
+        totalAdult: booking.quantity,
+        totalSenior: 0,
+        totalYouth: 0,
+        totalChild: 0,
+      },
+      checkInAnchor: booking.reservationContext.checkInTime,
+      checkOutAnchor: booking.reservationContext.checkOutTime,
+      bookingId: booking.bookingId,
+      sessionId: booking.sessionId,
+      qrCode: {
+        dataUrl: booking.qrCode?.dataUrl,
+        verificationUrl: booking.qrCode?.verificationUrl
+      },
+      vehicleInformation: [
+        {
+          licensePlate: booking.vehicleInformation[0]?.licensePlate,
+          licensePlateRegistrationRegion: booking.vehicleInformation[0]?.licensePlateRegistrationRegion
+        }
+      ]
     }
   }
 
@@ -230,5 +277,13 @@ export class BookingConfirmationComponent implements OnInit {
 
   viewReceipt(): void {
     // TODO: Implement receipt view
+  }
+
+  trackByItemId(index: number, item: any): string {
+    return item.id;
+  }
+  
+  removeItem(itemId: string): void {
+    this.cartService.removeFromCart(itemId);
   }
 }

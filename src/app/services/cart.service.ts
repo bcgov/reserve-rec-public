@@ -3,7 +3,7 @@ import { AuthService } from './auth.service';
 
 export interface CartItem {
   id: string;
-  geoZoneName: string;
+  geozoneName: string;
   activityId: string;
   activityName: string;
   productName?: string;
@@ -15,6 +15,10 @@ export interface CartItem {
   dateRange: [string, string];
   startDate: string;
   endDate: string;
+  namedOccupant: {
+    firstName: string;
+    lastName: string;
+  };
   occupants: {
     totalAdult: number;
     totalSenior: number;
@@ -39,6 +43,12 @@ export interface CartItem {
   waitingRoomActive?: boolean;
   bookingId?: string; // Booking created immediately when user clicks "book"
   sessionId?: string; // Session ID from initial booking creation
+  vehicleInformation: [
+    {
+      licensePlate: string,
+      licensePlateRegistrationRegion: string,
+    }
+  ]
 }
 
 @Injectable({

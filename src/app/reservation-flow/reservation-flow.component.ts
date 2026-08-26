@@ -67,6 +67,12 @@ export class ReservationFlowComponent implements OnInit, OnDestroy {
     total: 0
   };
 
+  public titlesBackButtonMap = {
+    'cart': 'cart',
+    'details': 'agreements',
+    'occupant details': 'camping party',
+  };
+
   constructor(
     private changeDetectorRef: ChangeDetectorRef,
     private elementRef: ElementRef,
@@ -171,7 +177,7 @@ export class ReservationFlowComponent implements OnInit, OnDestroy {
                             this.cartItem.occupants.totalYouth + this.cartItem.occupants.totalChild;
       
       this.bookingSummary = {
-        parkName: this.cartItem.geoZoneName || 'Unknown Park',
+        parkName: this.cartItem.geozoneName || 'Unknown Park',
         activityName: this.cartItem.activityName || 'Unknown Activity',
         checkInDate: startDate.toISOString(),
         checkOutDate: endDate.toISOString(),
@@ -457,7 +463,7 @@ async onStepCompleted(completed: boolean): Promise<void> {
     const idx = this.stepperService.currentStepIndex();
     if (idx <= 0) return 'Back';
     const previousTitle = this.stepperService.getSteps()[idx - 1]?.title;
-    return previousTitle ? `Back to ${previousTitle.toLowerCase()}` : 'Back';
+    return previousTitle ? `Back to ${this.titlesBackButtonMap[previousTitle.toLowerCase()]}` : 'Back';
   }
 
   canProceed(): boolean {

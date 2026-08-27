@@ -16,7 +16,7 @@ import { AdmissionCountdownComponent } from '../components/admission-countdown/a
 import { FeatureFlagService } from '../services/feature-flag.service';
 import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
 import { ViewChild } from '@angular/core';
-import { lastValueFrom, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { CartTimerComponent } from '../cart/cart-timer/cart-timer.component';
 // import Modal from 'bootstrap/js/dist/modal';
 
@@ -532,46 +532,6 @@ async onStepCompleted(completed: boolean): Promise<void> {
 
   backToCart() {
     this.router.navigate(['/cart'])
-  }
-
-  // openCancelModal(): void {
-  //   if (!this.cancelModalInstance && this.cancelBookingModal) {
-  //     this.cancelModalInstance = new Modal(this.cancelBookingModal.nativeElement);
-  //   }
-  //   if (this.cancelModalInstance) {
-  //     this.cancelModalInstance.show();
-  //   } else {
-  //     // fallback for static template
-  //     const modalEl = document.getElementById('cancelBookingModal');
-  //     if (modalEl) {
-  //       this.cancelModalInstance = new Modal(modalEl);
-  //       this.cancelModalInstance.show();
-  //     }
-  //   }
-  // }
-
-  async confirmCancelBooking(): Promise<void> {
-    if (this.cancelModalInstance) {
-      this.cancelModalInstance.hide();
-    }
-
-    try {
-      if (this.currentBookingId) {
-        await lastValueFrom(this.bookingService.cancelBooking(this.currentBookingId));
-        console.log('✅ Booking cancelled successfully:', this.currentBookingId);
-      }
-
-      // Clear the cart
-      this.cartService.clearCart();
-
-      // Full page reload to home
-      window.location.href = this.absoluteUrl('');
-    } catch (error) {
-      console.error('Error cancelling booking:', error);
-      // Even if the API call fails, still clear the cart and reload
-      this.cartService.clearCart();
-      window.location.href = this.absoluteUrl('');
-    }
   }
 
   removeItem(itemId: string): void {

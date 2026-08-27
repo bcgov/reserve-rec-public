@@ -1,8 +1,11 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CartItem } from '../../services/cart.service';
 import { Constants } from '../../constants';
 import { FeatureFlagService } from '../../services/feature-flag.service';
+import { BookingService } from '../../services/booking.service';
+import { BsModalService } from 'ngx-bootstrap/modal';
+import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 
 @Component({
   selector: 'app-cart-item',
@@ -15,11 +18,13 @@ export class CartItemComponent implements OnInit {
   @Input() item!: CartItem;
   @Input() removeBool: boolean;
   @Output() removeItem = new EventEmitter<string>();
+
+  private modalService = inject(BsModalService)
   
   public paymentsEnabled;
   public hideBookingCostsBool = false;
 
-  constructor(private featureFlagService: FeatureFlagService) { }
+  constructor(private featureFlagService: FeatureFlagService, private bookingService: BookingService) { }
 
   async ngOnInit() {
     try {
@@ -98,8 +103,8 @@ export class CartItemComponent implements OnInit {
     return Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
   }
 
-  onRemoveClick(): void {
-    this.removeItem.emit(this.item.id);
+  async onRemoveClick() {
+    await this.confirmRemoveItem()
   }
 
   calculateAdultCost(): number {
@@ -133,6 +138,40 @@ export class CartItemComponent implements OnInit {
 
   onHideBookingCosts() {
     this.hideBookingCostsBool = !this.hideBookingCostsBool;
+  }
+
+  private confirmRemoveItem() {
+    return new Promise(resolve => {
+      const modalRef = this.modalService.show(ConfirmationModalComponent, {
+        initialState: {
+          title: 'Remove booking',
+          body: `Confirm remove this booking from your cart?`,
+          confirmText: 'Remove',
+          cancelText: 'Cancel',
+          confirmClass: 'btn btn-danger',
+          cancelClass: 'btn btn-outline-secondary',
+        },
+      });
+      let settled = false;
+      const settle = (value: boolean) => {
+        if (settled) return;
+        // Don't do anything!
+        settled = true;
+        modalRef.hide();
+        resolve(value);
+      };
+      modalRef.content?.confirmButton.subscribe(() => {
+        settle(true);
+        this.removeItem.emit(this.item.id);
+        this.bookingService.cancelBooking(this.item.bookingId)
+        modalRef.hide();
+      });
+      modalRef.content?.cancelButton.subscribe(() => {
+        settle(true);
+        modalRef.hide();
+      });
+      modalRef.onHide?.subscribe(() => settle(true));
+    });
   }
 
 }

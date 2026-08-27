@@ -4,6 +4,7 @@ import { ConfigService } from '../services/config.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { MyBookingsComponent } from './my-bookings.component';
+import { provideToastr } from 'ngx-toastr';
 
 describe('MyBookingsComponent', () => {
   let component: MyBookingsComponent;
@@ -16,7 +17,8 @@ describe('MyBookingsComponent', () => {
         ConfigService,
         provideRouter([{ path: 'my-bookings/:bookingId', component: MyBookingsComponent }]),
         provideHttpClient(),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        provideToastr()
       ]
     })
     .compileComponents();

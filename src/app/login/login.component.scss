@@ -48,6 +48,20 @@
 padding: var(--amplify-space-medium);
 }
 
+.form-error {
+  color: #660000;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.section-heading {
+  color: #1a1a1a;
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 0.5rem;
+}
+
 .custom-sign-in-button {
   background-color: #047d95;
   color: white;
@@ -64,6 +78,17 @@ padding: var(--amplify-space-medium);
   background-color: #013366;
 }
 
+.password-requirements {
+  background-color: #f7f9fc;
+  border: 1px solid #053662;
+  border-radius: 0.25rem;
+}
+
+.solid-divider {
+  border-top: 1px solid #dee2e6;
+  margin: 0.25rem 0 0.75rem 0;
+}
+
 .full-width {
   display: block;
   margin: 0 auto; 
@@ -75,12 +100,6 @@ padding: var(--amplify-space-medium);
   line-height: 1.6;
   color: #495057;
 
-  h6 {
-    font-size: 1rem;
-    font-weight: bold;
-    color: #212529;
-    margin-bottom: 0.5rem;
-  }
 }
 
 // Style the back button to match primary theme

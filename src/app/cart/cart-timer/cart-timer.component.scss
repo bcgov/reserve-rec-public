@@ -1,0 +1,15 @@
+.cart-timer {
+  color: #474543;
+}
+
+.cart-timer-container {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #f7f9fc;
+  border-bottom: 1px solid var(--bs-primary);
+}
+
+.warning {
+  color: red;
+}

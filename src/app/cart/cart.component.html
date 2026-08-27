@@ -1,3 +1,7 @@
+@if (cartService.items().length > 0) {
+  <app-cart-timer (removeItem)="removeItem($event)"></app-cart-timer>
+}
+
 <div class="cart-page">
   <div class="container cart-items">
     <div class="row">

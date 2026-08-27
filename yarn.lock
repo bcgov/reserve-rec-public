@@ -9271,10 +9271,10 @@ neo-async@^2.6.2:
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.2.tgz#b4aafb93e3aeb2d8174ca53cf163ab7d7308305f"
   integrity sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==
 
-ngx-bootstrap@^19.0.2:
-  version "19.0.2"
-  resolved "https://registry.yarnpkg.com/ngx-bootstrap/-/ngx-bootstrap-19.0.2.tgz#328b278317346a35840108e3b160ade305b3e815"
-  integrity sha512-DR5sA5e9k1bwtVeo8lQW4Yr8IgU7ba2pco5rlznnr7k91BJ3SNgrUSq+BQfigwARHGmgKCcw9lexu8ZWvefEXg==
+ngx-bootstrap@^21.2.1:
+  version "21.2.2"
+  resolved "https://registry.yarnpkg.com/ngx-bootstrap/-/ngx-bootstrap-21.2.2.tgz#420d30c6244a25ced725ca7635d5754c9fa878a1"
+  integrity sha512-4s8UAt+ZwlYb5fGVKYibFzwv3hEBx36twNuDstfBUB+WWdfKBc3dhqgJnnauWauv/hymABJgJiE/eRVFXDYwKw==
   dependencies:
     tslib "^2.3.0"
 

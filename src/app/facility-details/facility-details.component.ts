@@ -62,6 +62,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
   private selectedActivityName: string;
   private selectedDateStr: string;
   private waitingRoomActive = false;
+  private bookingExpiry: number;
 
   private destroyRef = inject(DestroyRef);
   private cartService = inject(CartService);
@@ -464,6 +465,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
 
       // Add to cart with booking details for inventory reservation
       const selectedProductDate = this.availableDates[date];
+
       const cartItem: CartItem = {
         id: '',
         collectionId: this.selectedCollectionId || '',
@@ -489,6 +491,8 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
         checkOutAnchor: selectedProductDate?.reservationContext?.checkOutAnchor ?? selectedProductDate?.reservationContext?.temporalAnchors?.checkOutTime,
         bookingId: bookingId,
         sessionId: sessionId,
+        sessionInitTime: booking?.sessionInitTime,
+        sessionExpiry: booking?.sessionExpiry,
       };
 
       this.cartService.addToCart(cartItem);

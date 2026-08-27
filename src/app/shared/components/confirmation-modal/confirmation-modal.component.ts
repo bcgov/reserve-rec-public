@@ -20,7 +20,7 @@ export class ConfirmationModalComponent {
   @Input() title: string;
   @Input() body: string;
   @Input() confirmText = 'Confirm';
-  @Input() cancelText = 'Cancel';
+  @Input() cancelText = '';
   @Input() confirmClass = 'btn btn-primary';
   @Input() cancelClass = 'btn btn-outline-secondary';
   @Input() details: ModalRowSpec[];

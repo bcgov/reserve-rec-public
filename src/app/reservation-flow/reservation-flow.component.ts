@@ -17,6 +17,7 @@ import { FeatureFlagService } from '../services/feature-flag.service';
 import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
 import { ViewChild } from '@angular/core';
 import { lastValueFrom, Subscription } from 'rxjs';
+import { CartTimerComponent } from '../cart/cart-timer/cart-timer.component';
 // import Modal from 'bootstrap/js/dist/modal';
 
 @Component({
@@ -30,7 +31,8 @@ import { lastValueFrom, Subscription } from 'rxjs';
     PaymentStepComponent,
     AdmissionCountdownComponent,
     RouterModule,
-    BreadcrumbComponent
+    BreadcrumbComponent,
+    CartTimerComponent
 ],
   templateUrl: './reservation-flow.component.html',
   styleUrl: './reservation-flow.component.scss'
@@ -210,6 +212,10 @@ export class ReservationFlowComponent implements OnInit, OnDestroy {
 }
 
 async onStepCompleted(completed: boolean): Promise<void> {
+  // Get a queryTime immediately, for eventual submitting for form and checking again expiry times
+  // Give the user about 7 seconds buffer for final submission and processing. Because we're nice.
+  const bufferWindowInMs = 7000;
+  const queryTime = new Date().getTime() - bufferWindowInMs;
   if (!completed) return;
   const formValue = this.form?.value || {};
   
@@ -246,6 +252,9 @@ async onStepCompleted(completed: boolean): Promise<void> {
     // flight the Finish button is disabled, but block re-entry too (#541).
     if (this.isSubmitting) { return; }
     this.isSubmitting = true;
+
+    // Turn off cart timer when submitting to avoid pop up
+    this.cartService.cartTimerIsActive.set(false)
     this.changeDetectorRef.detectChanges();
     try {
       // Create booking for the cart item
@@ -277,7 +286,7 @@ async onStepCompleted(completed: boolean): Promise<void> {
         if (!this.currentBookingId || !this.currentSessionId) {
           throw new Error('Missing booking/session IDs for completion');
         }
-        const completionPayload = this.getCompletionPayload(formValue, this.currentSessionId);
+        const completionPayload = this.getCompletionPayload(formValue, this.currentSessionId, queryTime);
         await this.bookingService.completeBooking(this.currentBookingId, completionPayload);
         if (this.currentBookingId) {
           window.location.assign(this.absoluteUrl(`booking-confirmation/${this.currentBookingId}`));
@@ -423,11 +432,12 @@ async onStepCompleted(completed: boolean): Promise<void> {
     ];
   }
 
-  private getCompletionPayload(formValue: any, sessionId: string | null): any {
+  private getCompletionPayload(formValue: any, sessionId: string | null, queryTime: number): any {
     const bookingDetails = this.getBookingFormDetails(formValue);
 
     return {
       sessionId: sessionId,
+      queryTime: queryTime,
       namedOccupant: bookingDetails.namedOccupant,
       vehicleInformation: bookingDetails.vehicleInformation,
       equipmentInformation: bookingDetails.equipmentInformation,
@@ -556,6 +566,11 @@ async onStepCompleted(completed: boolean): Promise<void> {
       this.cartService.clearCart();
       window.location.href = this.absoluteUrl('');
     }
+  }
+
+  removeItem(itemId: string): void {
+    this.cartService.removeFromCart(itemId);
+    this.router.navigate(['/cart']);
   }
 
   // Resolve against <base href> so full-page navigations work both at the

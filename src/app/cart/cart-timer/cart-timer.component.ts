@@ -70,7 +70,7 @@ export class CartTimerComponent implements OnInit, OnDestroy {
             title: 'Booking timer expired',
             body: `This booking has expired. The booking item has been returned.`,
             confirmText: 'Ok',
-            // No cancel option
+            cancelText: '', // No cancel option
             confirmClass: 'btn btn-primary',
             cancelClass: 'btn btn-outline-secondary',
           },

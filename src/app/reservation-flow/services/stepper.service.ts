@@ -39,8 +39,8 @@ export class StepperService {
         canNavigateTo: true
       },
       {
-        id: 'visitor-details',
-        title: 'Visitor details',
+        id: 'visitors-details',
+        title: 'Occupant details',
         description: 'Account information confirmation',
         isCompleted: false,
         isValid: false,

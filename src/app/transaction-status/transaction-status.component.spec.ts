@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ConfigService } from '../services/config.service';
+import { provideToastr } from 'ngx-toastr';
 
 describe('TransactionStatusComponent', () => {
   let component: TransactionStatusComponent;
@@ -17,7 +18,8 @@ describe('TransactionStatusComponent', () => {
         ConfigService,
         provideRouter([{path: 'checkout', component: TransactionStatusComponent}]),
         provideHttpClient(),
-        provideHttpClientTesting() // Uncomment if you need to mock HTTP requests in tests
+        provideHttpClientTesting(),
+        provideToastr()
       ]
     })
     .compileComponents();

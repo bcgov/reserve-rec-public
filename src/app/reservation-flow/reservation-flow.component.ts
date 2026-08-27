@@ -16,7 +16,7 @@ import { AdmissionCountdownComponent } from '../components/admission-countdown/a
 import { FeatureFlagService } from '../services/feature-flag.service';
 import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
 import { ViewChild } from '@angular/core';
-import { lastValueFrom, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { CartTimerComponent } from '../cart/cart-timer/cart-timer.component';
 // import Modal from 'bootstrap/js/dist/modal';
 

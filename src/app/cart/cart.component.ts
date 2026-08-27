@@ -10,7 +10,7 @@ import { BreadcrumbComponent } from "../shared/breadcrumb/breadcrumb.component";
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CartItemComponent, RouterLink, BreadcrumbComponent, CartTimerComponent], 
+  imports: [CartItemComponent, BreadcrumbComponent, CartTimerComponent], 
   templateUrl: './cart.component.html',
   styleUrl: './cart.component.scss'
 })

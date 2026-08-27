@@ -287,7 +287,7 @@ export class LoginComponent implements OnInit{
 
   validateFamilyName(event: Event): void {
     const input = (event.target as HTMLInputElement).value;
-    this.familyNameError = this.validationService.validateName(input, 'Family name');
+    this.familyNameError = this.validationService.validateName(input, 'Surname');
     this.updateErrorSummary();
   }
 

@@ -84,10 +84,14 @@ export class AuthValidationService {
     if (!name?.trim()) {
       return `${fieldLabel} is required`;
     }
-    // Allow letters, spaces, and hyphens only
-    const nameRegex = /^[a-zA-Z\s-]+$/;
+    // Allow letters, spaces, hyphens, and periods
+    const nameRegex = /^[a-zA-Z\s.-]+$/;
     if (!nameRegex.test(name)) {
-      return `${fieldLabel} can only contain letters, spaces, and hyphens`;
+      return `${fieldLabel} can only contain letters, spaces, hyphens, and periods`;
+    }
+    // Ensure at least one letter is present
+    if (!/[a-zA-Z]/.test(name)) {
+      return `${fieldLabel} must contain at least one letter`;
     }
     return '';
   }
@@ -165,7 +169,7 @@ export class AuthValidationService {
       emailError: this.validateEmail(input.email),
       passwordError: this.validatePassword(input.password),
       givenNameError: this.validateName(input.givenName, 'Given name'),
-      familyNameError: this.validateName(input.familyName, 'Family name'),
+      familyNameError: this.validateName(input.familyName, 'Surname'),
       mobilePhoneError: this.validatePhoneNumber(input.mobilePhone ?? '', 'Mobile phone number'),
       homePhoneError: this.validatePhoneNumber(input.homePhone ?? '', 'Home phone number'),
       streetAddressError: this.validateStreetAddress(input.streetAddress),

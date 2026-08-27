@@ -5,6 +5,7 @@ import { ApiService } from './api.service';
 import { DataService } from './data.service';
 import { LoadingService } from './loading.service';
 import { LoggerService } from './logger.service';
+import { ToastService, ToastTypes } from './toast.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +16,8 @@ export class BookingService {
     private dataService: DataService,
     private loggerService: LoggerService,
     private apiService: ApiService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private toastService: ToastService
   ) { }
 
   async getBookings(userSub: string) {
@@ -91,7 +93,32 @@ export class BookingService {
     }
   }
 
-  cancelBooking(bookingId: string) {
-    return this.apiService.post(`bookings/${bookingId}/cancel`, {}, {});
+  async cancelBooking(bookingId: string) {
+    try {
+      const res = (await lastValueFrom(this.apiService.post(`bookings/${bookingId}/cancel`, {}, {})))['data'];
+      this.toastService.addMessage(
+        `Successfully removed from cart`,
+        '',
+        ToastTypes.SUCCESS
+      );
+      return res;
+    } catch (error) {
+      this.loadingService.removeFromFetchList(Constants.dataIds.PRODUCT_RESULT);
+      this.loggerService.error(error);
+      const errorMessage = 
+        (error as any)?.error?.msg ||
+        (error as any)?.error?.error ||
+        (error as any)?.error?.Message ||
+        (error as any)?.message ||
+        'Unknown error';
+      // log error to console
+      console.error('Error removing item from cart: ', errorMessage);
+      this.toastService.addMessage(
+        '', // Hide the error from the frontend
+        `Error removing item from cart`,
+        ToastTypes.ERROR
+      );
+      return null;
+    }
   }
 }

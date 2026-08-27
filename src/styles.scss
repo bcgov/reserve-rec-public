@@ -106,3 +106,8 @@ body.booking-cancel-action-mode app-footer {
   }
 }
 
+// drop the modal a little on the screen
+.modal-content {
+  top: 25vh !important; 
+}
+

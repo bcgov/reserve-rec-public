@@ -62,7 +62,6 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
   private selectedActivityName: string;
   private selectedDateStr: string;
   private waitingRoomActive = false;
-  private bookingExpiry: number;
 
   private destroyRef = inject(DestroyRef);
   private cartService = inject(CartService);

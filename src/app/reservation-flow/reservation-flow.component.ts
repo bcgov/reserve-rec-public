@@ -218,7 +218,7 @@ export class ReservationFlowComponent implements OnInit, OnDestroy {
 }
 
 async onStepCompleted(completed: boolean): Promise<void> {
-  // Get a queryTime immediately, for eventual submitting for form and checking again expiry times
+  // Get a queryTime immediately, for eventual submitting form - used on backed to check expiry time.
   // Give the user about 7 seconds buffer for final submission and processing. Because we're nice.
   const bufferWindowInMs = 7000;
   const queryTime = new Date().getTime() - bufferWindowInMs;

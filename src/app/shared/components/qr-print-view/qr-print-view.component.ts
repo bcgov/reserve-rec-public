@@ -69,7 +69,7 @@ export class QrPrintViewComponent {
    * ```typescript
    * component.bookingInfo = {
    *   bookingNumber: 'BOOK-123',
-   *   areaName: 'Garibaldi Provincial Park',
+   *   areaName: 'Garibaldi Park',
    *   arrivalDate: '2024-06-15',
    *   departureDate: '2024-06-17'
    * };

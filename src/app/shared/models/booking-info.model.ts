@@ -10,7 +10,7 @@
  * ```typescript
  * const bookingInfo: BookingInfo = {
  *   bookingNumber: 'BOOK-2024-001',
- *   areaName: 'Garibaldi Provincial Park',
+ *   areaName: 'Garibaldi Park',
  *   arrivalDate: '2024-06-15'
  * };
  * ```
@@ -30,7 +30,7 @@ export interface BookingInfo {
   /**
    * Name of the park or camping area
    * 
-   * @example 'Garibaldi Provincial Park'
+   * @example 'Garibaldi Park'
    * @remarks Should be sanitized to prevent XSS before display
    */
   areaName: string;

@@ -50,6 +50,9 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
   public availableProducts: any = [];
 
   public availableDates: any = {};
+  // Distinguishes "the availability lookup failed" from "there genuinely are no passes" —
+  // the two rendered identically, so an API outage looked like a sold-out facility.
+  public datesLoadFailed = false;
   public startDate = DateTime.now().startOf('day');
   public endDate = this.startDate.plus({ days: 2 });
 
@@ -256,9 +259,20 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
       DateTime.now().toISODate(),
       DateTime.now().plus({ days: 2 }).toISODate()
     );
+    this.loadingDates = false;
+
+    // The service returns null only when the request itself failed. Bail out here rather
+    // than falling through to the empty-array path, which would report a sold-out facility.
+    if (productDatesResult === null) {
+      this.datesLoadFailed = true;
+      this.passesAvailable = false;
+      this.availableDates = {};
+      return;
+    }
+    this.datesLoadFailed = false;
+
     // API returns a plain array of ProductDates; fall back to `.items` for any legacy wrapped shape
     const dates = Array.isArray(productDatesResult) ? productDatesResult : (productDatesResult?.items || []);
-    this.loadingDates = false;
 
     if (dates.length === 0) {
       this.passesAvailable = false;

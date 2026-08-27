@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { UserGuard } from './guards/user.guard';
+import { LoginGuard } from './guards/login.guard';
 import { UserResolver } from './resolvers/user.resolver';
 import { CheckoutGuard } from './guards/checkout.guard';
 import { WaitingRoomGuard } from './guards/waiting-room.guard';
@@ -88,6 +89,7 @@ export const routes: Routes = [
   },
   {
     path: 'login',
+    canActivate: [LoginGuard],
     loadComponent: () => import('./login/login.component')
       .then(mod => mod.LoginComponent)
   },

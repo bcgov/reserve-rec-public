@@ -232,11 +232,6 @@ export class LoginComponent implements OnInit{
     // Force authenticator reset by updating key
     this.authKey = Date.now();
     this.loginReason = this.route.snapshot.queryParamMap.get('reason');
-    // If user is already authenticated, redirect to home
-    if (this.authService.user()) {
-      this.router.navigate(['/']);
-      return;
-    }
 
     const now = new Date();
     const options: Intl.DateTimeFormatOptions = { month: 'short', day: '2-digit', year: 'numeric' };

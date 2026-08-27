@@ -1,0 +1,12 @@
+@if (visible()) {
+<div class="cart-timer-container">
+  <div class="container fw-bold py-3">
+    <div class="row">
+      <div class="col-lg-10 col-12">
+        <span class="cart-timer">Bookings in cart held for: <span [ngClass]="isWarning() ? 'warning' : 'text-primary'">{{
+            displayTimer() || '00:00' }}</span></span>
+      </div>
+    </div>
+  </div>
+</div>
+}

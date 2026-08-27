@@ -479,6 +479,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
 
       // Add to cart with booking details for inventory reservation
       const selectedProductDate = this.availableDates[date];
+
       const cartItem: CartItem = {
         id: '',
         collectionId: this.selectedCollectionId || '',
@@ -508,6 +509,8 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
         checkOutAnchor: selectedProductDate?.reservationContext?.checkOutAnchor ?? selectedProductDate?.reservationContext?.temporalAnchors?.checkOutTime,
         bookingId: bookingId,
         sessionId: sessionId,
+        sessionInitTime: booking?.sessionInitTime,
+        sessionExpiry: booking?.sessionExpiry,
         vehicleInformation: [
           {
             licensePlate: '',

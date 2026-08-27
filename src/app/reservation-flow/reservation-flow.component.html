@@ -1,4 +1,7 @@
 <!-- Stepper-based Reservation Flow Template -->
+@if (cartItem) {
+  <app-cart-timer (removeItem)="removeItem($event)"></app-cart-timer>
+}
 <div class="bg-container bg-grey">
   <div class="container">
     <!-- Breadcrumbs -->

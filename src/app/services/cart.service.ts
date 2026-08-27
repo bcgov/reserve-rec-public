@@ -43,6 +43,8 @@ export interface CartItem {
   waitingRoomActive?: boolean;
   bookingId?: string; // Booking created immediately when user clicks "book"
   sessionId?: string; // Session ID from initial booking creation
+  sessionInitTime?: number;
+  sessionExpiry?: number;
   vehicleInformation: [
     {
       licensePlate: string,
@@ -63,6 +65,8 @@ export class CartService {
 
   private authService = inject(AuthService);
   private cartItems = signal<CartItem[]>([]);
+  public cartTimerIsActive = signal(true);
+
   // `undefined` sentinel so the first effect run is not mistaken for "no
   // change" when the auth user signal starts at null. After the first run
   // this holds the actual sub (or null for anon) and subsequent same-user
@@ -85,6 +89,10 @@ export class CartService {
       this.currentSub = sub;
       this.cartItems.set(this.loadCartFromStorage());
     });
+  }
+
+  getCartTimerIsActive() {
+    return this.cartTimerIsActive();
   }
 
   // The cart is single-item: a new add replaces whatever was there. The reservation
@@ -188,4 +196,5 @@ export class CartService {
       return newItems;
     });
   }
+
 }

@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { AmplifyAuthenticatorModule, AuthenticatorService } from '@aws-amplify/ui-angular';
 import { AuthService } from '../services/auth.service';
+import { AuthValidationService, SignUpFormData } from '../services/auth-validation.service';
 import {
   signIn,
   signUp,
@@ -14,7 +16,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
     selector: 'app-login',
-    imports: [AmplifyAuthenticatorModule],
+    imports: [CommonModule, AmplifyAuthenticatorModule],
     templateUrl: './login.component.html',
     styleUrl: './login.component.scss'
 })
@@ -26,32 +28,94 @@ export class LoginComponent implements OnInit{
 
   loginReason: string | null = null;
 
+  // Error message variables to display under each html input field
+  emailError = '';
+  passwordError = '';
+  givenNameError = '';
+  familyNameError = '';
+  mobilePhoneError = '';
+  homePhoneError = '';
+  streetAddressError = '';
+  cityError = '';
+  provinceError = '';
+  postalCodeError = '';
+  countryError = '';
+  summaryError = ''; // Track summary error message for display
+
   // given_name/family_name are natively `required` by Amplify's defaults,
   // which blocks submission silently with no visible message (Amplify's own
-  // validators never check for blank required fields). Turn off the native
-  // required attribute for these two so our own check below can run and
-  // name exactly what's missing (#685).
+  // validators never check for blank required fields). We provide custom
+  // given_name and family_name fields in the template instead (#685).
+  // The placeholders are set to a single space to avoid the default placeholder text and the undefined if left empty!
   formFields = {
     signUp: {
-      given_name: { isRequired: false },
-      family_name: { isRequired: false },
+      email: { isRequired: false, placeholder: ' ' },
+      password: { placeholder: ' ' },
+      confirm_password: { placeholder: ' ' },
+
     },
   };
 
-  private readonly requiredSignUpFields: [string, string][] = [
-    ['given_name', 'Given name'],
-    ['family_name', 'Family name'],
-  ];
+  private clearAllErrors(): void {
+    console.log('Clearing all errors');
+    this.emailError = '';
+    this.passwordError = '';
+    this.givenNameError = '';
+    this.familyNameError = '';
+    this.mobilePhoneError = '';
+    this.homePhoneError = '';
+    this.streetAddressError = '';
+    this.cityError = '';
+    this.provinceError = '';
+    this.postalCodeError = '';
+    this.countryError = '';
+    this.summaryError = '';
+  }
 
-  private validateSignUpFields(input: Parameters<typeof signUp>[0]): void {
-    const attributes = input.options?.userAttributes ?? {};
-    const missing = this.requiredSignUpFields
-      .filter(([key]) => !String((attributes as Record<string, unknown>)[key] ?? '').trim())
-      .map(([, label]) => label);
-    if (!input.username?.trim()) missing.unshift('Email');
-    if (!input.password?.trim()) missing.push('Password');
-    if (missing.length) {
-      throw new Error(`Please fill in the following required fields: ${missing.join(', ')}.`);
+  private updateErrorSummary(): void {
+    // Check if there are any remaining errors
+    const errors = [
+      this.emailError,
+      this.passwordError,
+      this.givenNameError,
+      this.familyNameError,
+      this.mobilePhoneError,
+      this.homePhoneError,
+      this.streetAddressError,
+      this.cityError,
+      this.provinceError,
+      this.postalCodeError,
+      this.countryError
+    ].filter(e => e);
+
+    if (errors.length === 0) {
+      this.summaryError = '';
+    } else {
+      const fieldNameMap: Record<string, string> = {
+        emailError: 'Email',
+        passwordError: 'Password',
+        givenNameError: 'Given Name',
+        familyNameError: 'Family Name',
+        mobilePhoneError: 'Mobile Phone Number',
+        homePhoneError: 'Home Phone Number',
+        streetAddressError: 'Street Address',
+        cityError: 'City',
+        provinceError: 'Province',
+        postalCodeError: 'Postal Code',
+        countryError: 'Country',
+      };
+
+      // Find which fields have errors
+      const errorFields = [];
+      if (this.givenNameError) errorFields.push(fieldNameMap['givenNameError']);
+      if (this.familyNameError) errorFields.push(fieldNameMap['familyNameError']);
+      if (this.mobilePhoneError) errorFields.push(fieldNameMap['mobilePhoneError']);
+      if (this.homePhoneError) errorFields.push(fieldNameMap['homePhoneError']);
+      if (this.streetAddressError) errorFields.push(fieldNameMap['streetAddressError']);
+      if (this.cityError) errorFields.push(fieldNameMap['cityError']);
+      if (this.provinceError) errorFields.push(fieldNameMap['provinceError']);
+      if (this.postalCodeError) errorFields.push(fieldNameMap['postalCodeError']);
+      if (this.countryError) errorFields.push(fieldNameMap['countryError']);
     }
   }
 
@@ -66,7 +130,70 @@ export class LoginComponent implements OnInit{
         'We could not sign you in. Check your email and password and try again.'),
 
     handleSignUp: async (input: Parameters<typeof signUp>[0]) => {
-      this.validateSignUpFields(input);
+      // Check if there are any existing field validation errors
+      if (this.summaryError) {
+        throw new Error(this.summaryError);
+      }
+
+      this.clearAllErrors();
+      
+      // Convert Amplify's input format to our SignUpInput interface
+      const attributes = input.options?.userAttributes ?? {};
+      const attrRecord = attributes as Record<string, unknown>;
+      
+      const signUpData: SignUpFormData = {
+        email: input.username ?? '',
+        password: input.password ?? '',
+        givenName: String(attrRecord['given_name'] ?? ''),
+        familyName: String(attrRecord['family_name'] ?? ''),
+        mobilePhone: String(attrRecord['custom:mobilePhone'] ?? ''),
+        homePhone: String(attrRecord['custom:secondaryNumber'] ?? ''),
+        streetAddress: String(attrRecord['custom:streetAddress'] ?? ''),
+        city: String(attrRecord['custom:city'] ?? ''),
+        province: String(attrRecord['custom:province'] ?? ''),
+        postalCode: String(attrRecord['custom:postalCode'] ?? ''),
+        country: String(attrRecord['custom:country'] ?? ''),
+      };
+
+      const errors = this.validationService.validateSignUp(signUpData);
+      
+      // Assign all errors to component properties for display
+      this.emailError = errors.emailError;
+      this.passwordError = errors.passwordError;
+      this.givenNameError = errors.givenNameError;
+      this.familyNameError = errors.familyNameError;
+      this.mobilePhoneError = errors.mobilePhoneError;
+      this.homePhoneError = errors.homePhoneError;
+      this.streetAddressError = errors.streetAddressError;
+      this.cityError = errors.cityError;
+      this.provinceError = errors.provinceError;
+      this.postalCodeError = errors.postalCodeError;
+      this.countryError = errors.countryError;
+
+      // Update summary error
+      this.updateErrorSummary();
+
+      // Check if there are any errors and throw if so
+      const errorEntries = Object.entries(errors).filter(([, message]) => message);
+      if (errorEntries.length) {
+        const fieldNameMap: Record<string, string> = {
+          emailError: 'Email',
+          passwordError: 'Password',
+          givenNameError: 'Given Name',
+          familyNameError: 'Family Name',
+          mobilePhoneError: 'Mobile Phone Number',
+          homePhoneError: 'Home Phone Number',
+          streetAddressError: 'Street Address',
+          cityError: 'City',
+          provinceError: 'Province',
+          postalCodeError: 'Postal Code',
+          countryError: 'Country',
+        };
+        
+        const invalidFields = errorEntries.map(([key]) => fieldNameMap[key]).join(', ');
+        throw new Error(`Invalid fields: ${invalidFields}`);
+      }
+
       return this.withGenericError(() => signUp(input),
         'We could not create your account. Please check your details and try again.');
     },
@@ -97,7 +224,8 @@ export class LoginComponent implements OnInit{
     private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router,
-    private authenticator: AuthenticatorService
+    private authenticator: AuthenticatorService,
+    private validationService: AuthValidationService
   ) {}
   currentDate = '';
   ngOnInit() {
@@ -117,6 +245,10 @@ export class LoginComponent implements OnInit{
 
   get user() {
     return this.authService.user(); // Directly bind to the signal
+  }
+
+  get isFormInvalid(): boolean {
+    return !!this.summaryError;
   }
 
   signInWithRedirect() {
@@ -144,5 +276,60 @@ export class LoginComponent implements OnInit{
   
   goBack() {
     this.showAmplifyAuth = false;
+  }
+
+  // Blur validation methods for real-time field validation
+  validateGivenName(event: Event): void {
+    const input = (event.target as HTMLInputElement).value;
+    this.givenNameError = this.validationService.validateName(input, 'Given name');
+    this.updateErrorSummary();
+  }
+
+  validateFamilyName(event: Event): void {
+    const input = (event.target as HTMLInputElement).value;
+    this.familyNameError = this.validationService.validateName(input, 'Family name');
+    this.updateErrorSummary();
+  }
+
+  validateMobilePhone(event: Event): void {
+    const input = (event.target as HTMLInputElement).value;
+    this.mobilePhoneError = this.validationService.validatePhoneNumber(input, 'Mobile phone');
+    this.updateErrorSummary();
+  }
+
+  validateHomePhone(event: Event): void {
+    const input = (event.target as HTMLInputElement).value;
+    this.homePhoneError = this.validationService.validatePhoneNumber(input, 'Home phone');
+    this.updateErrorSummary();
+  }
+
+  validateStreetAddress(event: Event): void {
+    const input = (event.target as HTMLInputElement).value;
+    this.streetAddressError = this.validationService.validateStreetAddress(input);
+    this.updateErrorSummary();
+  }
+
+  validateCity(event: Event): void {
+    const input = (event.target as HTMLInputElement).value;
+    this.cityError = this.validationService.validateCity(input);
+    this.updateErrorSummary();
+  }
+
+  validateProvince(event: Event): void {
+    const input = (event.target as HTMLInputElement).value;
+    this.provinceError = this.validationService.validateProvince(input);
+    this.updateErrorSummary();
+  }
+
+  validatePostalCode(event: Event): void {
+    const input = (event.target as HTMLInputElement).value;
+    this.postalCodeError = this.validationService.validatePostalCode(input);
+    this.updateErrorSummary();
+  }
+
+  validateCountry(event: Event): void {
+    const input = (event.target as HTMLInputElement).value;
+    this.countryError = this.validationService.validateCountry(input);
+    this.updateErrorSummary();
   }
 }

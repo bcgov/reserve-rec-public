@@ -40,43 +40,207 @@
           <i class="fa fa-arrow-left me-2"></i> Back
         </button>
         @if (authKey) {
-          <amplify-authenticator
-            [loginMechanisms]="['email']"
-            [signUpAttributes]="['given_name', 'family_name']"
-            [services]="services"
-            [formFields]="formFields"
-            [initialState]="initialState">
+          <div [ngClass]="{ 'form-has-errors': isFormInvalid }">
+            <amplify-authenticator
+              [loginMechanisms]="['email']"
+              [services]="services"
+              [formFields]="formFields"
+              [initialState]="initialState">
             <ng-template amplifySlot="sign-up-form-fields">
               <amplify-sign-up-form-fields></amplify-sign-up-form-fields>
+              <!-- Error messages for email, password -->
+              @if (emailError) {
+                <div class="form-error">
+                  {{ emailError }}
+                </div>
+              }
+              @if (passwordError) {
+                <div class="form-error">
+                  {{ passwordError }}
+                </div>
+              }
+              <div class="alert alert-info password-requirements" role="alert">
+                <strong>Password Requirements:</strong>
+                <ul class="mb-0">
+                  <li>At least 8 characters</li>
+                  <li>At least one uppercase letter</li>
+                  <li>At least one lowercase letter</li>
+                  <li>At least one number</li>
+                  <li>At least one special character</li>
+                </ul>
+              </div>
+              <div class="section-heading">Contact Information</div>
+              <div class="solid-divider"></div>
+              <div class="row">
+                <div class="col-md-6">
+                  <amplify-text-field
+                    #givenNameField
+                    label="Given name"
+                    name="given_name"
+                    autocomplete="false"
+                    placeholder=""
+                    type="text"
+                    [required]="true"
+                    (change)="validateGivenName($event)">
+                  </amplify-text-field>
+                  @if (givenNameError) {
+                    <div class="form-error">
+                      {{ givenNameError }}
+                    </div>
+                  }
+                </div>
+                <div class="col-md-6">
+                  <amplify-text-field
+                    #familyNameField
+                    label="Surname"
+                    name="family_name"
+                    autocomplete="false"
+                    placeholder=""
+                    type="text"
+                    [required]="true"
+                    (change)="validateFamilyName($event)">
+                  </amplify-text-field>
+                  @if (familyNameError) {
+                    <div class="form-error">
+                      {{ familyNameError }}
+                    </div>
+                  }
+                </div>
+              </div>
+              
+
               <amplify-text-field
-                label="Mobile Phone Number (Optional)"
-                name="custom:mobilePhone"
+                label="Street Address"
+                name="custom:streetAddress"
                 autocomplete="false"
-                placeholder="Enter your mobile phone number"
-                type="tel"
-                [required]="false">
+                placeholder=""
+                type="text"
+                [required]="true"
+                (change)="validateStreetAddress($event)">
               </amplify-text-field>
+              @if (streetAddressError) {
+                <div class="form-error">
+                  {{ streetAddressError }}
+                </div>
+              }
+              <div class="row">
+                <div class="col-md-6">
+                  <amplify-text-field
+                    label="City"
+                    name="custom:city"
+                    autocomplete="false"
+                    placeholder=""
+                    type="text"
+                    [required]="true"
+                    (change)="validateCity($event)">
+                  </amplify-text-field>
+                  @if (cityError) {
+                    <div class="form-error">
+                      {{ cityError }}
+                    </div>
+                  }
+                </div>
+                <div class="col-md-6">
+                  <amplify-text-field
+                    label="Province"
+                    name="custom:province"
+                    autocomplete="false"
+                    placeholder=""
+                    type="text"
+                    [required]="true"
+                    (change)="validateProvince($event)">
+                  </amplify-text-field>
+                  @if (provinceError) {
+                    <div class="form-error">
+                      {{ provinceError }}
+                    </div>
+                  }
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <amplify-text-field
+                    label="Postal Code"
+                    name="custom:postalCode"
+                    autocomplete="false"
+                    placeholder=""
+                    type="text"
+                    [required]="true"
+                    (change)="validatePostalCode($event)">
+                  </amplify-text-field>
+                  @if (postalCodeError) {
+                    <div class="form-error">
+                      {{ postalCodeError }}
+                    </div>
+                  }
+                </div>
+                <div class="col-md-6">
+                  <amplify-text-field
+                    label="Country"
+                    name="custom:country"
+                    autocomplete="false"
+                    placeholder=""
+                    type="text"
+                    [required]="true"
+                    (change)="validateCountry($event)">
+                  </amplify-text-field>
+                  @if (countryError) {
+                    <div class="form-error">
+                      {{ countryError }}
+                    </div>
+                  }
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <amplify-text-field
+                    label="Mobile phone"
+                    name="custom:mobilePhone"
+                    autocomplete="false"
+                    placeholder=""
+                    type="tel"
+                    [required]="false"
+                    (change)="validateMobilePhone($event)">
+                  </amplify-text-field>
+                  @if (mobilePhoneError) {
+                    <div class="form-error">
+                      {{ mobilePhoneError }}
+                    </div>
+                  }
+                </div>
+                <div class="col-md-6">
+                  <amplify-text-field
+                    label="Home Phone Number (Optional)"
+                    name="custom:secondaryNumber"
+                    autocomplete="false"
+                    placeholder=""
+                    type="tel"
+                    [required]="false"
+                    (change)="validateHomePhone($event)">
+                  </amplify-text-field>
+                  @if (homePhoneError) {
+                    <div class="form-error">
+                      {{ homePhoneError }}
+                    </div>
+                  }
+                </div>
+              </div>
+              
+              <div class="section-heading">Vehicle Information (Optional)</div>
+              <div class="solid-divider"></div>
               <amplify-text-field
-                label="Home Phone Number (Optional)"
-                name="custom:secondaryNumber"
-                autocomplete="false"
-                placeholder="Enter your Home phone number"
-                type="tel"
-                [required]="false">
-              </amplify-text-field>
-              <amplify-text-field
-                label="License Plate (Optional)"
+                label="License Plate"
                 name="custom:licensePlate"
                 autocomplete="false"
-                placeholder="Enter your license plate"
+                placeholder=""
                 type="text"
                 [required]="false">
               </amplify-text-field>
               <amplify-text-field
-                label="Province of Vehicle Registration (Optional)"
+                label="Province of Vehicle Registration"
                 name="custom:vehicleRegLocale"
                 autocomplete="false"
-                placeholder="Where is your vehicle registered?"
+                placeholder=""
                 type="text"
                 [required]="false">
               </amplify-text-field>
@@ -84,48 +248,8 @@
                 type="hidden"
                 name="custom:pwUpdate"
                 [value]="currentDate">
-              <amplify-text-field
-                label="Street Address"
-                name="custom:streetAddress"
-                autocomplete="false"
-                placeholder="564 Stornoway Ave"
-                type="text"
-                [required]="false">
-              </amplify-text-field>
-              <amplify-text-field
-                label="City"
-                name="custom:city"
-                autocomplete="false"
-                placeholder="Victoria"
-                type="text"
-                [required]="false">
-              </amplify-text-field>
-              <amplify-text-field
-                label="Province"
-                name="custom:province"
-                autocomplete="false"
-                placeholder="British Columbia"
-                type="text"
-                [required]="false">
-              </amplify-text-field>
-              <amplify-text-field
-                label="Postal Code"
-                name="custom:postalCode"
-                autocomplete="false"
-                placeholder="V9C 2R4"
-                type="text"
-                [required]="false">
-              </amplify-text-field>
-              <amplify-text-field
-                label="Country"
-                name="custom:country"
-                autocomplete="false"
-                placeholder="Canada"
-                type="text"
-                [required]="false">
-              </amplify-text-field>
               <div class="collection-notice">
-                <h6>Information collection</h6>
+                <div class="section-heading">Information collection</div>
                 <hr>
                 <p>
                   This information is collected by BC Parks, under Section 26(c) and 26(e) of the
@@ -139,11 +263,17 @@
                   BC Parks, PO BOX 9351 STN PROV GOVT, Victoria, BC, V8W 9V1, Canada.
                 </p>
               </div>
+              @if (summaryError) {
+                <div class="alert alert-danger" role="alert">
+                  <strong>{{ summaryError }}</strong>
+                </div>
+              }
             </ng-template>
             <ng-template amplifySlot="authenticated" let-user="user" let-signOut="signOut">
               <button (click)="signOut()">Sign Out</button>
             </ng-template>
-          </amplify-authenticator>
+            </amplify-authenticator>
+          </div>
         }
       </div>
     }

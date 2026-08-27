@@ -50,7 +50,10 @@ export const routes: Routes = [
     path: 'booking-confirmation/:bookingId',
     loadComponent: () => import('./booking-confirmation/booking-confirmation.component')
       .then(mod => mod.BookingConfirmationComponent),
-    data: { breadcrumb: 'Checkout' }
+    data: { 
+      breadcrumb: 'Checkout',
+      parentBreadcrumb: { label: 'Cart', url: '/cart' }
+    }
   },
   {
     path: 'booking/:id',
@@ -62,14 +65,17 @@ export const routes: Routes = [
     loadComponent: () => import('./cart/cart.component')
       .then(mod => mod.CartComponent),
     canActivate: [WaitingRoomGuard],
-    data: { skipBreadcrumb: true }
+    data: { breadcrumb: 'Cart' }
   },
   {
     path: 'checkout',
     loadComponent: () => import('./reservation-flow/reservation-flow.component')
       .then(mod => mod.ReservationFlowComponent),
     canActivate: [CheckoutGuard, WaitingRoomGuard],
-    data: { breadcrumb: 'Checkout' }
+    data: { 
+      breadcrumb: 'Checkout',
+      parentBreadcrumb: { label: 'Cart', url: '/cart' }
+    }
   },
   {
     path: 'facility/:collectionId/:facilityType/:facilityId',
@@ -103,7 +109,10 @@ export const routes: Routes = [
     loadComponent: () => import('./reservation-flow/reservation-flow.component')
       .then(mod => mod.ReservationFlowComponent),
     canActivate: [CheckoutGuard, WaitingRoomGuard],
-    data: { breadcrumb: 'Checkout' }
+    data: { 
+      breadcrumb: 'Checkout',
+      parentBreadcrumb: { label: 'Cart', url: '/cart' }
+    }
   },
   {
     path: 'results',

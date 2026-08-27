@@ -433,6 +433,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
       const proceed = await this.confirmReplaceCart(existingCartItem);
       if (!proceed) return;
     }
+    
 
     // Create booking immediately to reserve the inventory
     try {
@@ -476,10 +477,14 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
         quantity: visitors,
         activityName: this.selectedActivityName || this.facility?.displayName || '',
         productName: selectedProductName,
-        geoZoneName: this.facility?.displayName || '',
+        geozoneName: this.facility?.displayName || '',
         dateRange: [date, date],
         startDate: date,
         endDate: date,
+        namedOccupant: {
+          firstName: '',
+          lastName: ''
+        },
         occupants: { totalAdult: visitors, totalSenior: 0, totalYouth: 0, totalChild: 0 },
         feeInformation: { registrationFees: 0, transactionFees: 0, tax: 0, total: 0 },
         detailsStepCompleted: false,
@@ -493,6 +498,12 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
         sessionId: sessionId,
         sessionInitTime: booking?.sessionInitTime,
         sessionExpiry: booking?.sessionExpiry,
+        vehicleInformation: [
+          {
+            licensePlate: '',
+            licensePlateRegistrationRegion: '',
+          }
+        ],
       };
 
       this.cartService.addToCart(cartItem);

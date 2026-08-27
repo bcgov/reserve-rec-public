@@ -1,15 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { CartService } from '../services/cart.service';
 import { CartItemComponent } from './cart-item/cart-item.component'; // Add import
 import { FeatureFlagService } from '../services/feature-flag.service';
 import { CartTimerComponent } from './cart-timer/cart-timer.component';
+import { BreadcrumbComponent } from "../shared/breadcrumb/breadcrumb.component";
 
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CartItemComponent, RouterLink, CartTimerComponent], 
+  imports: [CartItemComponent, RouterLink, BreadcrumbComponent, CartTimerComponent], 
   templateUrl: './cart.component.html',
   styleUrl: './cart.component.scss'
 })

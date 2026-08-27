@@ -4,7 +4,7 @@ import { ApiService } from './api.service';
 import { DataService } from './data.service';
 import { LoadingService } from './loading.service';
 import { LoggerService } from './logger.service';
-import { ToastService } from './toast.service';
+import { ToastService, ToastTypes } from './toast.service';
 import { Constants } from '../constants';
 
 @Injectable({
@@ -33,6 +33,17 @@ export class ProductDateService {
     } catch (error) {
       this.loadingService.removeFromFetchList(Constants.dataIds.PRODUCT_DATE_RESULT);
       this.loggerService.error(error);
+      const errorMessage =
+        (error as any)?.error?.msg ||
+        (error as any)?.error?.error ||
+        (error as any)?.error?.Message ||
+        (error as any)?.message ||
+        'Unknown error';
+      this.toastService.addMessage(
+        errorMessage,
+        `Available dates failed to load`,
+        ToastTypes.ERROR
+      );
       return null;
     }
   }

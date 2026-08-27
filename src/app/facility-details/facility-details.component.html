@@ -162,7 +162,7 @@
               [control]="this.form.get('selectedVisitors')"
               [selectionListItems]="availableVisitorsAllowed"
               [label]="'Number of passes'"
-              [placeholder]="passesAvailable ? 'Select number of passes' : 'Unavailable'"
+              [placeholder]="passesAvailable ? 'Select number of passes' : (datesLoadFailed ? 'Unable to load' : 'Unavailable')"
               [disabled]="!this.form.get('selectedProduct').value || this.availableProducts.length === 0 || !passesAvailable"
             ></ngds-picklist-input>
           </div>
@@ -175,7 +175,7 @@
                 [disabled]="!this.form.get('selectedVisitors').value || !this.form.get('selectedDate').value || !this.form.get('selectedProduct').value || !this.passesAvailable"
                 (click)="submit()"
                 >
-                {{ passesAvailable ? "Book day-use pass" : "No passes available" }}
+                {{ passesAvailable ? "Book day-use pass" : (datesLoadFailed ? "Availability unavailable — try again" : "No passes available") }}
               </button>
             }
 

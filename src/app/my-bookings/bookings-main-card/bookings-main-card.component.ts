@@ -18,7 +18,6 @@ export class BookingMainCardComponent {
   @Input() imageUrl = '';
   @Input() formattedDate!: string;
   @Input() isCancelled = false;
-  @Input() isInProgress = false;
   // Compact = the horizontal thumbnail row used on the Previous bookings page.
   @Input() compact = false;
 

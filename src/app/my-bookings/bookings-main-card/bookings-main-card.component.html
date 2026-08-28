@@ -14,9 +14,6 @@
       @if (isCancelled) {
         <div class="text-danger mb-2">Cancelled</div>
       }
-      @if (isInProgress) {
-        <div class="text-warning mb-2">In progress</div>
-      }
       <div [class]="{ 'text-muted': isCancelled, 'text-body-emphasis': !isCancelled }">
         <div class="small">
           <strong>{{ activityType }}</strong>

@@ -64,9 +64,11 @@ describe('MyBookingsComponent', () => {
     expect(component.upcomingBookings.map(b => b.bookingId)).toEqual(['later']);
     expect(component.pastBookings.map(b => b.bookingId)).toEqual(['done']);
     expect(component.cancelledBookings.map(b => b.bookingId)).toEqual(['gone']);
-    // An unfinished checkout is not a booking the visitor holds - it must stay
-    // out of Active and Upcoming.
-    expect(component.otherBookings.map(b => b.bookingId)).toEqual(['pending']);
+    // An unfinished checkout is not a booking the visitor holds - it is not
+    // rendered anywhere on this page.
+    const shown = [...component.activeBookings, ...component.upcomingBookings,
+                   ...component.pastBookings, ...component.cancelledBookings];
+    expect(shown.map(b => b.bookingId)).not.toContain('pending');
     expect(component.activeBookings[0].passType).toBe('Trail pass');
     expect(component.activeBookings[0].imageUrl).toBe('https://example.com/park.jpg');
   });

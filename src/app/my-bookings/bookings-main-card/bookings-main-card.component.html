@@ -8,20 +8,20 @@
         <strong class="text-primary fs-5 booking-card-title">{{ geozoneName }}</strong>
         <i class="fa-solid fa-circle-chevron-right text-primary ms-2"></i>
       </div>
-      @if (facilityName) {
+      @if (!compact && facilityName) {
         <div class="text-muted mb-3">{{ facilityName }}</div>
       }
-      @if (isCancelled) {
-        <div class="text-danger mb-2">Cancelled</div>
-      }
-      <div [class]="{ 'text-muted': isCancelled, 'text-body-emphasis': !isCancelled }">
-        <div class="small">
-          <strong>{{ activityType }}</strong>
-          @if (passType) {
-            <span class="booking-card-divider">|</span>{{ passType }}
-          }
-        </div>
-        <div class="small">{{ formattedDate }}</div>
+      <div class="small">
+        <strong>{{ activityType }}</strong>
+        @if (passType) {
+          <span class="booking-card-divider">|</span>{{ passType }}
+        }
+      </div>
+      <div class="small">
+        {{ formattedDate }}
+        @if (isCancelled) {
+          <span class="text-danger ms-3">Cancelled</span>
+        }
       </div>
     </div>
   </div>

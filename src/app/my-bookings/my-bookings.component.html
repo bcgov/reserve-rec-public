@@ -35,7 +35,7 @@
       @if (previousList.length > 0) {
         <div class="row g-3 mb-5">
           @for (booking of previousList; track booking.bookingId) {
-            <div class="col-12">
+            <div class="col-lg-6">
               <app-bookings-main-card
                 [ariaLabel]="'Booking at ' + booking.geozoneName"
                 [bookingId]="booking.bookingId"

@@ -159,46 +159,13 @@ export class MyBookingsComponent implements OnInit {
     this.cancelledBookings.sort((a, b) => DateTime.fromISO(b.startDate).toMillis() - DateTime.fromISO(a.startDate).toMillis());
   }
 
-  // Format date range with time of day info
+  // Format the booking date, e.g. "Jul 31, 2025" or "Jul 31, 2025 - Aug 5, 2025".
+  // The pass type is shown on its own line, so no time-of-day suffix here.
   formatDateRange(item: any): string {
     const start = DateTime.fromISO(item.startDate);
     const end = DateTime.fromISO(item.endDate);
-    const dateRange = start.hasSame(end, 'day')
-      ? start.toFormat('MMMM d, yyyy')
+    return start.hasSame(end, 'day')
+      ? start.toFormat('MMM d, yyyy')
       : `${start.toFormat('MMM d, yyyy')} - ${end.toFormat('MMM d, yyyy')}`;
-
-    // TODO: Will need to add other activity type as needed
-    // so far we know what dayuse will look like
-    if (item?.activityType === 'dayuse') {
-      return `${dateRange}, ${this.getDayUsePassType(item)}`;
-    }
-
-    // Otherwise, default to just showing the check in time (if exists)
-    const checkInTime = item?.reservationContext?.checkInTime
-      ? BookingUtils.getArrivalTime(item)
-      : undefined;
-
-    return checkInTime ? `${dateRange} | ${checkInTime}` : dateRange;
-  }
-
-  private getDayUsePassType(item: any): string {
-    const context = item?.reservationContext;
-    // If check in or check out don't exist for some bizarre reason, just show Day-use
-    if (!context?.checkInTime || !context?.checkOutTime) {
-      return 'Day-use';
-    }
-
-    // Derive the label from the resolved times rather than exact-string matches
-    // ('7 am' / '1 pm'), so it holds up when AM/PM windows vary by season/facility:
-    //  - an afternoon check-in is a PM pass,
-    //  - an all-day-length window is All day,
-    //  - otherwise a morning half-day window is an AM pass.
-    const zone = item?.timezone || 'America/Vancouver';
-    const checkInHour = DateTime.fromMillis(Number(context.checkInTime), { zone }).hour;
-    const windowHours = (Number(context.checkOutTime) - Number(context.checkInTime)) / 3_600_000;
-
-    if (checkInHour >= 12) return 'PM';
-    if (windowHours >= 8) return 'All day';
-    return 'AM';
   }
 }

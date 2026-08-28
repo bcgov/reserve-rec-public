@@ -445,6 +445,9 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
     if (existingCartItem) {
       const proceed = await this.confirmReplaceCart(existingCartItem);
       if (!proceed) return;
+      // Release the old hold before creating the new booking — otherwise the
+      // API rejects a re-book of the same pass/date. (Ref #650.)
+      await this.cartService.releaseCartItem(existingCartItem);
     }
     
 

@@ -53,7 +53,8 @@ describe('MyBookingsComponent', () => {
         booking('now', today.minus({ days: 1 }), today.plus({ days: 1 })),
         booking('later', today.plus({ days: 5 }), today.plus({ days: 6 })),
         booking('done', today.minus({ days: 10 }), today.minus({ days: 9 })),
-        booking('gone', today.plus({ days: 5 }), today.plus({ days: 6 }), 'cancelled')
+        booking('gone', today.plus({ days: 5 }), today.plus({ days: 6 }), 'cancelled'),
+        booking('pending', today.plus({ days: 5 }), today.plus({ days: 6 }), 'in progress')
       ]
     });
 
@@ -63,6 +64,9 @@ describe('MyBookingsComponent', () => {
     expect(component.upcomingBookings.map(b => b.bookingId)).toEqual(['later']);
     expect(component.pastBookings.map(b => b.bookingId)).toEqual(['done']);
     expect(component.cancelledBookings.map(b => b.bookingId)).toEqual(['gone']);
+    // An unfinished checkout is not a booking the visitor holds - it must stay
+    // out of Active and Upcoming.
+    expect(component.otherBookings.map(b => b.bookingId)).toEqual(['pending']);
     expect(component.activeBookings[0].passType).toBe('Trail pass');
     expect(component.activeBookings[0].imageUrl).toBe('https://example.com/park.jpg');
   });

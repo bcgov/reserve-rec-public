@@ -10,6 +10,7 @@ import { BookingUtils } from '../utils/booking-utils';
 import { Constants } from '../constants';
 import { DataService } from '../services/data.service';
 import { LoadingService } from '../services/loading.service';
+import { ConfigService } from '../services/config.service';
 
 @Component({
   selector: 'app-my-bookings',
@@ -18,10 +19,16 @@ import { LoadingService } from '../services/loading.service';
   styleUrls: ['./my-bookings.component.scss']
 })
 export class MyBookingsComponent implements OnInit {
+  public env;
+
   public activeBookings: any[] = [];
   public upcomingBookings: any[] = [];
   public pastBookings: any[] = [];
   public cancelledBookings: any[] = [];
+  // Bookings whose checkout never completed ('in progress'). They are not real
+  // bookings yet, so they stay out of the user-facing sections; shown outside
+  // production only, for debugging.
+  public otherBookings: any[] = [];
 
   // The same component serves /my-bookings and /my-bookings/previous.
   public previousMode = false;
@@ -37,6 +44,7 @@ export class MyBookingsComponent implements OnInit {
     private loadingService: LoadingService,
     private bookingService: BookingService,
     private dataService: DataService,
+    private configService: ConfigService,
   ) {
     effect(() => {
       this.loading = this.loadingService.isLoading();
@@ -45,6 +53,7 @@ export class MyBookingsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.env = (this.configService.config['ENVIRONMENT'] || '').toLowerCase();
     this.previousMode = this.route.snapshot.data['previous'] === true;
 
     this.clearBookings();
@@ -60,6 +69,7 @@ export class MyBookingsComponent implements OnInit {
     this.upcomingBookings = [];
     this.pastBookings = [];
     this.cancelledBookings = [];
+    this.otherBookings = [];
   }
 
   // Get today's date e.g. 2025-05-30T16:24:48.872-08:00
@@ -73,7 +83,7 @@ export class MyBookingsComponent implements OnInit {
 
   // Check if there are any bookings to show
   hasAnyBookings(): boolean {
-    return this.activeBookings.length > 0 || this.upcomingBookings.length > 0 || this.pastBookings.length > 0 || this.cancelledBookings.length > 0;
+    return this.activeBookings.length > 0 || this.upcomingBookings.length > 0 || this.pastBookings.length > 0 || this.cancelledBookings.length > 0 || this.otherBookings.length > 0;
   }
 
   // Format the date e.g. Fri, May 30, 2025
@@ -89,6 +99,7 @@ export class MyBookingsComponent implements OnInit {
     this.upcomingBookings = [];
     this.pastBookings = [];
     this.cancelledBookings = [];
+    this.otherBookings = [];
 
     const result = this.dataService.watchItem(Constants.dataIds.MY_BOOKINGS_RESULT)();
     
@@ -134,14 +145,17 @@ export class MyBookingsComponent implements OnInit {
 
       // Categorize bookings:
       // 1. Cancelled - any cancelled booking
-      // 2. Active - happening now (today falls inside the booking's date range)
-      // 3. Upcoming - not cancelled and starts after today
-      // 4. Past - not cancelled and already ended
+      // 2. Other - checkout never completed, so not a booking the visitor holds
+      // 3. Past - already ended
+      // 4. Active - happening now (today falls inside the booking's date range)
+      // 5. Upcoming - starts after today
       if (isCancelled) {
         this.cancelledBookings.push(booking);
+      } else if (isInProgress) {
+        this.otherBookings.push(booking);
       } else if (hasEnded) {
         this.pastBookings.push(booking);
-      } else if (hasStarted || isInProgress) {
+      } else if (hasStarted) {
         this.activeBookings.push(booking);
       } else {
         this.upcomingBookings.push(booking);

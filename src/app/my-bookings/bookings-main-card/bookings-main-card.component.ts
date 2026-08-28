@@ -14,9 +14,13 @@ export class BookingMainCardComponent {
   @Input() facilityName!: string;
   @Input() productName!: string;
   @Input() activityType!: string;
+  @Input() passType = '';
+  @Input() imageUrl = '';
   @Input() formattedDate!: string;
   @Input() isCancelled = false;
   @Input() isInProgress = false;
+  // Compact = the horizontal thumbnail row used on the Previous bookings page.
+  @Input() compact = false;
 
   // Add aria label to component
   @HostBinding('attr.aria-label') @Input() ariaLabel: string;

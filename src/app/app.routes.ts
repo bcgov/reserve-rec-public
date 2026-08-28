@@ -102,6 +102,18 @@ export const routes: Routes = [
     data: { breadcrumb: 'My bookings' }
   },
   {
+    path: 'my-bookings/previous',
+    loadComponent: () => import('./my-bookings/my-bookings.component')
+      .then(mod => mod.MyBookingsComponent),
+    canActivate: [UserGuard],
+    resolve: { user: UserResolver },
+    data: {
+      previous: true,
+      breadcrumb: 'Previous bookings',
+      parentBreadcrumb: { label: 'My bookings', url: '/my-bookings' }
+    }
+  },
+  {
     path: 'payment-retry',
     loadComponent: () => import('./payment-retry/payment-retry.component')
       .then(mod => mod.PaymentRetryComponent)

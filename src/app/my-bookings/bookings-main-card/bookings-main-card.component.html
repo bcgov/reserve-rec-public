@@ -1,23 +1,31 @@
 <a [routerLink]="['/account/bookings', bookingId]" class="text-decoration-none text-dark d-block h-100 booking-card-link" [attr.aria-label]="ariaLabel || 'View booking details'">
-  <div class="card h-100 p-3 booking-card">
-    <div class="mb-1">
-      <strong class="text-primary fs-5 booking-card-title">{{ geozoneName }}</strong>
-    </div>
-    <div class="text-muted mb-3 fs-5">
-      {{ facilityName }}
-    </div>
-    <div class="text-body-emphasis mb-2">
-      {{ activityType }}
-    </div>
-    @if (isCancelled) {
-      <div class="text-danger mb-2">Cancelled</div>
+  <div class="card h-100 booking-card" [class.booking-card-compact]="compact">
+    @if (imageUrl) {
+      <img [src]="imageUrl" alt="" class="booking-card-image" />
     }
-    @if (isInProgress) {
-      <div class="text-warning mb-2">In progress</div>
-    }
-    <div [class]="{ 'text-muted': isCancelled || isInProgress, 'text-body-emphasis': !isCancelled && !isInProgress }">
-      {{ formattedDate }}
+    <div class="p-3 flex-grow-1">
+      <div class="mb-1">
+        <strong class="text-primary fs-5 booking-card-title">{{ geozoneName }}</strong>
+        <i class="fa-solid fa-circle-chevron-right text-primary ms-2"></i>
+      </div>
+      @if (facilityName) {
+        <div class="text-muted mb-3">{{ facilityName }}</div>
+      }
+      @if (isCancelled) {
+        <div class="text-danger mb-2">Cancelled</div>
+      }
+      @if (isInProgress) {
+        <div class="text-warning mb-2">In progress</div>
+      }
+      <div [class]="{ 'text-muted': isCancelled, 'text-body-emphasis': !isCancelled }">
+        <div class="small">
+          <strong>{{ activityType }}</strong>
+          @if (passType) {
+            <span class="booking-card-divider">|</span>{{ passType }}
+          }
+        </div>
+        <div class="small">{{ formattedDate }}</div>
+      </div>
     </div>
   </div>
 </a>
-

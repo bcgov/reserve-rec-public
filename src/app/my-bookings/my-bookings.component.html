@@ -1,20 +1,83 @@
 <div class="container mt-5 px-4">
   <app-breadcrumb></app-breadcrumb>
 
-  <div class="row mb-5">
-    <h1 class="fw-bold text-primary">My bookings</h1>
-  </div>
+  @if (previousMode) {
+    <div class="mb-4">
+      <button class="btn btn-outline-primary rounded-1 fw-bold mb-2 py-2 px-3" routerLink="/my-bookings">
+        <i class="fa-solid fa-circle-chevron-left me-2"></i>
+        Back
+      </button>
+    </div>
 
-  @if (!loading) {
-    @if (hasAnyBookings()) {
-      <div>
+    <div class="row mb-4">
+      <h1 class="fw-bold text-primary">Previous bookings</h1>
+    </div>
+
+    <div class="btn-group mb-4" role="group" aria-label="Previous booking type">
+      <button type="button" class="btn rounded-1 fw-bold me-2 py-2 px-3"
+        [class.btn-primary]="previousTab === 'completed'"
+        [class.btn-outline-primary]="previousTab !== 'completed'"
+        [attr.aria-pressed]="previousTab === 'completed'"
+        (click)="previousTab = 'completed'">
+        Completed
+      </button>
+      <button type="button" class="btn rounded-1 fw-bold py-2 px-3"
+        [class.btn-primary]="previousTab === 'cancelled'"
+        [class.btn-outline-primary]="previousTab !== 'cancelled'"
+        [attr.aria-pressed]="previousTab === 'cancelled'"
+        (click)="previousTab = 'cancelled'">
+        Cancelled
+      </button>
+    </div>
+
+    @if (!loading) {
+      @let previousList = previousTab === 'completed' ? pastBookings : cancelledBookings;
+      @if (previousList.length > 0) {
+        <div class="row g-3 mb-5">
+          @for (booking of previousList; track booking.bookingId) {
+            <div class="col-12">
+              <app-bookings-main-card
+                [ariaLabel]="'Booking at ' + booking.geozoneName"
+                [bookingId]="booking.bookingId"
+                [geozoneName]="booking.geozoneName"
+                [facilityName]="booking.facilityName"
+                [productName]="booking.productName"
+                [activityType]="booking.activityType"
+                [passType]="booking.passType"
+                [imageUrl]="booking.imageUrl"
+                [formattedDate]="booking.formattedDate"
+                [isCancelled]="booking.isCancelled"
+                [isInProgress]="booking.isInProgress"
+                [compact]="true">
+              </app-bookings-main-card>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="d-flex align-items-center no-bookings border border-primary border-1 rounded-2 fw-bold p-4" role="status" aria-live="polite">
+          <div class="align-self-start pt-1">
+            <i class="fa-regular fa-circle-info text-primary pe-2 d-flex"></i>
+          </div>
+          <div>
+            There are no {{ previousTab }} bookings to display.
+          </div>
+        </div>
+      }
+    }
+  } @else {
+    <div class="row mb-5">
+      <h1 class="fw-bold text-primary">My bookings</h1>
+    </div>
+
+    @if (!loading) {
+      @if (activeBookings.length > 0 || upcomingBookings.length > 0) {
         <!-- Active Bookings Section -->
         @if (activeBookings.length > 0) {
           <section class="mb-5">
             <h2 class="mb-4 text-primary">Active</h2>
             <div class="row g-4">
-              @for (booking of activeBookings; track booking) {
-                <div class="col-lg-6">
+              @for (booking of activeBookings; track booking.bookingId) {
+                <div class="col-12">
                   <app-bookings-main-card
                     [ariaLabel]="'Booking at ' + booking.geozoneName"
                     [bookingId]="booking.bookingId"
@@ -22,6 +85,8 @@
                     [facilityName]="booking.facilityName"
                     [productName]="booking.productName"
                     [activityType]="booking.activityType"
+                    [passType]="booking.passType"
+                    [imageUrl]="booking.imageUrl"
                     [formattedDate]="booking.formattedDate"
                     [isCancelled]="booking.isCancelled"
                     [isInProgress]="booking.isInProgress">
@@ -31,13 +96,14 @@
             </div>
           </section>
         }
-        <!-- Past Bookings Section -->
-        @if (pastBookings.length > 0) {
+
+        <!-- Upcoming Bookings Section -->
+        @if (upcomingBookings.length > 0) {
           <section class="mb-5">
-            <h2 class="mb-4 text-primary">Past</h2>
+            <h2 class="mb-4 text-primary">Upcoming</h2>
             <div class="row g-4">
-              @for (booking of pastBookings; track booking) {
-                <div class="col-lg-6">
+              @for (booking of upcomingBookings; track booking.bookingId) {
+                <div class="col-lg-4 col-md-6">
                   <app-bookings-main-card
                     [ariaLabel]="'Booking at ' + booking.geozoneName"
                     [bookingId]="booking.bookingId"
@@ -45,6 +111,8 @@
                     [facilityName]="booking.facilityName"
                     [productName]="booking.productName"
                     [activityType]="booking.activityType"
+                    [passType]="booking.passType"
+                    [imageUrl]="booking.imageUrl"
                     [formattedDate]="booking.formattedDate"
                     [isCancelled]="booking.isCancelled"
                     [isInProgress]="booking.isInProgress">
@@ -54,68 +122,23 @@
             </div>
           </section>
         }
-        <!-- Cancelled Bookings Section -->
-        @if (cancelledBookings.length > 0) {
-          <section class="mb-5">
-            <h2 class="mb-4 text-primary">Cancelled</h2>
-            <div class="row g-4">
-              @for (booking of cancelledBookings; track booking) {
-                <div class="col-lg-6">
-                  <app-bookings-main-card
-                    [ariaLabel]="'Cancelled booking at ' + booking.geozoneName"
-                    [bookingId]="booking.bookingId"
-                    [geozoneName]="booking.geozoneName"
-                    [facilityName]="booking.facilityName"
-                    [productName]="booking.productName"
-                    [activityType]="booking.activityType"
-                    [formattedDate]="booking.formattedDate"
-                    [isCancelled]="booking.isCancelled"
-                    [isInProgress]="booking.isInProgress">
-                  </app-bookings-main-card>
-                </div>
-              }
-            </div>
-          </section>
-        }
-        @if (env && env !== 'prod' && env !== 'production' && otherBookings.length > 0) {
-          <!-- Other Bookings Section (Debugging - don't show if undefined or on production) -->
-          <section class="mb-5">
-            <h2 class="mb-4 text-primary">Other (Debug)</h2>
-            <div class="alert alert-warning mb-3" role="alert">
-              <i class="fa-solid fa-triangle-exclamation me-2"></i>
-              These bookings don't fit the expected categories and may need attention.
-            </div>
-            <div class="row g-4">
-              @for (booking of otherBookings; track booking) {
-                <div class="col-lg-6">
-                  <app-bookings-main-card
-                    [ariaLabel]="'Booking at ' + booking.geozoneName"
-                    [bookingId]="booking.bookingId"
-                    [geozoneName]="booking.geozoneName"
-                    [facilityName]="booking.facilityName"
-                    [productName]="booking.productName"
-                    [activityType]="booking.activityType"
-                    [formattedDate]="booking.formattedDate"
-                    [isCancelled]="booking.isCancelled"
-                    [isInProgress]="booking.isInProgress">
-                  </app-bookings-main-card>
-                </div>
-              }
-            </div>
-          </section>
-        }
-      </div>
-    } @else {
-      <div class="d-flex align-items-center no-bookings border border-primary border-1 rounded-2 fw-bold p-4" role="status" aria-live="polite">
-        <div class="align-self-start pt-1">
-          <i class="fa-regular fa-circle-info text-primary pe-2 d-flex"></i>
+      } @else {
+        <div class="d-flex align-items-center no-bookings border border-primary border-1 rounded-2 fw-bold p-4 mb-5" role="status" aria-live="polite">
+          <div class="align-self-start pt-1">
+            <i class="fa-regular fa-circle-info text-primary pe-2 d-flex"></i>
+          </div>
+          <div>
+            There are no bookings to display.
+          </div>
         </div>
-        <div class="">
-          There are no bookings to display.
-        </div>
-      </div>
+      }
+
+      <!-- Previous bookings (completed + cancelled) live on their own page -->
+      <a class="d-flex align-items-center justify-content-between previous-bookings-link text-decoration-none fw-bold text-primary p-4 mb-5"
+        routerLink="/my-bookings/previous">
+        <span>View previous bookings</span>
+        <i class="fa-solid fa-circle-chevron-right"></i>
+      </a>
     }
   }
-
-  <!-- No bookings -->
 </div>

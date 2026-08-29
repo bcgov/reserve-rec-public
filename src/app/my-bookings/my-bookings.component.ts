@@ -4,7 +4,9 @@ import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
 import { Component, effect, OnInit } from '@angular/core';
 
 import { DateTime } from 'luxon'
+import { lastValueFrom } from 'rxjs';
 
+import { ApiService } from '../services/api.service';
 import { BookingService } from '../services/booking.service';
 import { BookingUtils } from '../utils/booking-utils';
 import { Constants } from '../constants';
@@ -31,12 +33,18 @@ export class MyBookingsComponent implements OnInit {
   public loading = true;
   public today: DateTime = this.getPSTDateTime();
   public user: { sub: string };
+
+  // Bookings don't carry the park image or the pass sub-type, so they're looked
+  // up once per collection/activity and cached for the life of the component.
+  private geozoneImages = new Map<string, string>();
+  private activitySubTypes = new Map<string, string>();
   
   constructor(
     private route: ActivatedRoute,
     private loadingService: LoadingService,
     private bookingService: BookingService,
     private dataService: DataService,
+    private apiService: ApiService,
   ) {
     effect(() => {
       this.loading = this.loadingService.isLoading();
@@ -125,8 +133,8 @@ export class MyBookingsComponent implements OnInit {
         facilityName: BookingUtils.getFacilityName(item),
         productName: BookingUtils.getProductDisplayName(item),
         activityType: activityType,
-        passType: Constants.activityTypes?.[item.activityType]?.subTypes?.[item.activitySubType]?.display || '',
-        imageUrl: item.geozoneImageUrl || '',
+        passType: this.getPassType(item),
+        imageUrl: item.geozoneImageUrl || this.geozoneImages.get(item.collectionId) || '',
         startDate: item.startDate,
         endDate: item.endDate,
         formattedDate: this.formatDateRange(item),
@@ -152,11 +160,81 @@ export class MyBookingsComponent implements OnInit {
       this.loading = false;
     });
 
+    this.enrichBookings(bookings);
+
     // Active/upcoming ascending (soonest first); past/cancelled descending (most recent first)
     this.activeBookings.sort((a, b) => DateTime.fromISO(a.startDate).toMillis() - DateTime.fromISO(b.startDate).toMillis());
     this.upcomingBookings.sort((a, b) => DateTime.fromISO(a.startDate).toMillis() - DateTime.fromISO(b.startDate).toMillis());
     this.pastBookings.sort((a, b) => DateTime.fromISO(b.startDate).toMillis() - DateTime.fromISO(a.startDate).toMillis());
     this.cancelledBookings.sort((a, b) => DateTime.fromISO(b.startDate).toMillis() - DateTime.fromISO(a.startDate).toMillis());
+  }
+
+  // Pass sub-type display, e.g. "Trail pass". Older bookings carry the
+  // sub-type inline; the rest resolve it from the cached activity lookup.
+  getPassType(item: any): string {
+    const subType = item.activitySubType
+      || this.activitySubTypes.get(`${item.collectionId}::${item.activityType}::${item.activityId}`);
+    return Constants.activityTypes?.[item.activityType]?.subTypes?.[subType]?.display || '';
+  }
+
+  // Fill in the park image and pass sub-type the bookings endpoint doesn't return.
+  // Cards render immediately; these fields appear once the lookups resolve.
+  async enrichBookings(items: any[]): Promise<void> {
+    const collections = [...new Set(items.map(item => item.collectionId).filter(Boolean))];
+    const activities = [...new Set(items.map(item => `${item.collectionId}::${item.activityType}`).filter(key => !key.includes('undefined')))];
+
+    await Promise.all([
+      ...collections.map(collectionId => this.loadGeozoneImage(collectionId)),
+      ...activities.map(key => this.loadActivitySubTypes(...key.split('::') as [string, string])),
+    ]);
+
+    for (const list of [this.activeBookings, this.upcomingBookings, this.pastBookings, this.cancelledBookings]) {
+      for (const booking of list) {
+        const item = items.find(i => (i.bookingId || i.globalId) === booking.bookingId);
+        if (!item) continue;
+        booking.imageUrl = booking.imageUrl || this.geozoneImages.get(item.collectionId) || '';
+        booking.passType = booking.passType || this.getPassType(item);
+      }
+    }
+  }
+
+  // The park image lives on the geozone, reachable only through a facility.
+  private async loadGeozoneImage(collectionId: string): Promise<void> {
+    if (this.geozoneImages.has(collectionId)) {
+      return;
+    }
+    this.geozoneImages.set(collectionId, '');
+    try {
+      const facilities = (await lastValueFrom(this.apiService.get(`facilities/${collectionId}`)))['data']?.items || [];
+      const facility = facilities[0];
+      if (!facility) {
+        return;
+      }
+      const detail = (await lastValueFrom(this.apiService.get(`facilities/${collectionId}`, {
+        facilityType: facility.facilityType,
+        facilityId: facility.facilityId,
+        fetchGeozones: true,
+      })))['data'];
+      this.geozoneImages.set(collectionId, detail?.geozones?.[0]?.imageUrl || '');
+    } catch {
+      // The image is decorative - a failed lookup just leaves the card without one.
+    }
+  }
+
+  private async loadActivitySubTypes(collectionId: string, activityType: string): Promise<void> {
+    const cacheKey = `${collectionId}::${activityType}`;
+    if (this.activitySubTypes.has(cacheKey)) {
+      return;
+    }
+    this.activitySubTypes.set(cacheKey, '');
+    try {
+      const activities = (await lastValueFrom(this.apiService.get(`activities/${collectionId}`, { activityType })))['data']?.items || [];
+      for (const activity of activities) {
+        this.activitySubTypes.set(`${collectionId}::${activityType}::${activity.activityId}`, activity.activitySubType || '');
+      }
+    } catch {
+      // Without the sub-type the card just omits it.
+    }
   }
 
   // Format the booking date, e.g. "Jul 31, 2025" or "Jul 31, 2025 - Aug 5, 2025".

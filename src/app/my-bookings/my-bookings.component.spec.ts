@@ -6,6 +6,8 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { MyBookingsComponent } from './my-bookings.component';
 import { provideToastr } from 'ngx-toastr';
 import { DateTime } from 'luxon';
+import { of } from 'rxjs';
+import { ApiService } from '../services/api.service';
 import { DataService } from '../services/data.service';
 import { Constants } from '../constants';
 
@@ -71,5 +73,40 @@ describe('MyBookingsComponent', () => {
     expect(shown.map(b => b.bookingId)).not.toContain('pending');
     expect(component.activeBookings[0].passType).toBe('Trail pass');
     expect(component.activeBookings[0].imageUrl).toBe('https://example.com/park.jpg');
+  });
+
+  // The bookings endpoint returns neither the park image nor the pass sub-type,
+  // so both are looked up from the facility/activity endpoints.
+  it('fills in the park image and pass sub-type the bookings endpoint omits', async () => {
+    const today = DateTime.now().setZone('America/Vancouver');
+    spyOn(TestBed.inject(ApiService), 'get').and.callFake((path: string, params?: any) => {
+      if (path.startsWith('activities')) {
+        return of({ data: { items: [{ activityId: 1, activitySubType: 'vehicleParking' }] } });
+      }
+      if (params?.fetchGeozones) {
+        return of({ data: { geozones: [{ imageUrl: 'https://example.com/geozone.jpg' }] } });
+      }
+      return of({ data: { items: [{ facilityType: 'structure', facilityId: 1 }] } });
+    });
+
+    const items = [{
+      schema: 'booking',
+      bookingId: 'sparse',
+      status: 'confirmed',
+      collectionId: 'bcparks_8',
+      activityType: 'dayuse',
+      activityId: 1,
+      startDate: today.plus({ days: 5 }).toISODate(),
+      endDate: today.plus({ days: 6 }).toISODate()
+    }];
+    TestBed.inject(DataService).setItemValue(Constants.dataIds.MY_BOOKINGS_RESULT, { items });
+
+    component.processBookings();
+    expect(component.upcomingBookings[0].imageUrl).toBe('');
+
+    await component.enrichBookings(items);
+
+    expect(component.upcomingBookings[0].imageUrl).toBe('https://example.com/geozone.jpg');
+    expect(component.upcomingBookings[0].passType).toBe('Parking pass');
   });
 });

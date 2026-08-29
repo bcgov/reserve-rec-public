@@ -177,11 +177,23 @@ export class MyBookingsComponent implements OnInit {
     return Constants.activityTypes?.[item.activityType]?.subTypes?.[subType]?.display || '';
   }
 
-  // Fill in the park image and pass sub-type the bookings endpoint doesn't return.
-  // Cards render immediately; these fields appear once the lookups resolve.
+  // Fill in the park image and pass sub-type for bookings that arrive without
+  // them. Only the missing ones are looked up, so once the API returns both
+  // fields no extra request is made at all. Cards render immediately; anything
+  // fetched here appears once the lookups resolve.
   async enrichBookings(items: any[]): Promise<void> {
-    const collections = [...new Set(items.map(item => item.collectionId).filter(Boolean))];
-    const activities = [...new Set(items.map(item => `${item.collectionId}::${item.activityType}`).filter(key => !key.includes('undefined')))];
+    const collections = [...new Set(
+      items.filter(item => !item.geozoneImageUrl).map(item => item.collectionId).filter(Boolean)
+    )];
+    const activities = [...new Set(
+      items.filter(item => !item.activitySubType)
+        .map(item => `${item.collectionId}::${item.activityType}`)
+        .filter(key => !key.includes('undefined'))
+    )];
+
+    if (!collections.length && !activities.length) {
+      return;
+    }
 
     await Promise.all([
       ...collections.map(collectionId => this.loadGeozoneImage(collectionId)),

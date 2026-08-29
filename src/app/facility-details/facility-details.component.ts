@@ -43,6 +43,10 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
   
   public facility;
   public geozone;
+  // The API answers a missing facility with 200 and a null body, so the resolver
+  // hands this component null rather than failing the navigation. Render an
+  // explicit error state instead of a page with nothing on it.
+  public facilityLoadFailed = false;
   
   public relatedActivities: any[] = [];
   public availableActivities: any = [];
@@ -83,8 +87,11 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
     private productDateService: ProductDateService,
     private authService: AuthService,
   ) {
-    this.facility = this.route.snapshot.data['facility'];
-    this.geozone = this.facility.geozones[0];
+    this.facility = this.route.snapshot.data['facility'] ?? null;
+    this.facilityLoadFailed = !this.facility;
+    // Every other read here is optional-chained; this one was not, so a null
+    // facility threw in the constructor and Angular rendered nothing at all.
+    this.geozone = this.facility?.geozones?.[0] ?? null;
     if (!this.facility?.isOpen) this.facilityOpen = false;
 
     // If this facility has activities, add them to relatedActivities. The activity

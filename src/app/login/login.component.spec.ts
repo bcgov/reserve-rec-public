@@ -72,4 +72,51 @@ describe('LoginComponent', () => {
       expect(thrown.message).toBe('Generic message.');
     });
   });
+  // #685: Amplify's built-in sign-up fields default to isRequired, which makes
+  // the browser block submit before handleSignUp runs, so no error can render.
+  describe('sign-up password errors are reachable', () => {
+    it('clears the native required flag on every built-in sign-up field', () => {
+      expect(component.formFields.signUp.email.isRequired).toBeFalse();
+      expect(component.formFields.signUp.password.isRequired).toBeFalse();
+      expect(component.formFields.signUp.confirm_password.isRequired).toBeFalse();
+    });
+
+    it('reports a blank password instead of failing silently', async () => {
+      spyOn(console, 'error');
+      const thrown = await (component.services.handleSignUp as any)({
+        username: 'someone@example.com',
+        password: '',
+      }).then(() => null, (e: Error) => e);
+
+      expect(component.passwordError).toBe('Password is required');
+      expect(thrown.message).toContain('Password');
+    });
+
+    // Amplify strips confirm_password from the sign-up input, so this is the
+    // only hook that can see it. Without it, clearing isRequired would let an
+    // account through on a single typed password.
+    describe('validateCustomSignUp', () => {
+      const validate = (password: string, confirm: string) =>
+        (component.services as any).validateCustomSignUp({
+          password,
+          confirm_password: confirm,
+        });
+
+      it('rejects a blank confirmation', async () => {
+        expect(await validate('Passw0rd!', '')).toEqual({
+          confirm_password: 'Please confirm your password.',
+        });
+      });
+
+      it('rejects a mismatch', async () => {
+        expect(await validate('Passw0rd!', 'Passw0rd?')).toEqual({
+          confirm_password: 'Passwords do not match.',
+        });
+      });
+
+      it('accepts a matching pair', async () => {
+        expect(await validate('Passw0rd!', 'Passw0rd!')).toBeNull();
+      });
+    });
+  });
 });

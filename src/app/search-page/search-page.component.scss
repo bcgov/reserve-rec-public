@@ -37,14 +37,19 @@ input::placeholder {
 }
 
 .search-box {
-   box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25);
+  // Figma content width: 296px @320, 516px @744, 736px @1440 (capped).
+  width: min(100% - 1.5rem, max(516px, 51.11vw));
+  max-width: 736px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; // Figma: 16px between the heading and the park picker group
+  padding: 1.5rem 2rem;
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25);
 }
 
-@media (max-width: 540px) {
+@media (max-width: 539.98px) {
   .search-box {
-    max-width: calc(100% - 1.5rem);
-    margin-left: auto !important;
-    margin-right: auto !important;
+    padding: 1.5rem 1rem;
   }
 }
 

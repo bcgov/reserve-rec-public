@@ -96,32 +96,19 @@
 <div class="w-100 bg-light-blue-nav border-top fixed-bottom">
   <div class="container">
     <div class="d-flex justify-content-between py-3">
-      <!-- Cancel Booking on first step, Back button on subsequent steps -->
-      @if (!showBackButton()) {
-        <button
-          type="button"
-          class="btn btn-outline-primary rounded-1"
-          (click)="backToCart()"
-          >
-          <i class="fa-solid fa-circle-chevron-left me-1"></i>
-          Back to cart
-        </button>
-      }
-
-      @if (showBackButton()) {
-        <button
-          type="button"
-          class="btn btn-outline-secondary rounded-1"
-          (click)="goBack()"
-          >
-          <i class="fa-solid fa-chevron-left me-2"></i>
-          {{ getBackButtonLabel() }}
-        </button>
-      }
+      <!-- Back to cart on first step, back to the previous step afterwards -->
+      <button
+        type="button"
+        class="btn btn-outline-primary rounded-1 fw-bold"
+        (click)="showBackButton() ? goBack() : backToCart()"
+        >
+        <i class="fa-solid fa-circle-chevron-left me-2"></i>
+        {{ showBackButton() ? getBackButtonLabel() : 'Back to cart' }}
+      </button>
 
       <button
         type="button"
-        class="btn btn-primary rounded-1"
+        class="btn btn-primary rounded-1 fw-bold"
         [class.bg-disabled]="!canProceed() || isSubmitting"
         [class.text-disabled]="!canProceed() || isSubmitting"
         [class.border-disabled]="!canProceed() || isSubmitting"

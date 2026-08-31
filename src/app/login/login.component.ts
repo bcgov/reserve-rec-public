@@ -42,17 +42,17 @@ export class LoginComponent implements OnInit{
   countryError = '';
   summaryError = ''; // Track summary error message for display
 
-  // given_name/family_name are natively `required` by Amplify's defaults,
-  // which blocks submission silently with no visible message (Amplify's own
-  // validators never check for blank required fields). We provide custom
-  // given_name and family_name fields in the template instead (#685).
-  // The placeholders are set to a single space to avoid the default placeholder text and the undefined if left empty!
+  // Amplify's built-in sign-up fields default to `required`, which makes the
+  // browser block submit with no visible message: Amplify's own validators
+  // never check blank required fields, so handleSignUp never runs and none of
+  // the per-field errors below can render. Turning the native required off for
+  // all three hands the checking to validateSignUp/validateCustomSignUp (#685).
+  // Placeholders are a single space to suppress Amplify's default placeholder.
   formFields = {
     signUp: {
       email: { isRequired: false, placeholder: ' ' },
-      password: { placeholder: ' ' },
-      confirm_password: { placeholder: ' ' },
-
+      password: { isRequired: false, placeholder: ' ' },
+      confirm_password: { isRequired: false, placeholder: ' ' },
     },
   };
 
@@ -196,6 +196,23 @@ export class LoginComponent implements OnInit{
 
       return this.withGenericError(() => signUp(input),
         'We could not create your account. Please check your details and try again.');
+    },
+
+    // confirm_password never reaches handleSignUp: Amplify strips it from the
+    // sign-up input because it is not a Cognito attribute, so the match check
+    // has to live here, the only hook that sees the raw form values. Without it
+    // clearing isRequired above would let an account through on a single typed
+    // password, because Amplify's own check skips a blank, untouched confirm.
+    validateCustomSignUp: async (formData: Record<string, string>) => {
+      const password = formData?.['password'] ?? '';
+      const confirmPassword = formData?.['confirm_password'] ?? '';
+      if (!confirmPassword.trim()) {
+        return { confirm_password: 'Please confirm your password.' };
+      }
+      if (password !== confirmPassword) {
+        return { confirm_password: 'Passwords do not match.' };
+      }
+      return null;
     },
 
     handleConfirmSignUp: (input: Parameters<typeof confirmSignUp>[0]) =>

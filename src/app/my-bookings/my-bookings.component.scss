@@ -39,3 +39,13 @@
 .no-bookings {
   background-color: #F7F9FC;
 }
+
+.previous-bookings-link {
+  background-color: #F7F9FC;
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+
+  &:hover {
+    background-color: #ECF6FF;
+  }
+}

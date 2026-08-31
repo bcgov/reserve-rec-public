@@ -1,43 +1,50 @@
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BookingMainCardComponent } from './bookings-main-card/bookings-main-card.component'
 import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
 import { Component, effect, OnInit } from '@angular/core';
 
 import { DateTime } from 'luxon'
+import { lastValueFrom } from 'rxjs';
 
+import { ApiService } from '../services/api.service';
 import { BookingService } from '../services/booking.service';
 import { BookingUtils } from '../utils/booking-utils';
 import { Constants } from '../constants';
 import { DataService } from '../services/data.service';
 import { LoadingService } from '../services/loading.service';
-import { ConfigService } from '../services/config.service';
 
 @Component({
   selector: 'app-my-bookings',
-  imports: [BookingMainCardComponent, BreadcrumbComponent],
+  imports: [BookingMainCardComponent, BreadcrumbComponent, RouterLink],
   templateUrl: './my-bookings.component.html',
   styleUrls: ['./my-bookings.component.scss']
 })
 export class MyBookingsComponent implements OnInit {
-  public env;
-
   public activeBookings: any[] = [];
+  public upcomingBookings: any[] = [];
   public pastBookings: any[] = [];
   public cancelledBookings: any[] = [];
-  public otherBookings: any[] = [];
+
+  // The same component serves /my-bookings and /my-bookings/previous.
+  public previousMode = false;
+  public previousTab: 'completed' | 'cancelled' = 'completed';
 
   public data: any[] = [];
   public loading = true;
   public today: DateTime = this.getPSTDateTime();
   public user: { sub: string };
+
+  // Bookings don't carry the park image or the pass sub-type, so they're looked
+  // up once per collection/activity and cached for the life of the component.
+  private geozoneImages = new Map<string, string>();
+  private activitySubTypes = new Map<string, string>();
   
   constructor(
     private route: ActivatedRoute,
     private loadingService: LoadingService,
     private bookingService: BookingService,
     private dataService: DataService,
-    private configService: ConfigService,
-
+    private apiService: ApiService,
   ) {
     effect(() => {
       this.loading = this.loadingService.isLoading();
@@ -46,7 +53,7 @@ export class MyBookingsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.env = (this.configService.config['ENVIRONMENT'] || '').toLowerCase();
+    this.previousMode = this.route.snapshot.data['previous'] === true;
 
     this.clearBookings();
     this.dataService.clearItemValue(Constants.dataIds.MY_BOOKINGS_RESULT);
@@ -58,9 +65,9 @@ export class MyBookingsComponent implements OnInit {
   clearBookings(): void {
     this.data = [];
     this.activeBookings = [];
+    this.upcomingBookings = [];
     this.pastBookings = [];
     this.cancelledBookings = [];
-    this.otherBookings = [];
   }
 
   // Get today's date e.g. 2025-05-30T16:24:48.872-08:00
@@ -74,7 +81,7 @@ export class MyBookingsComponent implements OnInit {
 
   // Check if there are any bookings to show
   hasAnyBookings(): boolean {
-    return this.activeBookings.length > 0 || this.pastBookings.length > 0 || this.cancelledBookings.length > 0 || this.otherBookings.length > 0;
+    return this.activeBookings.length > 0 || this.upcomingBookings.length > 0 || this.pastBookings.length > 0 || this.cancelledBookings.length > 0;
   }
 
   // Format the date e.g. Fri, May 30, 2025
@@ -87,9 +94,9 @@ export class MyBookingsComponent implements OnInit {
   // Take all bookings and calculate which are active (future, not cancelled), past (past, not cancelled), cancelled (any cancelled), or other (catch-all)
   processBookings(): void {
     this.activeBookings = [];
+    this.upcomingBookings = [];
     this.pastBookings = [];
     this.cancelledBookings = [];
-    this.otherBookings = [];
 
     const result = this.dataService.watchItem(Constants.dataIds.MY_BOOKINGS_RESULT)();
     
@@ -104,13 +111,18 @@ export class MyBookingsComponent implements OnInit {
     }
 
     // Filter to only process booking schema items (not bookingDate aggregates)
-    const bookings = this.data.filter(item => item.schema === 'booking');
+    const allBookings = this.data.filter(item => item.schema === 'booking');
+
+    // A booking still 'in progress' is an unfinished checkout, not something the
+    // visitor holds, so it is not shown on this page at all.
+    const bookings = allBookings.filter(item => !BookingUtils.isInProgress(item));
 
     bookings.forEach(item => {
+      const rangeStart = DateTime.fromISO(item.startDate).startOf('day');
       const rangeEnd = DateTime.fromISO(item.endDate).endOf('day');
       const isCancelled = BookingUtils.isCancelled(item);
-      const isInProgress = BookingUtils.isInProgress(item);
       const hasEnded = this.today > rangeEnd;
+      const hasStarted = this.today >= rangeStart;
 
       // Get the display name of the activity type from constants
       const activityType = Constants.activityTypes?.[item.activityType]?.display || BookingUtils.getActivityType(item);
@@ -121,79 +133,129 @@ export class MyBookingsComponent implements OnInit {
         facilityName: BookingUtils.getFacilityName(item),
         productName: BookingUtils.getProductDisplayName(item),
         activityType: activityType,
+        passType: this.getPassType(item),
+        imageUrl: item.geozoneImageUrl || this.geozoneImages.get(item.collectionId) || '',
         startDate: item.startDate,
         endDate: item.endDate,
         formattedDate: this.formatDateRange(item),
         isCancelled: isCancelled,
-        isInProgress: isInProgress,
         status: BookingUtils.getStatus(item)
       };
 
       // Categorize bookings:
       // 1. Cancelled - any cancelled booking
-      // 2. Active - not cancelled and in the future
-      // 3. Past - not cancelled and in the past
-      // 4. Other - catch-all for debugging
+      // 2. Past - already ended
+      // 3. Active - happening now (today falls inside the booking's date range)
+      // 4. Upcoming - starts after today
       if (isCancelled) {
         this.cancelledBookings.push(booking);
-      } else if (!hasEnded && !isInProgress) {
-        this.activeBookings.push(booking);
-      } else if (hasEnded && !isInProgress) {
+      } else if (hasEnded) {
         this.pastBookings.push(booking);
+      } else if (hasStarted) {
+        this.activeBookings.push(booking);
       } else {
-        // Catch-all for any edge cases
-        this.otherBookings.push(booking);
+        this.upcomingBookings.push(booking);
       }
 
       this.loading = false;
     });
 
-    // Active ascending (soonest first); past/cancelled descending (most recent first)
+    this.enrichBookings(bookings);
+
+    // Active/upcoming ascending (soonest first); past/cancelled descending (most recent first)
     this.activeBookings.sort((a, b) => DateTime.fromISO(a.startDate).toMillis() - DateTime.fromISO(b.startDate).toMillis());
+    this.upcomingBookings.sort((a, b) => DateTime.fromISO(a.startDate).toMillis() - DateTime.fromISO(b.startDate).toMillis());
     this.pastBookings.sort((a, b) => DateTime.fromISO(b.startDate).toMillis() - DateTime.fromISO(a.startDate).toMillis());
     this.cancelledBookings.sort((a, b) => DateTime.fromISO(b.startDate).toMillis() - DateTime.fromISO(a.startDate).toMillis());
   }
 
-  // Format date range with time of day info
+  // Pass sub-type display, e.g. "Trail pass". Older bookings carry the
+  // sub-type inline; the rest resolve it from the cached activity lookup.
+  getPassType(item: any): string {
+    const subType = item.activitySubType
+      || this.activitySubTypes.get(`${item.collectionId}::${item.activityType}::${item.activityId}`);
+    return Constants.activityTypes?.[item.activityType]?.subTypes?.[subType]?.display || '';
+  }
+
+  // Fill in the park image and pass sub-type for bookings that arrive without
+  // them. Only the missing ones are looked up, so once the API returns both
+  // fields no extra request is made at all. Cards render immediately; anything
+  // fetched here appears once the lookups resolve.
+  async enrichBookings(items: any[]): Promise<void> {
+    const collections = [...new Set(
+      items.filter(item => !item.geozoneImageUrl).map(item => item.collectionId).filter(Boolean)
+    )];
+    const activities = [...new Set(
+      items.filter(item => !item.activitySubType)
+        .map(item => `${item.collectionId}::${item.activityType}`)
+        .filter(key => !key.includes('undefined'))
+    )];
+
+    if (!collections.length && !activities.length) {
+      return;
+    }
+
+    await Promise.all([
+      ...collections.map(collectionId => this.loadGeozoneImage(collectionId)),
+      ...activities.map(key => this.loadActivitySubTypes(...key.split('::') as [string, string])),
+    ]);
+
+    for (const list of [this.activeBookings, this.upcomingBookings, this.pastBookings, this.cancelledBookings]) {
+      for (const booking of list) {
+        const item = items.find(i => (i.bookingId || i.globalId) === booking.bookingId);
+        if (!item) continue;
+        booking.imageUrl = booking.imageUrl || this.geozoneImages.get(item.collectionId) || '';
+        booking.passType = booking.passType || this.getPassType(item);
+      }
+    }
+  }
+
+  // The park image lives on the geozone, reachable only through a facility.
+  private async loadGeozoneImage(collectionId: string): Promise<void> {
+    if (this.geozoneImages.has(collectionId)) {
+      return;
+    }
+    this.geozoneImages.set(collectionId, '');
+    try {
+      const facilities = (await lastValueFrom(this.apiService.get(`facilities/${collectionId}`)))['data']?.items || [];
+      const facility = facilities[0];
+      if (!facility) {
+        return;
+      }
+      const detail = (await lastValueFrom(this.apiService.get(`facilities/${collectionId}`, {
+        facilityType: facility.facilityType,
+        facilityId: facility.facilityId,
+        fetchGeozones: true,
+      })))['data'];
+      this.geozoneImages.set(collectionId, detail?.geozones?.[0]?.imageUrl || '');
+    } catch {
+      // The image is decorative - a failed lookup just leaves the card without one.
+    }
+  }
+
+  private async loadActivitySubTypes(collectionId: string, activityType: string): Promise<void> {
+    const cacheKey = `${collectionId}::${activityType}`;
+    if (this.activitySubTypes.has(cacheKey)) {
+      return;
+    }
+    this.activitySubTypes.set(cacheKey, '');
+    try {
+      const activities = (await lastValueFrom(this.apiService.get(`activities/${collectionId}`, { activityType })))['data']?.items || [];
+      for (const activity of activities) {
+        this.activitySubTypes.set(`${collectionId}::${activityType}::${activity.activityId}`, activity.activitySubType || '');
+      }
+    } catch {
+      // Without the sub-type the card just omits it.
+    }
+  }
+
+  // Format the booking date, e.g. "Jul 31, 2025" or "Jul 31, 2025 - Aug 5, 2025".
+  // The pass type is shown on its own line, so no time-of-day suffix here.
   formatDateRange(item: any): string {
     const start = DateTime.fromISO(item.startDate);
     const end = DateTime.fromISO(item.endDate);
-    const dateRange = start.hasSame(end, 'day')
-      ? start.toFormat('MMMM d, yyyy')
+    return start.hasSame(end, 'day')
+      ? start.toFormat('MMM d, yyyy')
       : `${start.toFormat('MMM d, yyyy')} - ${end.toFormat('MMM d, yyyy')}`;
-
-    // TODO: Will need to add other activity type as needed
-    // so far we know what dayuse will look like
-    if (item?.activityType === 'dayuse') {
-      return `${dateRange}, ${this.getDayUsePassType(item)}`;
-    }
-
-    // Otherwise, default to just showing the check in time (if exists)
-    const checkInTime = item?.reservationContext?.checkInTime
-      ? BookingUtils.getArrivalTime(item)
-      : undefined;
-
-    return checkInTime ? `${dateRange} | ${checkInTime}` : dateRange;
-  }
-
-  private getDayUsePassType(item: any): string {
-    const context = item?.reservationContext;
-    // If check in or check out don't exist for some bizarre reason, just show Day-use
-    if (!context?.checkInTime || !context?.checkOutTime) {
-      return 'Day-use';
-    }
-
-    // Derive the label from the resolved times rather than exact-string matches
-    // ('7 am' / '1 pm'), so it holds up when AM/PM windows vary by season/facility:
-    //  - an afternoon check-in is a PM pass,
-    //  - an all-day-length window is All day,
-    //  - otherwise a morning half-day window is an AM pass.
-    const zone = item?.timezone || 'America/Vancouver';
-    const checkInHour = DateTime.fromMillis(Number(context.checkInTime), { zone }).hour;
-    const windowHours = (Number(context.checkOutTime) - Number(context.checkInTime)) / 3_600_000;
-
-    if (checkInHour >= 12) return 'PM';
-    if (windowHours >= 8) return 'All day';
-    return 'AM';
   }
 }

@@ -133,8 +133,8 @@ export class Constants {
       value: 'dayuse',
       iconClass: 'fa-regular fa-person-hiking',
       subTypes: {
-        vehicleParking: { display: 'Vehicle Parking', value: 'vehicleParking', iconClass: 'fa-regular fa-square-parking' },
-        trailUse: { display: 'Trail Use', value: 'trailUse', iconClass: 'fa-solid fa-person-hiking' },
+        vehicleParking: { display: 'Parking pass', value: 'vehicleParking', iconClass: 'fa-regular fa-square-parking' },
+        trailUse: { display: 'Trail pass', value: 'trailUse', iconClass: 'fa-solid fa-person-hiking' },
         shelterUse: { display: 'Shelter Use', value: 'shelterUse', iconClass: 'fa-solid fa-shelter' },
         saniUse: { display: 'Sani Use', value: 'saniUse', iconClass: 'fa-solid fa-toilet-paper' },
         showerUse: { display: 'Shower Use', value: 'showerUse', iconClass: 'fa-solid fa-shower' },

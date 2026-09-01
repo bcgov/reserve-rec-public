@@ -302,6 +302,9 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
   }
 
   private async loadPassesAvailable(date: any) {
+      this.loadingPasses = true;
+      this.passesAvailable = false;
+      this.availableVisitorsAllowed = [];
       this.selectedDateStr = typeof date === 'string' ? date : (date?.['toISODate'] ? date['toISODate']() : String(date));
       this.waitingRoomActive = false;
 
@@ -332,6 +335,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
       if (!isReservable) {
         this.passesAvailable = false;
         this.availableVisitorsAllowed = [{display: 'Unavailable', value: '0' }];
+        this.loadingPasses = false;
         return;
       } else {
         // Check if today is within the reservation window
@@ -356,6 +360,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
         });
       }
       this.availableVisitorsAllowed = allowedVisitors;
+      this.loadingPasses = false;
   }
 
   private parseDateTimeValue(value: unknown): DateTime {

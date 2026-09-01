@@ -119,4 +119,84 @@ describe('LoginComponent', () => {
       });
     });
   });
+
+  // #685: a duplicate account is only detectable at submit, and the generic
+  // wrapper reduced it to an unactionable message at the foot of the form.
+  describe('sign-up failures name the field to change', () => {
+    const fail = (error: unknown) => {
+      try {
+        (component as any).failSignUp(error);
+        return null;
+      } catch (e) {
+        return e as Error;
+      }
+    };
+
+    beforeEach(() => spyOn(console, 'error'));
+
+    it('puts an existing account on the email field', () => {
+      const thrown = fail({ name: 'UsernameExistsException' });
+
+      expect(component.emailError).toContain('already exists');
+      expect(thrown?.message).toContain('already exists');
+    });
+
+    it('lists the email field in the summary', () => {
+      fail({ name: 'UsernameExistsException' });
+
+      expect(component.summaryError).toContain('Email');
+    });
+
+    it('keeps the generic message for an unmapped failure', () => {
+      const thrown = fail({ name: 'InternalErrorException' });
+
+      expect(thrown?.message).toBe(
+        'We could not create your account. Please check your details and try again.'
+      );
+      expect(component.emailError).toBe('');
+    });
+
+    it('matches on name, not the SDK v2 code field', () => {
+      const thrown = fail({ code: 'UsernameExistsException' });
+
+      expect(thrown?.message).not.toContain('already exists');
+    });
+  });
+
+  // The summary drives the error alert; it used to be computed and discarded.
+  describe('error summary', () => {
+    it('names every field currently in error', () => {
+      component.emailError = 'Email is required';
+      component.cityError = 'City is required';
+      (component as any).updateErrorSummary();
+
+      expect(component.summaryError).toContain('Email');
+      expect(component.summaryError).toContain('City');
+      expect(component.summaryError).not.toContain('Province');
+    });
+
+    it('clears once the fields are valid', () => {
+      component.emailError = 'Email is required';
+      (component as any).updateErrorSummary();
+      component.emailError = '';
+      (component as any).updateErrorSummary();
+
+      expect(component.summaryError).toBe('');
+    });
+
+    // The old guard re-threw the previous submit's summary before the errors
+    // were cleared, so a corrected form could never be resubmitted.
+    it('does not block a resubmit with the previous summary', async () => {
+      spyOn(console, 'error');
+      component.summaryError = 'Please fix the following before continuing: City.';
+
+      const thrown = await (component.services.handleSignUp as any)({
+        username: 'someone@example.com',
+        password: '',
+      }).then(() => null, (e: Error) => e);
+
+      expect(thrown.message).toContain('Invalid fields');
+      expect(thrown.message).not.toContain('City.');
+    });
+  });
 });

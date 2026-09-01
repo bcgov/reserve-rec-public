@@ -56,6 +56,38 @@ export class LoginComponent implements OnInit{
     },
   };
 
+  // Error-property name -> the label the user sees, for both the summary and
+  // the "invalid fields" message. One map so the two can't drift apart.
+  private readonly fieldLabels: Record<string, string> = {
+    emailError: 'Email',
+    passwordError: 'Password',
+    givenNameError: 'Given Name',
+    familyNameError: 'Family Name',
+    mobilePhoneError: 'Mobile Phone Number',
+    homePhoneError: 'Home Phone Number',
+    streetAddressError: 'Street Address',
+    cityError: 'City',
+    provinceError: 'Province',
+    postalCodeError: 'Postal Code',
+    countryError: 'Country',
+  };
+
+  // Sign-up failures a user can act on. Anything unlisted keeps the generic
+  // message so Cognito's pool/client detail stays out of the UI (#628).
+  private static readonly SIGN_UP_ERRORS: Record<string, string> = {
+    UsernameExistsException:
+      'An account with this email address already exists. Sign in instead, or reset your password.',
+    InvalidPasswordException:
+      'That password does not meet the requirements listed above.',
+    InvalidParameterException:
+      'Some of the details entered are not valid. Check the fields above and try again.',
+    TooManyRequestsException: 'Too many attempts. Wait a moment and try again.',
+    LimitExceededException: 'Too many attempts. Wait a moment and try again.',
+  };
+
+  private static readonly SIGN_UP_GENERIC_ERROR =
+    'We could not create your account. Please check your details and try again.';
+
   private clearAllErrors(): void {
     console.log('Clearing all errors');
     this.emailError = '';
@@ -72,51 +104,15 @@ export class LoginComponent implements OnInit{
     this.summaryError = '';
   }
 
+  // The summary was computed and thrown away, so the alert never rendered and
+  // every field error had to be found by scrolling the form (#685).
   private updateErrorSummary(): void {
-    // Check if there are any remaining errors
-    const errors = [
-      this.emailError,
-      this.passwordError,
-      this.givenNameError,
-      this.familyNameError,
-      this.mobilePhoneError,
-      this.homePhoneError,
-      this.streetAddressError,
-      this.cityError,
-      this.provinceError,
-      this.postalCodeError,
-      this.countryError
-    ].filter(e => e);
+    const errors = this as unknown as Record<string, string>;
+    const invalid = Object.keys(this.fieldLabels).filter(key => errors[key]);
 
-    if (errors.length === 0) {
-      this.summaryError = '';
-    } else {
-      const fieldNameMap: Record<string, string> = {
-        emailError: 'Email',
-        passwordError: 'Password',
-        givenNameError: 'Given Name',
-        familyNameError: 'Family Name',
-        mobilePhoneError: 'Mobile Phone Number',
-        homePhoneError: 'Home Phone Number',
-        streetAddressError: 'Street Address',
-        cityError: 'City',
-        provinceError: 'Province',
-        postalCodeError: 'Postal Code',
-        countryError: 'Country',
-      };
-
-      // Find which fields have errors
-      const errorFields = [];
-      if (this.givenNameError) errorFields.push(fieldNameMap['givenNameError']);
-      if (this.familyNameError) errorFields.push(fieldNameMap['familyNameError']);
-      if (this.mobilePhoneError) errorFields.push(fieldNameMap['mobilePhoneError']);
-      if (this.homePhoneError) errorFields.push(fieldNameMap['homePhoneError']);
-      if (this.streetAddressError) errorFields.push(fieldNameMap['streetAddressError']);
-      if (this.cityError) errorFields.push(fieldNameMap['cityError']);
-      if (this.provinceError) errorFields.push(fieldNameMap['provinceError']);
-      if (this.postalCodeError) errorFields.push(fieldNameMap['postalCodeError']);
-      if (this.countryError) errorFields.push(fieldNameMap['countryError']);
-    }
+    this.summaryError = invalid.length
+      ? `Please fix the following before continuing: ${invalid.map(key => this.fieldLabels[key]).join(', ')}.`
+      : '';
   }
 
   // Amplify surfaces the raw Cognito error in the authenticator's alert, which
@@ -130,11 +126,6 @@ export class LoginComponent implements OnInit{
         'We could not sign you in. Check your email and password and try again.'),
 
     handleSignUp: async (input: Parameters<typeof signUp>[0]) => {
-      // Check if there are any existing field validation errors
-      if (this.summaryError) {
-        throw new Error(this.summaryError);
-      }
-
       this.clearAllErrors();
       
       // Convert Amplify's input format to our SignUpInput interface
@@ -176,26 +167,15 @@ export class LoginComponent implements OnInit{
       // Check if there are any errors and throw if so
       const errorEntries = Object.entries(errors).filter(([, message]) => message);
       if (errorEntries.length) {
-        const fieldNameMap: Record<string, string> = {
-          emailError: 'Email',
-          passwordError: 'Password',
-          givenNameError: 'Given Name',
-          familyNameError: 'Family Name',
-          mobilePhoneError: 'Mobile Phone Number',
-          homePhoneError: 'Home Phone Number',
-          streetAddressError: 'Street Address',
-          cityError: 'City',
-          provinceError: 'Province',
-          postalCodeError: 'Postal Code',
-          countryError: 'Country',
-        };
-        
-        const invalidFields = errorEntries.map(([key]) => fieldNameMap[key]).join(', ');
+        const invalidFields = errorEntries.map(([key]) => this.fieldLabels[key]).join(', ');
         throw new Error(`Invalid fields: ${invalidFields}`);
       }
 
-      return this.withGenericError(() => signUp(input),
-        'We could not create your account. Please check your details and try again.');
+      try {
+        return await signUp(input);
+      } catch (error) {
+        this.failSignUp(error);
+      }
     },
 
     // confirm_password never reaches handleSignUp: Amplify strips it from the
@@ -227,6 +207,23 @@ export class LoginComponent implements OnInit{
       this.withGenericError(() => confirmResetPassword(input),
         'We could not reset your password. Check the code and try again.'),
   };
+
+  // Cognito only reports a duplicate account (including an alias of an
+  // existing address) at submit, and the generic wrapper turned that into an
+  // unactionable message at the foot of the form (#685). Amplify v6 errors
+  // carry `name`, not `code` — matching on `code` silently matches nothing.
+  private failSignUp(error: unknown): never {
+    console.error('Auth error:', error);
+    const name = (error as { name?: string })?.name ?? '';
+    const message = LoginComponent.SIGN_UP_ERRORS[name] ?? LoginComponent.SIGN_UP_GENERIC_ERROR;
+
+    if (name === 'UsernameExistsException') {
+      this.emailError = message;
+      this.updateErrorSummary();
+    }
+
+    throw new Error(message);
+  }
 
   private async withGenericError<T>(run: () => Promise<T>, message: string): Promise<T> {
     try {

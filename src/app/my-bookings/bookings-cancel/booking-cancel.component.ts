@@ -7,7 +7,6 @@ import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { BreadcrumbComponent } from '../../shared/breadcrumb/breadcrumb.component';
 import { CancelService } from '../../services/cancel.service';
-import { ToastService, ToastTypes } from '../../services/toast.service';
 import { FeatureFlagService } from '../../services/feature-flag.service';
 import { BookingUtils } from '../../utils/booking-utils';
 
@@ -42,7 +41,6 @@ constructor(
   private route: ActivatedRoute,
   private authService: AuthService,
   private cancelService: CancelService,
-  private toastService: ToastService,
   private featureFlagService: FeatureFlagService,
   private router: Router
 ) {}
@@ -202,11 +200,9 @@ constructor(
       await this.cancelService.cancelBooking(this.booking.bookingId, {
         reason: 'Cancelled by user via self-serve'
       });
-      this.toastService.addMessage('Booking cancelled successfully', 'Success', ToastTypes.SUCCESS);
       await this.loadBooking();
     } catch (error) {
       console.error('Failed to cancel booking:', error);
-      this.toastService.addMessage('Failed to cancel booking. Please try again.', 'Error', ToastTypes.ERROR);
     } finally {
       this.cancelling = false;
     }

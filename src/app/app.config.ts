@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideZoneChangeDetection, inject, provideAppInitializer } from '@angular/core';
+import { ApplicationConfig, provideZoneChangeDetection, importProvidersFrom, inject, provideAppInitializer } from '@angular/core';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 
 import { routes } from './app.routes';
@@ -10,6 +10,7 @@ import { FeatureFlagService } from './services/feature-flag.service';
 import { WaitingRoomService } from './services/waiting-room.service';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideToastr } from 'ngx-toastr';
+import { ModalModule } from 'ngx-bootstrap/modal';
 
 export function initConfig(configService: ConfigService, apiService: ApiService, authService: AuthService, featureFlagService: FeatureFlagService, waitingRoomService: WaitingRoomService) {
   return async () => {
@@ -36,5 +37,6 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     provideToastr(), // Toastr providers
     ConfigService,
+    importProvidersFrom(ModalModule.forRoot())
   ]
 };

@@ -132,6 +132,18 @@
           <h4 class="text-white mb-3 pt-3">Request your pass</h4>
           <div class="row g-3 align-items-end mb-3">
             <div class="col-12">
+              <ngds-picklist-input
+                [class]="'text-white rounded-1'"
+                [control]="this.form.get('selectedProduct')"
+                [selectionListItems]="availableProducts"
+                [label]="'Pass type'"
+                [placeholder]="loadingProducts ? 'Loading...' : 'Select a pass type'"
+                [disabled]="!this.form.get('selectedActivity').value || this.availableProducts.length === 0 || loadingProducts"
+              ></ngds-picklist-input>
+            </div>
+          </div>
+          <div class="row g-3 align-items-end">
+            <div class="col-md-6">
               <ngds-date-input
                 [class]="'text-white rounded-1'"
                 [disablePast]="true"
@@ -153,26 +165,17 @@
                 ></i>
               </ngds-date-input>
             </div>
-          </div>
-          <div class="row g-3 align-items-end">
-            <div class="col-md-6">
-              <ngds-picklist-input
-                [class]="'text-white rounded-1'"
-                [control]="this.form.get('selectedProduct')"
-                [selectionListItems]="availableProducts"
-                [label]="'Pass type'"
-                [placeholder]="loadingProducts ? 'Loading...' : 'Select a pass type'"
-                [disabled]="!this.form.get('selectedActivity').value || this.availableProducts.length === 0 || loadingProducts"
-              ></ngds-picklist-input>
-            </div>
             <div class="col-md-6">
               <ngds-picklist-input
                 [class]="'text-white rounded-1'"
                 [control]="this.form.get('selectedVisitors')"
                 [selectionListItems]="availableVisitorsAllowed"
                 [label]="'Number of passes'"
-                [placeholder]="passesAvailable ? 'Select number of passes' : (datesLoadFailed ? 'Unable to load' : 'Unavailable')"
-                [disabled]="!this.form.get('selectedProduct').value || this.availableProducts.length === 0 || !passesAvailable"
+                [placeholder]="loadingPasses ? 'Loading...' : (passesAvailable ? 'Select number of passes' : (datesLoadFailed ? 'Unable to load' : 'Unavailable'))"
+                [disabled]="!this.form.get('selectedProduct').value ||
+                  this.availableProducts.length === 0 ||
+                  loadingPasses ||
+                  !passesAvailable"
               ></ngds-picklist-input>
             </div>
           </div>

@@ -65,6 +65,41 @@ describe('AccountDetailsComponent', () => {
   // QA send-back #63: read-only details and the edit form were both on the page
   // at once, with the Edit button still showing. The two blocks must be mutually
   // exclusive for every value of `editing`.
+  // #743: the banner shown to BC Services Card users pointed at bceid.ca, a
+  // different login service the public site does not even offer.
+  describe('BC Services Card notice', () => {
+    // The notice lives in the @else of the loading guard, so the fixture has to
+    // settle before anything below the spinner exists to query.
+    async function bcscFixture(): Promise<HTMLElement> {
+      authService.isBcscUser.and.returnValue(true);
+      const f = TestBed.createComponent(AccountDetailsComponent);
+      f.detectChanges();
+      await f.whenStable();
+      f.detectChanges();
+      return f.nativeElement as HTMLElement;
+    }
+
+    it('links to the BC Services Card page for changing personal information', async () => {
+      const link = (await bcscFixture()).querySelector('.alert-info a') as HTMLAnchorElement;
+
+      expect(link).not.toBeNull();
+      expect(link.href).toBe(
+        'https://www2.gov.bc.ca/gov/content/governments/government-id/bc-services-card/your-card/change-personal-information'
+      );
+    });
+
+    it('does not send BC Services Card users to BCeID', async () => {
+      const host = await bcscFixture();
+
+      expect(host.querySelector('.alert-info')).not.toBeNull();
+      expect(host.innerHTML).not.toContain('bceid.ca');
+    });
+
+    it('shows no such notice for a non-BCSC user', () => {
+      expect((fixture.nativeElement as HTMLElement).querySelector('.alert-info')).toBeNull();
+    });
+  });
+
   describe('edit sections are mutually exclusive', () => {
     it('shows read-only details and no form when not editing', () => {
       expect(component.editing).toBeNull();

@@ -18,7 +18,7 @@
         }
       </div>
       <div class="small">
-        {{ formattedDate }}
+        <span [class.text-decoration-line-through]="isCancelled">{{ formattedDate }}</span>
         @if (isCancelled) {
           <span class="text-danger ms-3">Cancelled</span>
         }

@@ -106,8 +106,61 @@ body.booking-cancel-action-mode app-footer {
   }
 }
 
+// Bootstrap theme overrides for search dropdown
+.search-box .dropdown-menu .option-item {
+
+  .dropdown-item {
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &:disabled {
+      margin-top: .5rem;
+    }
+  }
+
+  &:last-child {
+    margin-bottom: 1rem;
+  }
+}
+
   // drop the modal a little on the screen
 .modal-content {
   top: 25vh !important; 
 }
 
+// Global booking card styles
+.booking-card {
+  border-color: #C7C7C7;
+  .card-header {
+    border-bottom: 1px solid #C7C7C7;
+  }
+  .card-field-icon-flex {
+    display: flex;
+    align-items: first baseline;
+
+    i {
+      transform: translateY(-1px);
+    }
+  }
+}
+
+// Global booking action button styles
+.btn-booking-action {
+  font-size: 1rem;
+}
+
+.form-action-bar {
+  z-index: 1020;
+
+  .action-bar-button-wrapper {
+    gap: 0 1rem;
+
+    button {
+      width: 100%;
+      
+      @media (min-width: 576px) {
+        width: auto;
+      }
+    }
+  }
+}

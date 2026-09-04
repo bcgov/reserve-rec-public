@@ -24,7 +24,12 @@
 .booking-card {
   cursor: pointer;
   transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-  border: 1px solid #dee2e6;
+  border: 1px solid #C7C7C7;
+  box-shadow: 0 0.3px 0.9px 0 rgba(0, 0, 0, 0.10), 0 1.6px 3.6px 0 rgba(0, 0, 0, 0.13);
+
+  .booking-card-title + i {
+    transform: translateY(-1px);
+  }
 }
 
 .booking-card-image {
@@ -34,18 +39,29 @@
 }
 
 .booking-card-divider {
-  color: #9d9d9d;
-  margin: 0 0.5rem;
+  color: #C7C7C7;
+  margin: 0 0.25rem;
 }
 
 // Previous bookings list: thumbnail on the left, details beside it.
 .booking-card-compact {
   flex-direction: row;
+  padding: .25rem;
 
   .booking-card-image {
-    width: 120px;
-    height: 100%;
-    min-height: 100px;
-    flex-shrink: 0;
+    display: none;
+
+    @media (min-width: 540px){
+      display: flex;
+      width: 120px;
+      height: 100%;
+      min-height: 100px;
+      flex-shrink: 0;
+    }    
+  }
+
+  .booking-card-title {
+    display: inline-block;
+    padding-bottom: .75rem;
   }
 }

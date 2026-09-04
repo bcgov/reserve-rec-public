@@ -1,19 +1,19 @@
-<div class="container mt-5 px-4">
+<div class="container mt-4 mb-5 px-4">
   <app-breadcrumb></app-breadcrumb>
 
   @if (previousMode) {
-    <div class="mb-4">
+    <div class="pt-2 mb-4">
       <button class="btn btn-outline-primary rounded-1 fw-bold mb-2 py-2 px-3" routerLink="/my-bookings">
         <i class="fa-solid fa-circle-chevron-left me-2"></i>
         Back
       </button>
     </div>
 
-    <div class="row mb-4">
+    <div class="row mb-5">
       <h1 class="fw-bold text-primary">Previous bookings</h1>
     </div>
 
-    <div class="btn-group mb-4" role="group" aria-label="Previous booking type">
+    <div class="btn-group pb-3 mb-4" role="group" aria-label="Previous booking type">
       <button type="button" class="btn rounded-1 fw-bold me-2 py-2 px-3"
         [class.btn-primary]="previousTab === 'completed'"
         [class.btn-outline-primary]="previousTab !== 'completed'"
@@ -97,7 +97,7 @@
 
         <!-- Upcoming Bookings Section -->
         @if (upcomingBookings.length > 0) {
-          <section class="mb-5">
+          <section class="pb-3 mb-5">
             <h2 class="mb-4 text-primary">Upcoming</h2>
             <div class="row g-4">
               @for (booking of upcomingBookings; track booking.bookingId) {
@@ -131,9 +131,9 @@
       }
 
       <!-- Previous bookings (completed + cancelled) live on their own page -->
-      <a class="d-flex align-items-center justify-content-between previous-bookings-link text-decoration-none fw-bold text-primary p-4 mb-5"
+      <a class="d-flex align-items-center previous-bookings-link text-decoration-none fw-bold text-primary p-4"
         routerLink="/my-bookings/previous">
-        <span>View previous bookings</span>
+        <span class="me-4">View previous bookings</span>
         <i class="fa-solid fa-circle-chevron-right"></i>
       </a>
     }

@@ -6,10 +6,6 @@ button {
   min-width: 150px;
 }
 
-button:hover {
-  background-color: white;
-}
-
 input {
   height: 75px;
   border: 2px solid darkgray;
@@ -36,15 +32,22 @@ input::placeholder {
   padding-left: 2rem;
 }
 
-.search-box {
-  // Figma content width: 296px @320, 516px @744, 736px @1440 (capped).
+.search-box, .blurb-content, .blurb-accordion {
   width: min(100% - 1.5rem, max(516px, 51.11vw));
   max-width: 736px;
+}
+
+.search-box {
+  // Figma content width: 296px @320, 516px @744, 736px @1440 (capped).
   display: flex;
   flex-direction: column;
   gap: 1rem; // Figma: 16px between the heading and the park picker group
   padding: 1.5rem 2rem;
   box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25);
+
+  p {
+    font-size: .825rem;
+  }
 }
 
 @media (max-width: 539.98px) {
@@ -64,6 +67,7 @@ input::placeholder {
 .accordion-header {
   border-color: #1A1A1A !important;
   border-width: 1px !important;
+  font-size: 1rem;
 }
 
 .accordion-content {
@@ -72,6 +76,16 @@ input::placeholder {
   border-top: none !important;
   border-color: #1A1A1A !important;
   border-width: 1px !important;
+
+  .accordion-section {
+    margin-bottom: 1.5rem;
+
+    .accordion-subheader {
+      font-size: 1rem !important;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+  }
 }
 
 .accordion-button {
@@ -88,31 +102,6 @@ input::placeholder {
 
 .dropdown-item:active{
   background-color: pink !important;
-}
-
-.accordion {
-  background-color: transparent !important;
-}
-
-.accordion-item {
-  background-color: transparent !important;
-}
-
-.accordion-content {
-  background-color: #F2F0EB;
-  color: black;
-  border-top: none !important;
-}
-
-.accordion-button {
-    background-color: #F2F0EB;
-  color: black;
-  border-bottom: none !important;
-  box-shadow: none;
-
-  &.collapsed {
-    background-color: transparent !important;
-  }
 }
 
 // Figma: 80x3 BC Yellow rule, 16px below the section heading.

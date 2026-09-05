@@ -47,18 +47,10 @@
               [formFields]="formFields"
               [initialState]="initialState">
             <ng-template amplifySlot="sign-up-form-fields">
+              <!-- Email, password and confirm password errors are reported through
+                   validateCustomSignUp so Amplify renders each one under its own
+                   field, the same as the fields below (#685). -->
               <amplify-sign-up-form-fields></amplify-sign-up-form-fields>
-              <!-- Error messages for email, password -->
-              @if (emailError) {
-                <div class="form-error">
-                  {{ emailError }}
-                </div>
-              }
-              @if (passwordError) {
-                <div class="form-error">
-                  {{ passwordError }}
-                </div>
-              }
               <div class="alert alert-info password-requirements" role="alert">
                 <strong>Password Requirements:</strong>
                 <ul class="mb-0">
@@ -199,7 +191,7 @@
                     autocomplete="false"
                     placeholder=""
                     type="tel"
-                    [required]="false"
+                    [required]="true"
                     (change)="validateMobilePhone($event)">
                   </amplify-text-field>
                   @if (mobilePhoneError) {

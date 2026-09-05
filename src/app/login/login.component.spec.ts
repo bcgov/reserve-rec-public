@@ -72,13 +72,18 @@ describe('LoginComponent', () => {
       expect(thrown.message).toBe('Generic message.');
     });
   });
-  // #685: Amplify's built-in sign-up fields default to isRequired, which makes
-  // the browser block submit before handleSignUp runs, so no error can render.
-  describe('sign-up password errors are reachable', () => {
-    it('clears the native required flag on every built-in sign-up field', () => {
-      expect(component.formFields.signUp.email.isRequired).toBeFalse();
-      expect(component.formFields.signUp.password.isRequired).toBeFalse();
-      expect(component.formFields.signUp.confirm_password.isRequired).toBeFalse();
+  // #685: the browser's own constraint check refused the submit and only moved
+  // focus to the first bad field, so handleSignUp never ran and no message was
+  // ever shown. The form has to report its own errors.
+  describe('sign-up field errors are reachable', () => {
+    it('turns off native validation on the sign-up form', () => {
+      const form = document.createElement('form');
+      const host: HTMLElement = fixture.nativeElement;
+      spyOn(host, 'querySelector').and.returnValue(form as any);
+
+      component.ngAfterViewChecked();
+
+      expect(form.noValidate).toBeTrue();
     });
 
     it('reports a blank password instead of failing silently', async () => {
@@ -92,30 +97,65 @@ describe('LoginComponent', () => {
       expect(thrown.message).toContain('Password');
     });
 
-    // Amplify strips confirm_password from the sign-up input, so this is the
-    // only hook that can see it. Without it, clearing isRequired would let an
-    // account through on a single typed password.
+    // The only hook that can put a message on Amplify's own email, password and
+    // confirm password fields; anything it names is rendered under that field.
     describe('validateCustomSignUp', () => {
-      const validate = (password: string, confirm: string) =>
-        (component.services as any).validateCustomSignUp({
-          password,
-          confirm_password: confirm,
-        });
+      const validate = (formData: Record<string, string>, touched: Record<string, boolean> = {}) =>
+        (component.services as any).validateCustomSignUp(formData, touched);
 
-      it('rejects a blank confirmation', async () => {
-        expect(await validate('Passw0rd!', '')).toEqual({
-          confirm_password: 'Please confirm your password.',
-        });
+      const filled = {
+        email: 'someone@example.com',
+        password: 'Passw0rd!',
+        confirm_password: 'Passw0rd!',
+      };
+
+      it('stays quiet until the first submit', async () => {
+        expect(await validate({ email: '', password: '', confirm_password: '' })).toBeNull();
       });
 
-      it('rejects a mismatch', async () => {
-        expect(await validate('Passw0rd!', 'Passw0rd?')).toEqual({
-          confirm_password: 'Passwords do not match.',
+      describe('once Create Account has been pressed', () => {
+        beforeEach(() => {
+          fixture.nativeElement.dispatchEvent(new Event('submit', { bubbles: true }));
         });
-      });
 
-      it('accepts a matching pair', async () => {
-        expect(await validate('Passw0rd!', 'Passw0rd!')).toBeNull();
+        it('names the email field when it is blank', async () => {
+          const errors = await validate({ ...filled, email: '' });
+
+          expect(errors.email).toBe('Email is required');
+          expect(component.summaryError).toContain('Email');
+        });
+
+        it('names the email field when the address is malformed', async () => {
+          expect((await validate({ ...filled, email: 'notanemail' })).email)
+            .toBe('Please enter a valid email address');
+        });
+
+        // Amplify's own password validator returns nothing for a field that has
+        // never had focus, so a straight-to-submit blank password needs covering.
+        it('names an untouched blank password', async () => {
+          expect((await validate({ ...filled, password: '', confirm_password: '' })).password)
+            .toBe('Password is required');
+        });
+
+        it('leaves a touched password to Amplify', async () => {
+          const errors = await validate({ ...filled, password: '', confirm_password: '' }, { password: true });
+
+          expect(errors.password).toBeUndefined();
+        });
+
+        it('rejects a blank confirmation', async () => {
+          expect((await validate({ ...filled, confirm_password: '' })).confirm_password)
+            .toBe('Please confirm your password.');
+        });
+
+        it('rejects a mismatch', async () => {
+          expect((await validate({ ...filled, confirm_password: 'Passw0rd?' })).confirm_password)
+            .toBe('Passwords do not match.');
+        });
+
+        it('accepts a complete set of credentials', async () => {
+          expect(await validate(filled)).toBeNull();
+        });
       });
     });
   });
@@ -141,6 +181,28 @@ describe('LoginComponent', () => {
       expect(thrown?.message).toContain('already exists');
     });
 
+    // Cognito only reports the clash at submit, so the message has to survive
+    // the next validation pass to stay on the field the user has to change.
+    it('keeps the message on the email field until the address changes', async () => {
+      try {
+        (component as any).failSignUp({ name: 'UsernameExistsException' }, 'taken@example.com');
+      } catch { /* expected */ }
+      fixture.nativeElement.dispatchEvent(new Event('submit', { bubbles: true }));
+
+      const complete = {
+        password: 'Passw0rd!', confirm_password: 'Passw0rd!',
+        given_name: 'Test', family_name: 'User',
+        'custom:streetAddress': '123 Main St', 'custom:city': 'Victoria',
+        'custom:province': 'BC', 'custom:postalCode': 'V8W9V1',
+        'custom:country': 'Canada', 'custom:mobilePhone': '+12505551234',
+      };
+      const validate = (email: string) =>
+        (component.services as any).validateCustomSignUp({ ...complete, email }, {});
+
+      expect((await validate('taken@example.com')).email).toContain('already exists');
+      expect(await validate('someone.else@example.com')).toBeNull();
+    });
+
     it('lists the email field in the summary', () => {
       fail({ name: 'UsernameExistsException' });
 
@@ -160,6 +222,34 @@ describe('LoginComponent', () => {
       const thrown = fail({ code: 'UsernameExistsException' });
 
       expect(thrown?.message).not.toContain('already exists');
+    });
+  });
+
+  // #685: the field carried no "(Optional)" marker, so it read as mandatory
+  // while an account could still be created without one. Account settings
+  // already require a mobile number, so sign-up asks for one too.
+  describe('mobile phone', () => {
+    it('is required on submit', async () => {
+      spyOn(console, 'error');
+      const thrown = await (component.services.handleSignUp as any)({
+        username: 'someone@example.com',
+        password: 'Passw0rd!',
+      }).then(() => null, (e: Error) => e);
+
+      expect(component.mobilePhoneError).toBe('Mobile phone is required');
+      expect(thrown.message).toContain('Mobile Phone Number');
+    });
+
+    it('is required on blur', () => {
+      component.validateMobilePhone({ target: { value: '' } } as unknown as Event);
+
+      expect(component.mobilePhoneError).toBe('Mobile phone is required');
+    });
+
+    it('accepts a valid number', () => {
+      component.validateMobilePhone({ target: { value: '+1 (250) 555-1234' } } as unknown as Event);
+
+      expect(component.mobilePhoneError).toBe('');
     });
   });
 

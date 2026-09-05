@@ -48,7 +48,9 @@
 padding: var(--amplify-space-medium);
 }
 
-.form-error {
+.form-error,
+// Amplify renders the email, password and confirm password errors itself.
+:host ::ng-deep [data-amplify-sign-up-errors] .amplify-text--error {
   color: #660000;
   font-size: 0.875rem;
   margin-top: 0.5rem;

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, DestroyRef, EventEmitter, inject, OnDestroy, OnInit, Output } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, EventEmitter, inject, OnDestroy, OnInit, Output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { lastValueFrom } from 'rxjs';
 import { DateTime } from 'luxon';
@@ -28,7 +28,7 @@ import { AccountVerificationComponent } from '../shared/components/account-verif
   templateUrl: './facility-details.component.html',
   styleUrls: ['./facility-details.component.scss']
 })
-export class FacilityDetailsComponent implements OnInit, OnDestroy {
+export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestroy {
   @Output() formValue: EventEmitter<any> = new EventEmitter<any>();
   public emailVerified = false;
   public emailVerificationLoaded = false;
@@ -48,6 +48,9 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
   // explicit error state instead of a page with nothing on it.
   public facilityLoadFailed = false;
   
+  public activeSection = 'day-use-pass-notice';
+  private scrollRaf = 0;
+
   public relatedActivities: any[] = [];
   public availableActivities: any = [];
   
@@ -599,7 +602,39 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
+  ngAfterViewInit(): void {
+    window.addEventListener('scroll', this.onScroll, { passive: true });
+    this.updateActiveSection();
+  }
+
+  // Highlight the "On this page" link for the last section scrolled past the top.
+  private onScroll = () => {
+    if (this.scrollRaf) return;
+    this.scrollRaf = requestAnimationFrame(() => {
+      this.scrollRaf = 0;
+      this.updateActiveSection();
+    });
+  };
+
+  private updateActiveSection(): void {
+    const sections = Array.from(document.querySelectorAll('.scroll-anchor')) as HTMLElement[];
+    if (!sections.length) return;
+    const passed = sections.filter(s => s.getBoundingClientRect().top <= 100);
+    const active = (passed[passed.length - 1] ?? sections[0]).id;
+    if (active !== this.activeSection) {
+      this.activeSection = active;
+      this.cdr.detectChanges();
+    }
+  }
+
+  scrollToSection(event: Event, id: string): void {
+    event.preventDefault();
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   ngOnDestroy(): void {
+    window.removeEventListener('scroll', this.onScroll);
+    if (this.scrollRaf) cancelAnimationFrame(this.scrollRaf);
     this.cdr.detectChanges()
   }
 }

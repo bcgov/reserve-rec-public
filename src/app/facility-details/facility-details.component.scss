@@ -8,6 +8,38 @@
   background-color: #f2f0ec;
 }
 
+.scroll-anchor {
+  scroll-margin-top: 1.5rem;
+}
+
+.on-this-page {
+  position: sticky;
+  top: 1.5rem;
+
+  ul {
+    border-left: 1px solid #d0d0d0;
+  }
+
+  a {
+    display: block;
+    padding: 0.375rem 0 0.375rem 1rem;
+    margin-left: -1px;
+    border-left: 3px solid transparent;
+    color: #313132;
+    text-decoration: none;
+
+    &:hover {
+      color: #003366;
+    }
+
+    &.active {
+      border-left-color: #003366;
+      color: #003366;
+      font-weight: 700;
+    }
+  }
+}
+
 .section-underline {
   height: 3px;
   border: none; 
@@ -23,9 +55,16 @@
   background-repeat: no-repeat;
 }
 
-.passes-required {
-  background-color: #E9E9E9;
+.important-dates {
+  background-color: #F2F0EC;
+  border-color: #E0DDD5 !important;
   color: #333333;
+
+  dt {
+    flex: 0 0 auto;
+    font-size: 1.125rem;
+    line-height: 1.4;
+  }
 }
 
 .disable-btn[disabled] {

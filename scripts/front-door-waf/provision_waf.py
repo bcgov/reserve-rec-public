@@ -285,7 +285,9 @@ def main():
     )
     if name in acls:
         cur = waf.get_web_acl(Name=name, Scope="CLOUDFRONT", Id=acls[name]["Id"])
-        carried = {k: cur["WebACL"][k] for k in CARRY_FORWARD if k in cur["WebACL"]}
+        # Truthy, not just present: WAF returns Description as "" when unset and
+        # then rejects the empty string on the way back in.
+        carried = {k: cur["WebACL"][k] for k in CARRY_FORWARD if cur["WebACL"].get(k)}
         waf.update_web_acl(Id=acls[name]["Id"], LockToken=cur["LockToken"],
                            **common, **carried)
         if carried:

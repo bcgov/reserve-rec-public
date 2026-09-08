@@ -3,6 +3,7 @@ const { logger } = require('../lib/helpers/utils.js');
 const { createDistributionStack } = require('../lib/distribution-stack/distribution-stack.js');
 const { createWaitingRoomEdgeStack } = require('../lib/waiting-room-edge-stack/waiting-room-edge-stack.js');
 const { createFrontDoorStack } = require('../lib/front-door-stack/front-door-stack.js');
+const { createWafFeedStack } = require('../lib/waf-feed-stack/waf-feed-stack.js');
 
 class CDKProject {
   constructor() {
@@ -210,6 +211,13 @@ class CDKProject {
       if (frontDoorStack && distributionStack) {
         frontDoorStack.addDependency(distributionStack);
       }
+    }
+
+    // Weekly refresh of the front-door WAF's datacenter IPSets. Independent of
+    // the front door itself — the sets exist whether or not a distribution is
+    // attached, and go stale either way. Opt-in per environment.
+    if (this.context?.DEPLOY_WAF_FEED === 'true') {
+      await this.addStack('wafFeedStack', createWafFeedStack);
     }
 
   }

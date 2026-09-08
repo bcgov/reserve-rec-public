@@ -19,6 +19,7 @@ export const routes: Routes = [
   },
   {
     path: 'account/bookings/:id',
+    canActivate: [UserGuard],
     loadComponent: () => import('./my-bookings/booking-details/booking-details.component')
       .then(m => m.BookingDetailsComponent),
     data: { 
@@ -28,6 +29,7 @@ export const routes: Routes = [
   },
   {
     path: 'account/bookings/cancel/:id',
+    canActivate: [UserGuard],
     loadComponent: () => import('./my-bookings/bookings-cancel/booking-cancel.component')
       .then(m => m.BookingCancelComponent),
     data: {

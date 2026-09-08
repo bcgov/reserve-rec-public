@@ -16,6 +16,7 @@ stack attaches it via its `webAclArnSSMPath` config. See bcgov/reserve-rec-api#2
 |---|---|---|
 | `provision_waf.py` | **Source of truth for the ruleset.** Creates/updates the WebACL, IPSets (empty), WAF logging; writes the ARN to SSM. | ✅ rules, actions, structure |
 | `datacenter_feed.py` | Runtime data. Refreshes the `dc-*` IPSets from live provider ranges. | ✅ mechanism (IP contents are runtime state, not git) |
+| `soak_report.py` | **Read-only.** Reads the WAF logs and reports what each Count rule *would* have blocked, the observed per-IP rate distribution, and which rules never matched. Run it before promoting anything to Block. | ✅ |
 
 ## Ruleset (ported from DUP's `dup-edge-ja`)
 
@@ -45,7 +46,10 @@ python3 provision_waf.py --env dev --apply
 # 4. populate the datacenter IPSets
 python3 datacenter_feed.py --env dev --apply
 
-# 5. after watching WAF logs/metrics for false positives, promote to Block:
+# 5. read the soak — what each rule would have blocked, and what never matched:
+python3 soak_report.py --env dev --days 28
+
+# 6. once the soak shows no false positives, promote to Block:
 python3 provision_waf.py --env dev --apply --block dc,reputation,autoblock,anon
 #    and tune + promote the rate rule separately once its threshold is validated
 ```

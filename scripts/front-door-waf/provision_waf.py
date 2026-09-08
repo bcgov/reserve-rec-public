@@ -48,12 +48,30 @@ TENANT_API_PREFIX = "/dayuse/api/"   # day-use tenant; JA4 capture is scoped her
 
 # ── datacenter providers → the IPSets datacenter_feed.py populates ───────────
 # Each provider gets its own dc-<name>-v4/v6 IPSet + dc-<name> rule so they can
-# be tuned/promoted individually. This list is the source of truth: the feed
-# imports it and refuses to run if a provider here has no fetcher.
-DC_PROVIDERS = [
-    "aws", "gcp", "oracle", "azure", "hetzner",
-    "ovh", "digitalocean", "linode", "vultr", "m247",
-]
+# be tuned/promoted individually.
+#
+# WHICH providers, and the ASNs behind them, are deliberately NOT in this repo:
+# it is public, and naming them tells anyone which hosting to rent to get past
+# the WAF. The list lives in SSM in each account, written from the offline
+# preflight that decides it. This file holds only the mechanism.
+PROVIDERS_SSM_PATH = "/reserveRecPublic/{env}/frontDoorWaf/providers"
+PROVIDERS_REGION = "ca-central-1"
+
+
+def load_providers(env, session=None):
+    """[{name, source, asns?}, ...] from SSM. Never hardcode this list here."""
+    import boto3
+    ssm = (session or boto3).client("ssm", region_name=PROVIDERS_REGION)
+    path = PROVIDERS_SSM_PATH.format(env=env)
+    try:
+        raw = ssm.get_parameter(Name=path)["Parameter"]["Value"]
+    except ssm.exceptions.ParameterNotFound:
+        sys.exit(f"missing {path} in {PROVIDERS_REGION} — the provider list lives "
+                 f"in SSM, not in this repo. Seed it before provisioning.")
+    provs = json.loads(raw)["providers"]
+    if not provs:
+        sys.exit(f"{path} lists no providers")
+    return provs
 
 # ── standalone IPSets (populated out of band by ops tooling / investigations) ─
 STANDALONE_IPSETS = [
@@ -69,11 +87,6 @@ PRI_CAPTURE_JA = 0
 DC_BAND_START, DC_BAND_END = 10, 49
 PRI_REPUTATION, PRI_AUTOBLOCK, PRI_ANON = 50, 51, 52
 PRI_RATE = 60
-
-if len(DC_PROVIDERS) > DC_BAND_END - DC_BAND_START + 1:
-    raise SystemExit(f"DC_PROVIDERS has {len(DC_PROVIDERS)} entries; the band "
-                     f"{DC_BAND_START}-{DC_BAND_END} holds "
-                     f"{DC_BAND_END - DC_BAND_START + 1}. Widen the band.")
 
 # Top-level WebACL settings that UpdateWebACL drops unless they are passed back.
 # Re-running the script used to silently reset whatever was set outside it.
@@ -97,12 +110,17 @@ def vis(metric):
     return {"SampledRequestsEnabled": True, "CloudWatchMetricsEnabled": True, "MetricName": metric}
 
 
-def build_rules(ipset_arns, block):
+def build_rules(ipset_arns, block, provider_names):
     """Return the ordered WebACL rule list from declarative config.
 
     ipset_arns: {name: arn} for every IPSet this ACL references.
     block: set of rule-group keys to ship in Block (others ship in Count).
+    provider_names: ordered dc-* provider names, from SSM.
     """
+    room = DC_BAND_END - DC_BAND_START + 1
+    if len(provider_names) > room:
+        sys.exit(f"{len(provider_names)} providers but the band "
+                 f"{DC_BAND_START}-{DC_BAND_END} holds {room}. Widen the band.")
     def action(group):
         return {"Block": {}} if group in block else {"Count": {}}
 
@@ -131,7 +149,7 @@ def build_rules(ipset_arns, block):
     })
 
     # Per-provider datacenter blocks, in the band reserved for them.
-    for i, prov in enumerate(DC_PROVIDERS):
+    for i, prov in enumerate(provider_names):
         refs = [{"IPSetReferenceStatement": {"ARN": ipset_arns[n]}}
                 for n in (f"dc-{prov}-v4", f"dc-{prov}-v6") if n in ipset_arns]
         if not refs:
@@ -229,8 +247,10 @@ def main():
     waf = boto3.client("wafv2", region_name=REGION)
 
     # 1. Ensure all IPSets exist (created empty; datacenter_feed.py populates).
-    wanted_ipsets = ([(f"dc-{p}-v4", "IPV4") for p in DC_PROVIDERS]
-                     + [(f"dc-{p}-v6", "IPV6") for p in DC_PROVIDERS]
+    provider_names = [p["name"] for p in load_providers(args.env)]
+    print(f"  providers from SSM: {len(provider_names)}")
+    wanted_ipsets = ([(f"dc-{p}-v4", "IPV4") for p in provider_names]
+                     + [(f"dc-{p}-v6", "IPV6") for p in provider_names]
                      + STANDALONE_IPSETS)
     existing = {s["Name"]: s for s in waf.list_ip_sets(Scope="CLOUDFRONT")["IPSets"]}
     ipset_arns = {}
@@ -248,7 +268,7 @@ def main():
             print(f"  ipset CREATE  {ip_name}  (dry-run)")
 
     # 2. Build rules and create/update the WebACL.
-    rules = build_rules(ipset_arns, block)
+    rules = build_rules(ipset_arns, block, provider_names)
     print(f"\n  rules ({len(rules)}): " + ", ".join(f"{r['Name']}@{r['Priority']}" for r in rules))
 
     acls = {a["Name"]: a for a in waf.list_web_acls(Scope="CLOUDFRONT")["WebACLs"]}

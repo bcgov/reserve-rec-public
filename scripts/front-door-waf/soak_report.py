@@ -34,6 +34,22 @@ def log_group(env):
     return f"aws-waf-logs-reserve-rec-front-door-{env}"
 
 
+def acl_rule_names(session, env):
+    """Rule names in priority order, read from the live ACL.
+
+    Taken from the deployed ACL rather than a list in this file: the repo is
+    public and must not name the providers, and this also stays right when the
+    ruleset changes.
+    """
+    waf = session.client("wafv2", region_name=REGION)
+    name = f"reserve-rec-front-door-{env}"
+    acls = {a["Name"]: a for a in waf.list_web_acls(Scope="CLOUDFRONT")["WebACLs"]}
+    if name not in acls:
+        return []
+    acl = waf.get_web_acl(Name=name, Scope="CLOUDFRONT", Id=acls[name]["Id"])["WebACL"]
+    return [r["Name"] for r in sorted(acl["Rules"], key=lambda r: r["Priority"])]
+
+
 def run_query(logs, group, start, end, query, limit=INSIGHTS_LIMIT):
     """Run one Insights query and block until it finishes."""
     qid = logs.start_query(
@@ -155,7 +171,7 @@ def pct(sorted_vals, p):
     return sorted_vals[k]
 
 
-def report(env, days, a):
+def report(env, days, a, known):
     W = 78
     def rule(ch="-"):
         print(ch * W)
@@ -178,10 +194,9 @@ def report(env, days, a):
     rule()
     print("PER-RULE — what each Count rule would have blocked\n")
     print(f"  {'rule':<24}{'requests':>12}{'distinct IPs':>14}")
-    known = ["capture-ja", "edge-reputation", "edge-autoblock", "AnonymousIpList",
-             "rate-dayuse-api"] + [f"dc-{p}" for p in
-             ("aws", "gcp", "oracle", "azure", "hetzner", "ovh",
-              "digitalocean", "linode", "vultr", "m247")]
+    if not known:
+        print("  (no ACL found for this env — showing only rules seen in the logs)")
+        known = sorted(a["rule_hits"])
     for name in known:
         hits = a["rule_hits"].get(name, 0)
         ips = len(a["rule_ips"].get(name, ()))
@@ -263,7 +278,7 @@ def main():
             "api_uris": dict(a["api_uris"]),
         }, indent=2, default=str))
     else:
-        report(args.env, args.days, a)
+        report(args.env, args.days, a, acl_rule_names(session, args.env))
 
 
 if __name__ == "__main__":

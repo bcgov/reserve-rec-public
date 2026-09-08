@@ -27,6 +27,8 @@ import sys
 import urllib.request
 from netaddr import cidr_merge, IPSet
 
+from provision_waf import load_providers
+
 ENV_ACCOUNTS = {"dev": "623829546818", "test": "623829546818", "prod": "628373393242"}
 REGION = "us-east-1"
 MAX_PER_IPSET = 10000
@@ -65,16 +67,6 @@ def fetch_oracle():
     return [c for c in cidrs if ":" not in c], [c for c in cidrs if ":" in c]
 
 
-def fetch_azure():
-    pre = []
-    for asn in (8075, 8068, 8069):
-        try:
-            pre += ripe_asn(asn)
-        except Exception as e:
-            print(f"    azure AS{asn} fetch err: {e}", file=sys.stderr)
-    return [p for p in pre if ":" not in p], [p for p in pre if ":" in p]
-
-
 def _asn_provider(*asns):
     def fn():
         pre = []
@@ -89,22 +81,39 @@ def _asn_provider(*asns):
     return fn
 
 
-# Kept in lockstep with provision_waf.py DC_PROVIDERS.
-PROVIDERS = {
-    "aws": fetch_aws, "gcp": fetch_gcp, "oracle": fetch_oracle, "azure": fetch_azure,
-    "hetzner": _asn_provider(24940, 212317), "ovh": _asn_provider(16276),
-    "digitalocean": _asn_provider(14061), "linode": _asn_provider(63949),
-    "vultr": _asn_provider(20473), "m247": _asn_provider(9009),
-}
+# Fetch mechanisms, keyed by source type. WHICH providers use them, and the
+# ASNs behind them, come from SSM at run time — this repo is public and must not
+# name what we block. Providers whose ranges come from a published file get a
+# fetcher here; everything else resolves by ASN.
+SOURCES = {"aws": fetch_aws, "gcp": fetch_gcp, "oracle": fetch_oracle}
+
+
+def build_fetchers(providers):
+    """{name: callable} for the providers SSM lists, or exit saying which failed."""
+    out = {}
+    for p in providers:
+        name, src = p.get("name"), p.get("source")
+        if not name or not src:
+            sys.exit(f"malformed provider entry: {p}")
+        if src == "asn":
+            if not p.get("asns"):
+                sys.exit(f"provider {name}: source 'asn' needs a non-empty asns list")
+            out[name] = _asn_provider(*p["asns"])
+        elif src in SOURCES:
+            out[name] = SOURCES[src]
+        else:
+            sys.exit(f"provider {name}: unknown source {src!r} "
+                     f"(known: asn, {', '.join(sorted(SOURCES))})")
+    return out
 
 
 def merged(lst):
     return [str(n) for n in cidr_merge(lst)]
 
 
-def collect():
+def collect(fetchers):
     out = {}
-    for name, fn in PROVIDERS.items():
+    for name, fn in fetchers.items():
         try:
             v4, v6 = fn()
             out[name] = {"v4": merged(v4), "v6": merged(v6)}
@@ -151,8 +160,10 @@ if __name__ == "__main__":
     ap.add_argument("--env", required=True, choices=ENV_ACCOUNTS.keys())
     ap.add_argument("--apply", action="store_true")
     args = ap.parse_args()
-    print(f"Fetching cloud/VPS provider ranges (merged)...  env={args.env}  apply={args.apply}")
-    data = collect()
+    fetchers = build_fetchers(load_providers(args.env))
+    print(f"Fetching ranges for {len(fetchers)} providers (merged)...  "
+          f"env={args.env}  apply={args.apply}")
+    data = collect(fetchers)
     if not args.apply:
         print("\nDRY RUN — no AWS changes. Re-run with --apply.")
     else:

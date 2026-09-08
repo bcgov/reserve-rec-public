@@ -23,11 +23,14 @@ stack attaches it via its `webAclArnSSMPath` config. See bcgov/reserve-rec-api#2
 | Pri | Rule | Default action |
 |---|---|---|
 | 0 | `capture-ja` — JA4 fingerprint capture on `/dayuse/api/` | Count (telemetry, never blocks) |
-| 10–19 | `dc-<provider>` — 10 datacenter/VPS blocks | Count → Block |
-| 20 | `edge-reputation` | Count → Block |
-| 21 | `edge-autoblock` (watchlist) | Count → Block |
-| 22 | `AnonymousIpList` (AWS managed) | Count → Block |
-| 30 | `rate-dayuse-api` — per-IP rate limit | Count → Block (tune threshold first) |
+| 10–49 | `dc-<provider>` — one per provider, band sized for growth | Count → Block |
+| 50 | `edge-reputation` | Count → Block |
+| 51 | `edge-autoblock` (watchlist) | Count → Block |
+| 52 | `AnonymousIpList` (AWS managed) | Count → Block |
+| 60 | `rate-dayuse-api` — per-IP rate limit | Count → Block (tune threshold first) |
+
+Providers are listed once, in `provision_waf.py`'s `DC_PROVIDERS`; the feed
+imports that list and fails loudly if a provider there has no fetcher.
 
 Geo restriction lives on the distribution (`front-door-stack.js`), not here.
 

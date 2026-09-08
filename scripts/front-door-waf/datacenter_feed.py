@@ -19,13 +19,14 @@ USAGE:
   python3 datacenter_feed.py --env dev --apply --block all # all providers BLOCK
   python3 datacenter_feed.py --env dev --apply --block aws,gcp,azure,oracle
 
-Requires: boto3, netaddr; creds for the target env's account.
+Requires: boto3; creds for the target env's account. Standard library only
+otherwise, so this runs as a Lambda with no packaged dependencies.
 """
 import argparse
 import json
 import sys
+import ipaddress as ip
 import urllib.request
-from netaddr import cidr_merge, IPSet
 
 from provision_waf import load_providers
 
@@ -44,15 +45,42 @@ def ripe_asn(asn):
     return [p["prefix"] for p in d["data"]["prefixes"]]
 
 
+def difference(keep, drop):
+    """keep minus drop, as merged CIDRs.
+
+    Two CIDRs either nest or are disjoint — they never partially overlap — so
+    each kept network is either untouched, wholly removed, or split around the
+    one being excluded.
+    """
+    out = [ip.ip_network(n) for n in keep]
+    for r in (ip.ip_network(n) for n in drop):
+        nxt = []
+        for net in out:
+            if not net.overlaps(r):
+                nxt.append(net)
+            elif net.subnet_of(r):
+                continue
+            else:
+                nxt.extend(net.address_exclude(r))
+        out = nxt
+    return [str(c) for c in ip.collapse_addresses(out)]
+
+
+# The one hard safety rule is that we never block our own edge, so prove the
+# exclusion still works on every import rather than trusting it.
+assert difference(["10.0.0.0/24"], ["10.0.0.128/25"]) == ["10.0.0.0/25"]
+
+
 def fetch_aws():
     # EC2 (where bots run) MINUS CloudFront ranges — never block our own edge.
     d = json.loads(http("https://ip-ranges.amazonaws.com/ip-ranges.json"))
     CF = ("CLOUDFRONT", "CLOUDFRONT_ORIGIN_FACING")
-    ec2_4 = IPSet([p["ip_prefix"] for p in d["prefixes"] if p["service"] == "EC2"])
-    cf_4 = IPSet([p["ip_prefix"] for p in d["prefixes"] if p["service"] in CF])
-    ec2_6 = IPSet([p["ipv6_prefix"] for p in d["ipv6_prefixes"] if p["service"] == "EC2"])
-    cf_6 = IPSet([p["ipv6_prefix"] for p in d["ipv6_prefixes"] if p["service"] in CF])
-    return [str(c) for c in (ec2_4 - cf_4).iter_cidrs()], [str(c) for c in (ec2_6 - cf_6).iter_cidrs()]
+    def split(key, vkey):
+        return ([p[vkey] for p in d[key] if p["service"] == "EC2"],
+                [p[vkey] for p in d[key] if p["service"] in CF])
+    ec2_4, cf_4 = split("prefixes", "ip_prefix")
+    ec2_6, cf_6 = split("ipv6_prefixes", "ipv6_prefix")
+    return difference(ec2_4, cf_4), difference(ec2_6, cf_6)
 
 
 def fetch_gcp():
@@ -108,7 +136,7 @@ def build_fetchers(providers):
 
 
 def merged(lst):
-    return [str(n) for n in cidr_merge(lst)]
+    return [str(n) for n in ip.collapse_addresses(ip.ip_network(x) for x in lst)]
 
 
 def collect(fetchers):

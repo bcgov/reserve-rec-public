@@ -60,9 +60,9 @@ STANDALONE_IPSETS = [
     ("edge-reputation",  "IPV4"),   # reputation-feed mirror
 ]
 
-# base64('/dayuse/api/') — WAF ByteMatch SearchString is base64 in the API.
-import base64
-_JA4_PREFIX_B64 = base64.b64encode(TENANT_API_PREFIX.encode()).decode()
+# SearchString is a blob: botocore base64-encodes it in transit, so it takes raw
+# bytes. Pre-encoding here double-encodes and the rule silently matches nothing.
+_API_PREFIX = TENANT_API_PREFIX.encode()
 
 
 def acl_name(env):
@@ -101,7 +101,7 @@ def build_rules(ipset_arns, block):
                 "TextTransformations": [{"Priority": 0, "Type": "NONE"}],
             }},
             {"ByteMatchStatement": {
-                "SearchString": _JA4_PREFIX_B64,
+                "SearchString": _API_PREFIX,
                 "FieldToMatch": {"UriPath": {}},
                 "TextTransformations": [{"Priority": 0, "Type": "NONE"}],
                 "PositionalConstraint": "STARTS_WITH",
@@ -166,7 +166,7 @@ def build_rules(ipset_arns, block):
             "Limit": 2000,                 # requests / 5-min window / IP — tune before Block
             "AggregateKeyType": "IP",
             "ScopeDownStatement": {"ByteMatchStatement": {
-                "SearchString": _JA4_PREFIX_B64,
+                "SearchString": _API_PREFIX,
                 "FieldToMatch": {"UriPath": {}},
                 "TextTransformations": [{"Priority": 0, "Type": "NONE"}],
                 "PositionalConstraint": "STARTS_WITH",

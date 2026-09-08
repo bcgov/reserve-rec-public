@@ -48,7 +48,8 @@ TENANT_API_PREFIX = "/dayuse/api/"   # day-use tenant; JA4 capture is scoped her
 
 # ── datacenter providers → the IPSets datacenter_feed.py populates ───────────
 # Each provider gets its own dc-<name>-v4/v6 IPSet + dc-<name> rule so they can
-# be tuned/promoted individually. Kept in lockstep with datacenter_feed.py.
+# be tuned/promoted individually. This list is the source of truth: the feed
+# imports it and refuses to run if a provider here has no fetcher.
 DC_PROVIDERS = [
     "aws", "gcp", "oracle", "azure", "hetzner",
     "ovh", "digitalocean", "linode", "vultr", "m247",
@@ -59,6 +60,25 @@ STANDALONE_IPSETS = [
     ("edge-autoblock",   "IPV4"),   # watchlist / investigation-driven blocks
     ("edge-reputation",  "IPV4"),   # reputation-feed mirror
 ]
+
+# ── rule priorities ──────────────────────────────────────────────────────────
+# Providers get a band with room to grow; the fixed rules sit above it. Without
+# the band the 11th provider would land on edge-reputation and WAF would reject
+# the whole update.
+PRI_CAPTURE_JA = 0
+DC_BAND_START, DC_BAND_END = 10, 49
+PRI_REPUTATION, PRI_AUTOBLOCK, PRI_ANON = 50, 51, 52
+PRI_RATE = 60
+
+if len(DC_PROVIDERS) > DC_BAND_END - DC_BAND_START + 1:
+    raise SystemExit(f"DC_PROVIDERS has {len(DC_PROVIDERS)} entries; the band "
+                     f"{DC_BAND_START}-{DC_BAND_END} holds "
+                     f"{DC_BAND_END - DC_BAND_START + 1}. Widen the band.")
+
+# Top-level WebACL settings that UpdateWebACL drops unless they are passed back.
+# Re-running the script used to silently reset whatever was set outside it.
+CARRY_FORWARD = ("Description", "CustomResponseBodies", "CaptchaConfig",
+                 "ChallengeConfig", "TokenDomains", "AssociationConfig")
 
 # SearchString is a blob: botocore base64-encodes it in transit, so it takes raw
 # bytes. Pre-encoding here double-encodes and the rule silently matches nothing.
@@ -88,11 +108,11 @@ def build_rules(ipset_arns, block):
 
     rules = []
 
-    # Priority 0 — JA4 fingerprint capture on the tenant API. Always Count: this
-    # is telemetry (feeds bot investigations via the WAF logs), never a block.
+    # JA4 fingerprint capture on the tenant API. Always Count: this is telemetry
+    # (feeds bot investigations via the WAF logs), never a block.
     rules.append({
         "Name": "capture-ja",
-        "Priority": 0,
+        "Priority": PRI_CAPTURE_JA,
         "Action": {"Count": {}},
         "Statement": {"AndStatement": {"Statements": [
             {"RegexMatchStatement": {
@@ -110,7 +130,7 @@ def build_rules(ipset_arns, block):
         "VisibilityConfig": vis("captureJa"),
     })
 
-    # Priority 10–19 — per-provider datacenter blocks.
+    # Per-provider datacenter blocks, in the band reserved for them.
     for i, prov in enumerate(DC_PROVIDERS):
         refs = [{"IPSetReferenceStatement": {"ARN": ipset_arns[n]}}
                 for n in (f"dc-{prov}-v4", f"dc-{prov}-v6") if n in ipset_arns]
@@ -119,34 +139,34 @@ def build_rules(ipset_arns, block):
         stmt = refs[0] if len(refs) == 1 else {"OrStatement": {"Statements": refs}}
         rules.append({
             "Name": f"dc-{prov}",
-            "Priority": 10 + i,
+            "Priority": DC_BAND_START + i,
             "Action": action("dc"),
             "Statement": stmt,
             "VisibilityConfig": vis(f"dc{prov}"),
         })
 
-    # Priority 20/21 — reputation + autoblock IPSets.
+    # Reputation + autoblock IPSets.
     rules.append({
         "Name": "edge-reputation",
-        "Priority": 20,
+        "Priority": PRI_REPUTATION,
         "Action": action("reputation"),
         "Statement": {"IPSetReferenceStatement": {"ARN": ipset_arns["edge-reputation"]}},
         "VisibilityConfig": vis("edgeReputation"),
     })
     rules.append({
         "Name": "edge-autoblock",
-        "Priority": 21,
+        "Priority": PRI_AUTOBLOCK,
         "Action": action("autoblock"),
         "Statement": {"IPSetReferenceStatement": {"ARN": ipset_arns["edge-autoblock"]}},
         "VisibilityConfig": vis("edgeAutoblock"),
     })
 
-    # Priority 22 — AWS managed anonymous-IP (VPN/proxy/Tor) list. Managed groups
+    # AWS managed anonymous-IP (VPN/proxy/Tor) list. Managed groups
     # use OverrideAction: None = use the group's own actions (block); Count =
     # force count for soak.
     rules.append({
         "Name": "AnonymousIpList",
-        "Priority": 22,
+        "Priority": PRI_ANON,
         "OverrideAction": ({"None": {}} if "anon" in block else {"Count": {}}),
         "Statement": {"ManagedRuleGroupStatement": {
             "VendorName": "AWS",
@@ -155,12 +175,12 @@ def build_rules(ipset_arns, block):
         "VisibilityConfig": vis("anonymousIpList"),
     })
 
-    # Priority 30 — per-IP rate limit on the tenant API. DUP had none; start in
+    # Per-IP rate limit on the tenant API. DUP had none; start in
     # Count and tune the threshold before promoting. Uses forwarded viewer IP so
     # it sees the real client, not the CloudFront edge.
     rules.append({
         "Name": "rate-dayuse-api",
-        "Priority": 30,
+        "Priority": PRI_RATE,
         "Action": action("rate"),
         "Statement": {"RateBasedStatement": {
             "Limit": 2000,                 # requests / 5-min window / IP — tune before Block
@@ -245,7 +265,11 @@ def main():
     )
     if name in acls:
         cur = waf.get_web_acl(Name=name, Scope="CLOUDFRONT", Id=acls[name]["Id"])
-        waf.update_web_acl(Id=acls[name]["Id"], LockToken=cur["LockToken"], **common)
+        carried = {k: cur["WebACL"][k] for k in CARRY_FORWARD if k in cur["WebACL"]}
+        waf.update_web_acl(Id=acls[name]["Id"], LockToken=cur["LockToken"],
+                           **common, **carried)
+        if carried:
+            print(f"  carried forward: {', '.join(sorted(carried))}")
         acl_arn = acls[name]["ARN"]
         print(f"\n  WebACL UPDATED  {name}")
     else:

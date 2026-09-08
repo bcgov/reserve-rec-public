@@ -27,6 +27,8 @@ import sys
 import urllib.request
 from netaddr import cidr_merge, IPSet
 
+from provision_waf import DC_PROVIDERS   # single source of truth for the list
+
 ENV_ACCOUNTS = {"dev": "623829546818", "test": "623829546818", "prod": "628373393242"}
 REGION = "us-east-1"
 MAX_PER_IPSET = 10000
@@ -89,13 +91,21 @@ def _asn_provider(*asns):
     return fn
 
 
-# Kept in lockstep with provision_waf.py DC_PROVIDERS.
-PROVIDERS = {
+# provision_waf.py owns the provider list — it decides which rules exist. This
+# file owns how each one is fetched. Deriving the map from that list means a
+# provider added there fails loudly here instead of silently having no contents.
+_FETCHERS = {
     "aws": fetch_aws, "gcp": fetch_gcp, "oracle": fetch_oracle, "azure": fetch_azure,
     "hetzner": _asn_provider(24940, 212317), "ovh": _asn_provider(16276),
     "digitalocean": _asn_provider(14061), "linode": _asn_provider(63949),
     "vultr": _asn_provider(20473), "m247": _asn_provider(9009),
 }
+
+_missing = [p for p in DC_PROVIDERS if p not in _FETCHERS]
+if _missing:
+    sys.exit(f"no fetcher for {_missing} — add one here, or drop it from "
+             f"provision_waf.py DC_PROVIDERS")
+PROVIDERS = {p: _FETCHERS[p] for p in DC_PROVIDERS}
 
 
 def merged(lst):

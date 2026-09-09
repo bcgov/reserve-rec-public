@@ -327,7 +327,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
       const selectedDate = this.availableDates[date];
       const resContext = selectedDate?.reservationContext;
       const inventoryPool = selectedDate?.inventoryPool;
-      const isReservable = resContext?.isReservable;
+      //const isReservable = resContext?.isReservable; will be used in future state to determine reservability from policies
       const minInv = resContext?.minDailyInventory;
       const maxInv = resContext?.maxDailyInventory;
       const reservationWindow = resContext?.temporalWindows?.reservationWindow;

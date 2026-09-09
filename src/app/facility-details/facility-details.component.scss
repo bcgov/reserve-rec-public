@@ -45,12 +45,12 @@
       text-decoration: none;
 
       &:hover {
-        color: #003366;
+        color: var(--bs-primary);
       }
 
       &.active {
-        border-left-color: #003366;
-        color: #003366;
+        border-left-color: var(--bs-primary);
+        color: var(--bs-primary);
         font-weight: 700;
       }
     }

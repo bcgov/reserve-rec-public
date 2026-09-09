@@ -49,7 +49,8 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   public facilityLoadFailed = false;
   
   public activeSection = 'day-use-pass-notice';
-  private scrollRaf = 0;
+  private sectionObserver?: IntersectionObserver;
+  private sectionEls: HTMLElement[] = [];
 
   public relatedActivities: any[] = [];
   public availableActivities: any = [];
@@ -603,24 +604,24 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   ngAfterViewInit(): void {
-    window.addEventListener('scroll', this.onScroll, { passive: true });
+    // Highlight the "On this page" link for whichever section is near the top of
+    // the viewport. An observer (not a scroll listener) because the page's scroll
+    // container is not always `window` in this layout.
+    this.sectionEls = Array.from(document.querySelectorAll('.scroll-anchor')) as HTMLElement[];
+    if (!this.sectionEls.length) return;
+    this.sectionObserver = new IntersectionObserver(
+      () => this.updateActiveSection(),
+      { rootMargin: '-15% 0px -80% 0px', threshold: [0, 1] }
+    );
+    this.sectionEls.forEach(s => this.sectionObserver!.observe(s));
     this.updateActiveSection();
   }
 
-  // Highlight the "On this page" link for the last section scrolled past the top.
-  private onScroll = () => {
-    if (this.scrollRaf) return;
-    this.scrollRaf = requestAnimationFrame(() => {
-      this.scrollRaf = 0;
-      this.updateActiveSection();
-    });
-  };
-
   private updateActiveSection(): void {
-    const sections = Array.from(document.querySelectorAll('.scroll-anchor')) as HTMLElement[];
-    if (!sections.length) return;
-    const passed = sections.filter(s => s.getBoundingClientRect().top <= 100);
-    const active = (passed[passed.length - 1] ?? sections[0]).id;
+    const vh = window.innerHeight;
+    // The last section whose top has passed the 15% line, else the first.
+    const passed = this.sectionEls.filter(s => s.getBoundingClientRect().top <= vh * 0.15 + 1);
+    const active = (passed[passed.length - 1] ?? this.sectionEls[0]).id;
     if (active !== this.activeSection) {
       this.activeSection = active;
       this.cdr.detectChanges();
@@ -633,8 +634,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   ngOnDestroy(): void {
-    window.removeEventListener('scroll', this.onScroll);
-    if (this.scrollRaf) cancelAnimationFrame(this.scrollRaf);
+    this.sectionObserver?.disconnect();
     this.cdr.detectChanges()
   }
 }

@@ -55,6 +55,10 @@ python3 soak_report.py --env dev --days 28
 # 6. once the soak shows no false positives, promote to Block:
 python3 provision_waf.py --env dev --apply --block dc,reputation,autoblock,anon
 #    and tune + promote the rate rule separately once its threshold is validated
+
+# Providers can also be promoted one at a time, which is usually what the
+# evidence supports — a set that blocks nothing does not earn a Block:
+python3 provision_waf.py --env dev --apply --block dc:ace
 ```
 
 Both scripts guard on account (dev/test → 623829546818, prod → 628373393242)

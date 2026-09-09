@@ -110,11 +110,13 @@ def vis(metric):
     return {"SampledRequestsEnabled": True, "CloudWatchMetricsEnabled": True, "MetricName": metric}
 
 
-def build_rules(ipset_arns, block, provider_names):
+def build_rules(ipset_arns, block, provider_names, dc_blocked=frozenset()):
     """Return the ordered WebACL rule list from declarative config.
 
     ipset_arns: {name: arn} for every IPSet this ACL references.
     block: set of rule-group keys to ship in Block (others ship in Count).
+    dc_blocked: provider names to Block individually, when the whole dc group
+      is not being promoted. Evidence usually justifies one provider at a time.
     provider_names: ordered dc-* provider names, from SSM.
     """
     room = DC_BAND_END - DC_BAND_START + 1
@@ -158,7 +160,8 @@ def build_rules(ipset_arns, block, provider_names):
         rules.append({
             "Name": f"dc-{prov}",
             "Priority": DC_BAND_START + i,
-            "Action": action("dc"),
+            "Action": ({"Block": {}} if ("dc" in block or prov in dc_blocked)
+                       else {"Count": {}}),
             "Statement": stmt,
             "VisibilityConfig": vis(f"dc{prov}"),
         })
@@ -221,15 +224,20 @@ def main():
     ap.add_argument("--env", required=True, choices=ENV_ACCOUNTS.keys())
     ap.add_argument("--apply", action="store_true", help="write changes (default: dry run)")
     ap.add_argument("--block", default="",
-                    help="comma-separated rule groups to ship in Block instead of Count: "
-                         "dc,reputation,autoblock,anon,rate")
+                    help="comma-separated rule groups to ship in Block instead of "
+                         "Count: dc,reputation,autoblock,anon,rate. A single "
+                         "provider can be promoted on its own as dc:<name>, "
+                         "e.g. --block dc:ace")
     args = ap.parse_args()
 
-    block = {g.strip() for g in args.block.split(",") if g.strip()}
+    requested = {g.strip() for g in args.block.split(",") if g.strip()}
+    dc_blocked = {g.split(":", 1)[1] for g in requested if g.startswith("dc:")}
+    block = {g for g in requested if ":" not in g}
     valid = {"dc", "reputation", "autoblock", "anon", "rate"}
     bad = block - valid
     if bad:
-        ap.error(f"unknown --block groups: {bad} (valid: {sorted(valid)})")
+        ap.error(f"unknown --block groups: {bad} (valid: {sorted(valid)}, "
+                 f"or dc:<provider> for one provider)")
 
     import boto3
     sts = boto3.client("sts")
@@ -241,6 +249,8 @@ def main():
     name = acl_name(args.env)
     modes = ", ".join(f"{g}={'BLOCK' if g in block else 'COUNT'}"
                       for g in ("dc", "reputation", "autoblock", "anon", "rate"))
+    if dc_blocked:
+        modes += f"  (+dc blocked individually: {', '.join(sorted(dc_blocked))})"
     print(f"env={args.env} account={acct} region={REGION}")
     print(f"WebACL={name}  actions: {modes}  apply={args.apply}\n")
 
@@ -268,7 +278,14 @@ def main():
             print(f"  ipset CREATE  {ip_name}  (dry-run)")
 
     # 2. Build rules and create/update the WebACL.
-    rules = build_rules(ipset_arns, block, provider_names)
+    # A typo here would silently leave the provider in Count, which looks like
+    # a promotion that did not take.
+    unknown = dc_blocked - set(provider_names)
+    if unknown:
+        sys.exit(f"--block names provider(s) not in SSM: {sorted(unknown)}. "
+                 f"Known: {', '.join(provider_names)}")
+
+    rules = build_rules(ipset_arns, block, provider_names, dc_blocked)
     print(f"\n  rules ({len(rules)}): " + ", ".join(f"{r['Name']}@{r['Priority']}" for r in rules))
 
     acls = {a["Name"]: a for a in waf.list_web_acls(Scope="CLOUDFRONT")["WebACLs"]}

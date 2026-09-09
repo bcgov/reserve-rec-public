@@ -24,7 +24,6 @@ import { AccountVerificationComponent } from '../shared/components/account-verif
   selector: 'app-facility-details',
   host: { class: 'h-100' },
   imports: [CommonModule, ReactiveFormsModule, FormsModule, NgdsFormsModule, BreadcrumbComponent, RouterLink, AccountVerificationComponent],
-  providers: [BsModalService],
   templateUrl: './facility-details.component.html',
   styleUrls: ['./facility-details.component.scss']
 })
@@ -37,6 +36,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
   public facilityOpen = true;
   public isLoggedIn = false;
   public passesAvailable = false;
+  public passStatus: 'available' | 'not-required' | 'sold-out' = 'available';
   public loadingProducts = false;
   public loadingDates = false;
   public loadingPasses = false;
@@ -67,6 +67,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
   private selectedActivityId: string;
   private selectedActivitySubType: string | null = null;
   private selectedActivityName: string;
+  public selectedProductName: string;
   private selectedDateStr: string;
   private waitingRoomActive = false;
 
@@ -242,6 +243,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
   setFormProductDates() {
     this.form.get('selectedProduct').valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((product) => {
       if (!product) return;
+      this.selectedProductName = this.availableProducts.find(p => p.value === product)?.display || '';
       this.loadProductDates(product);
     });
   }
@@ -304,6 +306,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
   private async loadPassesAvailable(date: any) {
       this.loadingPasses = true;
       this.passesAvailable = false;
+      this.passStatus = 'available';
       this.availableVisitorsAllowed = [];
       this.selectedDateStr = typeof date === 'string' ? date : (date?.['toISODate'] ? date['toISODate']() : String(date));
       this.waitingRoomActive = false;
@@ -323,6 +326,7 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
 
       const selectedDate = this.availableDates[date];
       const resContext = selectedDate?.reservationContext;
+      const inventoryPool = selectedDate?.inventoryPool;
       const isReservable = resContext?.isReservable;
       const minInv = resContext?.minDailyInventory;
       const maxInv = resContext?.maxDailyInventory;
@@ -331,27 +335,40 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
       const reservationWindowClose = this.parseDateTimeValue(reservationWindow?.close);
       const currentDateTime = DateTime.now();
 
-      // Not reservable, show no passes available right away
-      if (!isReservable) {
+      // inventoryPool.isOpen indicates if passes are required. Display the banner
+
+      if (inventoryPool && inventoryPool.isOpen === false) {
+        this.passStatus = 'not-required';
         this.passesAvailable = false;
         this.availableVisitorsAllowed = [{display: 'Unavailable', value: '0' }];
         this.loadingPasses = false;
         return;
+      }
+
+      // Check availability from inventory pool.
+      if (inventoryPool && inventoryPool.available <= 0) {
+        this.passStatus = 'sold-out';
+        this.passesAvailable = false;
+        this.availableVisitorsAllowed = [{display: 'Unavailable', value: '0' }];
+        this.loadingPasses = false;
+        return;
+      }
+
+      // Check if today is within the reservation window
+      if (reservationWindowOpen?.isValid && reservationWindowClose?.isValid && currentDateTime >= reservationWindowOpen && currentDateTime <= reservationWindowClose) {
+        this.passesAvailable = true;
       } else {
-        // Check if today is within the reservation window
-        if (reservationWindowOpen?.isValid && reservationWindowClose?.isValid && currentDateTime >= reservationWindowOpen && currentDateTime <= reservationWindowClose) {
-          this.passesAvailable = true;
-        } else {
-          this.passesAvailable = false;
-        }
+        this.passesAvailable = false;
       }
 
       // Provide the number of passes allowed using minimum count up to maximum.
       // Vehicle parking day-use passes are one pass per booking (one vehicle),
       // so cap the selectable count at 1 regardless of maxDailyInventory (#566).
+      // Also cap the maximum request to limit invalid requests
       const isParking = this.selectedActivitySubType === 'vehicleParking';
       const effectiveMin = isParking ? 1 : minInv;
-      const effectiveMax = isParking ? 1 : maxInv;
+      const availableInventory = inventoryPool?.available || 0;
+      const effectiveMax = isParking ? 1 : Math.min(maxInv, availableInventory);
       const allowedVisitors = [];
       for (let i = effectiveMin; i <= effectiveMax; i++) {
         allowedVisitors.push({

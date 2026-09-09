@@ -630,7 +630,13 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
 
   scrollToSection(event: Event, id: string): void {
     event.preventDefault();
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    this.activeSection = id;
+    const el = document.getElementById(id);
+    if (!el) return;
+    // scrollIntoView and smooth scrolling both stall in this layout, so jump
+    // the window directly.
+    const top = el.getBoundingClientRect().top + window.scrollY - 24;
+    window.scrollTo({ top, behavior: 'instant' as ScrollBehavior });
   }
 
   ngOnDestroy(): void {

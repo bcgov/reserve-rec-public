@@ -25,6 +25,11 @@
   height: 32px;
 }
 
+input#smsReminders:disabled {
+  background: lightgray;
+  border: grey solid 1px;
+}
+
 // Get the phone container to have nice gaps between labels and values
 // Max and min-widths to ensure consistency across any phone format
 .phone-container {

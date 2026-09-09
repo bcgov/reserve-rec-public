@@ -16,6 +16,7 @@ export class Constants {
     PRODUCT_LIST: 'productList',
     PRODUCT_DATE_RESULT: 'productResult',
     PRODUCT_DATE_LIST: 'productList',
+    USER_UPDATE: 'userUpdate'
   };
 
   public static readonly timeZoneIANA = 'America/Vancouver';

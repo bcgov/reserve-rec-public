@@ -27,6 +27,7 @@ export class BookingCancelComponent implements OnInit, OnDestroy {
   viewMap = true;
   zoomValue = 12;
   loading = true;
+  error: string | null = null;
   cancelling = false;
   paymentsEnabled = false;
   acknowledgeCancel = false;
@@ -54,6 +55,7 @@ constructor(
       await this.loadBooking();
     } catch (error) {
       console.error('Failed to fetch booking cancel:', error);
+      this.error = 'Failed to load the requested booking to cancel it.';
       this.loading = false;
     }
   }

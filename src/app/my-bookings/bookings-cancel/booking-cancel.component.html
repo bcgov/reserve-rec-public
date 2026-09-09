@@ -4,6 +4,16 @@
   </div>
 }
 
+@if (!loading && error) {
+  <div class="container mt-5 px-4 mb-5 cancel-page-container" [class.with-action-bar]="showActionBar()">
+  <app-breadcrumb></app-breadcrumb>
+    <div class="alert alert-danger" role="alert">
+      <i class="fa-solid fa-exclamation-triangle me-2"></i>
+      {{ error }}
+    </div>
+  </div>
+}
+
 @if (!loading && booking) {
   <div class="container mt-5 px-4 mb-5 cancel-page-container" [class.with-action-bar]="showActionBar()">
     <app-breadcrumb></app-breadcrumb>

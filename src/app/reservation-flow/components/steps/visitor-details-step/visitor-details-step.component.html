@@ -36,11 +36,12 @@
               <div class="col-md-6">
                 <div class="mb-0">
                   <p class="info-label fw-bold mb-2">Home address</p>
-                  <p class="info-value mb-0">{{ user['custom:streetAddress'] || 'N/A' }}</p>
-                  <p class="info-value mb-0">{{ user['custom:city'] || '' }}{{ user['custom:city'] &&
-                    user['custom:province'] ? ', ' : '' }}{{ user['custom:province'] || '' }}</p>
-                  <p class="info-value mb-0">{{ user['custom:postalCode'] || '' }}</p>
-                  <p class="info-value mb-0">{{ user['custom:country'] || '' }}</p>
+                  <p class="info-value mb-0">{{ formatAddress()['streetAddress'] || user['custom:streetAddress'] || 'N/A' }}</p>
+                  <p class="info-value mb-0">
+                    {{ formatAddress()['city'] || user['custom:city'] || '' }}{{ (formatAddress()['city'] || user['custom:city']) && (formatAddress()['province'] || user['custom:province']) ? ', ' : '' }}
+                    {{ formatAddress()['province'] || user['custom:province'] || '' }} {{ formatAddress()['postalCode'] || user['custom:postalCode'] || '' }}
+                  </p>
+                  <p class="info-value mb-0">{{ formatAddress()['country'] || user['custom:country'] || '' }}</p>
                 </div>
               </div>
               <div class="col-md-6"><div class="mb-0">
@@ -62,18 +63,25 @@
 
           <!-- Text Message Reminders -->
           <div class="rounded bg-white">
-            <h5 class="mb-2 fs-6 fw-semibold">Text message reminders opt-in</h5>
-            <div class="d-flex align-items-center form-check sms-optin py-3 px-0">
+            @if (!hasMobilePhone()) {
+              <div class="bg-warning-subtle border border-warning rounded p-3 mb-4 d-flex">
+                <div class="me-3">
+                  <i class="fa-regular fa-triangle-exclamation text-warning"></i>
+              </div>
+              <div>
+                <h6>We do not have a mobile number on record for you.</h6>
+                <p>Add a mobile phone number to your account to enable text message reminders.</p>
+                <button class="btn btn-primary fw-bold py-2 px-3" (click)="onAddPhoneNumber()">Add phone number</button>
+              </div>
+            </div>
+          }
+          <h5 class="fs-6 fw-semibold">Text message reminders opt-in</h5>
+            <div class="d-flex align-items-center form-check sms-optin py-2 px-0">
               <input class="form-check-input ms-1 me-3" type="checkbox" id="smsReminders" [(ngModel)]="smsOptIn"
                 [disabled]="!hasMobilePhone()" (change)="onSmsOptInChange()">
               <label class="form-check-label mt-1" for="smsReminders">
                 I would like to receive reminders via text message
               </label>
-              @if (!hasMobilePhone()) {
-              <p class="small text-muted mb-0 mt-2">
-                Add a mobile phone number to your account to enable text message reminders.
-              </p>
-              }
             </div>
           </div>
         </div>

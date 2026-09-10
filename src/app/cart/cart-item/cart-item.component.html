@@ -49,6 +49,8 @@
           </div>
         </div>
 
+      @if (item?.vehicleInformation[0].licensePlate && item?.vehicleInformation[0].licensePlateRegistrationRegion) {
+        <!-- hide license plate fields if empty -->
         <div class="col-12 col-lg-6 col-md-6 col-sm-6">
           <div class="fw-semibold text-dark mb-1">License plate</div>
           <div class="d-flex align-items-center gap-2 text-dark">
@@ -56,6 +58,7 @@
               item?.vehicleInformation[0].licensePlateRegistrationRegion }}</span>
           </div>
         </div>
+      }
       </div>
     }
 

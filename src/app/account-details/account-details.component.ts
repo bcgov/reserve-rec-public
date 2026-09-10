@@ -2,7 +2,6 @@ import { ChangeDetectorRef, Component, DestroyRef, inject, OnDestroy, OnInit } f
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
-import { UpperCasePipe } from '@angular/common';
 import { PROVINCES_STATES } from '../data/provinces-states.data';
 import { AuthService } from '../services/auth.service';
 import { ToastService, ToastTypes } from '../services/toast.service';
@@ -10,13 +9,14 @@ import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
 import { AccountVerificationComponent } from '../shared/components/account-verification/account-verification.component';
 import { debounceTime } from 'rxjs/operators';
 import { Utils } from '../utils/utils';
+import { ActivatedRoute, Router } from '@angular/router';
 
 type EditSection = 'contact' | 'vehicle' | null;
 
 @Component({
   selector: 'app-account-details',
   standalone: true,
-  imports: [BreadcrumbComponent, ReactiveFormsModule, NgdsFormsModule, AccountVerificationComponent, UpperCasePipe],
+  imports: [BreadcrumbComponent, ReactiveFormsModule, NgdsFormsModule, AccountVerificationComponent],
   templateUrl: './account-details.component.html',
   styleUrl: './account-details.component.scss'
 })
@@ -54,11 +54,14 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private toastService: ToastService,
     private cd: ChangeDetectorRef,
+    private route: ActivatedRoute,
+    private router: Router,
   ) {
     this.setupNameFormatter(this.contactForm.controls.given_name);
     this.setupNameFormatter(this.contactForm.controls.family_name);
     this.setupPhoneFormatter(this.contactForm.controls.mobilePhone);
     this.setupPhoneFormatter(this.contactForm.controls.secondaryNumber);
+
   }
 
   async ngOnInit(): Promise<void> {
@@ -70,6 +73,12 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
     } finally {
       this.loading = false;
       this.cd.detectChanges();
+
+      // Look for a URL fragment like #editContact to open an editing section
+      const fragment = this.route.snapshot.fragment;
+      if (fragment === 'editContact' || fragment === 'editVehicle') {
+        this.startEdit(fragment === 'editContact' ? 'contact' : 'vehicle', false);
+      }
     }
   }
 
@@ -86,22 +95,46 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
     this.authService.logout();
   }
 
-  startEdit(section: Exclude<EditSection, null>): void {
+  startEdit(section: Exclude<EditSection, null>, updateUrl = true): void {
     if (this.editing) return; // one card at a time (the others are disabled)
     const u = this.user || {};
+
+    let address = {};
+    if (typeof u?.address ==='string') {
+      try {
+        address = JSON.parse(u.address);
+      } catch (e) {
+        console.warn('Failed to parse user address JSON:', e);
+      }
+    } else if (typeof u?.address === 'object' && u.address !== null) {
+      address = u.address;
+    }
+
+    const bcscProvince = address?.['region'] === 'BC' ? 'British Columbia' : 'Other';
+    const bcscCountry = address?.['country'] === 'CA' ? 'Canada' : 'Other';
+
     if (section === 'contact') {
       this.contactForm.reset({
         given_name: u.given_name || '',
         family_name: u.family_name || '',
-        streetAddress: u['custom:streetAddress'] || '',
+        streetAddress: u['custom:streetAddress'] || address['street_address'] ||'',
         unitNumber: u['custom:unitNumber'] || '',
-        city: u['custom:city'] || '',
-        province: u['custom:province'] || '',
-        postalCode: u['custom:postalCode'] || '',
-        country: u['custom:country'] || '',
+        city: u['custom:city'] || address['locality'] || '',
+        province: this.isBcsc ? bcscProvince : u['custom:province'] || '',
+        postalCode: u['custom:postalCode'] || address['postal_code'] || '',
+        country: this.isBcsc ? bcscCountry : u['custom:country'] || '',
         mobilePhone: u['custom:mobilePhone'] || '',
         secondaryNumber: u['custom:secondaryNumber'] || '',
       });
+
+      if (this.isBcsc) {
+        this.contactForm.controls.province.disable();
+        this.contactForm.controls.country.disable();
+      } else {
+        this.contactForm.controls.province.enable();
+        this.contactForm.controls.country.enable();
+      }
+
     } else {
       this.vehicleForm.reset({
         licensePlate: u['custom:licensePlate'] || '',
@@ -109,10 +142,19 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
       });
     }
     this.editing = section;
+
+    if (updateUrl) {
+      this.router.navigate([], {
+        relativeTo: this.route,
+        fragment: section === 'contact' ? 'editContact' : 'editVehicle',
+        replaceUrl: true,
+      });
+    }
   }
 
   cancelEdit(): void {
     this.editing = null;
+    this.clearEditFragment();
     // Same teardown problem as save(): clearing `editing` on its own leaves the
     // edit form's view in the DOM alongside the restored read-only details.
     this.cd.detectChanges();
@@ -132,7 +174,6 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
     if (!v.postalCode?.trim()) missingFields.push('Postal or zip code');
     if (!v.country?.trim()) missingFields.push('Country');
     if (!v.mobilePhone?.trim()) missingFields.push('Mobile phone');
-
     
     // Change numbers to be E.164 format on save if they have the country code attached
     // TODO: should probably have people specify country separately in an input, then enter phone in another input
@@ -159,18 +200,26 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    await this.save({
-      given_name: v.given_name ?? '',
-      family_name: v.family_name ?? '',
-      'custom:streetAddress': v.streetAddress ?? '',
-      'custom:unitNumber': v.unitNumber ?? '',
-      'custom:city': v.city ?? '',
-      'custom:province': v.province ?? '',
-      'custom:postalCode': v.postalCode ?? '',
-      'custom:country': v.country ?? '',
-      'custom:mobilePhone': v.mobilePhone ?? '',
-      'custom:secondaryNumber': v.secondaryNumber ?? '',
-    });
+    if (this.isBcsc) {
+      // Only save phone numbers for BCSC users (that's all they can change)
+      await this.save({
+        'custom:mobilePhone': v.mobilePhone ?? '',
+        'custom:secondaryNumber': v.secondaryNumber ?? '',
+      });
+    } else {
+      await this.save({
+        given_name: v.given_name ?? '',
+        family_name: v.family_name ?? '',
+        'custom:streetAddress': v.streetAddress ?? '',
+        'custom:unitNumber': v.unitNumber ?? '',
+        'custom:city': v.city ?? '',
+        'custom:province': v.province ?? '',
+        'custom:postalCode': v.postalCode ?? '',
+        'custom:country': v.country ?? '',
+        'custom:mobilePhone': v.mobilePhone ?? '',
+        'custom:secondaryNumber': v.secondaryNumber ?? '',
+      });
+    }
   }
 
   async saveVehicle(): Promise<void> {
@@ -187,6 +236,7 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
       await this.authService.updateUserProfile(attributes);
       this.toastService.addMessage('Your account information has been updated.', 'Saved', ToastTypes.SUCCESS);
       this.editing = null;
+      this.clearEditFragment();
     } catch {
       this.toastService.addMessage('We could not save your changes. Please try again.', 'Error', ToastTypes.ERROR);
     } finally {
@@ -197,6 +247,17 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
       // (QA send-back on #63). Verified: forcing detection here is what the
       // manual ng.applyChanges() reproduction needed to clear it.
       this.cd.detectChanges();
+    }
+  }
+
+  // Clear the editing fragment from the URL when user has saved their changes or cancelled
+  private clearEditFragment(): void {
+    if (this.route.snapshot.fragment) {
+      this.router.navigate([], {
+        relativeTo: this.route,
+        fragment: undefined,
+        replaceUrl: true,
+      });
     }
   }
 
@@ -288,31 +349,45 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
   getBcscAddress(): any {
     try {
       const user = this.user;
-      
+
       if (!user) {
         return null;
       }
-      
+
       // BCSC user object has address as a direct property (JSON string), not in UserAttributes array
       if (!user.address) {
         console.log('getBcscAddress - no address property on user object');
         return null;
       }
+
+      let address = {};
+      if (typeof user.address ==='string') {
+        try {
+          address = JSON.parse(user.address);
+        } catch (e) {
+          console.warn('Failed to parse user address JSON:', e);
+        }
+      } else if (typeof user.address === 'object' && user.address !== null) {
+        address = user.address;
+      }
+
+      // Don't shorten CANADA to CA when it comes from BCSC
+      if (address?.['country'] === 'CA') {
+        address['country'] = 'CANADA'
+      } else {
+        address['country'] = '';
+      }
+
+      if (address?.['province'] === 'BC') {
+        address['province'] = 'BRITISH COLUMBIA'
+      } else {
+        address['province'] = '';
+      }
       
-      const parsed = JSON.parse(user.address);
-      return parsed;
+      return address;
     } catch (error) {
       console.error('Error parsing BCSC address:', error);
       return null;
-    }
-  }
-
-  //Return country as capitalized for settings. If their mailing address is elesewhere jsut display the country code. 
-  getCountryName(code: string): string {
-    if (code === 'CA') {
-      return 'CANADA';
-    } else {
-      return code;
     }
   }
 

@@ -293,18 +293,23 @@ export class AuthService {
    * @param attributes map of Cognito attribute keys to values
    */
   async updateUserProfile(attributes: Record<string, string>): Promise<void> {
-
-    this.loadingService.addToFetchList(Constants.dataIds.USER_UPDATE);
-    await updateUserAttributes({ userAttributes: attributes });
-    
-    // Force Cognito to issue new tokens, which invokes the Pre Token Generation trigger
-    // so any changes to a user's session is updated to DynamoDB right away
-    const refreshedSession = await fetchAuthSession({ forceRefresh: true });
-    this.session.set(refreshedSession);
-    this.jwtToken = refreshedSession.tokens?.accessToken?.toString();
-    
-    this.updateUser(await fetchUserAttributes());
-    this.loadingService.removeFromFetchList(Constants.dataIds.USER_UPDATE);
+    try {
+      this.loadingService.addToFetchList(Constants.dataIds.USER_UPDATE);
+      await updateUserAttributes({ userAttributes: attributes });
+      
+      // Force Cognito to issue new tokens, which invokes the Pre Token Generation trigger
+      // so any changes to a user's session is updated to DynamoDB right away
+      const refreshedSession = await fetchAuthSession({ forceRefresh: true });
+      this.session.set(refreshedSession);
+      this.jwtToken = refreshedSession.tokens?.accessToken?.toString();
+      
+      this.updateUser(await fetchUserAttributes());
+    } catch (error) {
+      console.error("Error with updating user profile: ", error)
+      throw error;
+    } finally {
+      this.loadingService.removeFromFetchList(Constants.dataIds.USER_UPDATE);
+    }
   }
 
   // Resend the verification code to the user's email

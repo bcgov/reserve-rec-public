@@ -90,7 +90,8 @@
       "FAIL_FAST": "false",
       "DEPLOY_EDGE_STACK": "false",
       "DEPLOY_FRONT_DOOR": "true",
-      "DEPLOY_WAF_FEED": "true"
+      "DEPLOY_WAF_FEED": "true",
+      "DEPLOY_WAF_AUTOBLOCK": "true"
     },
     "test": {
       "DEPLOYMENT_NAME": "test",
@@ -99,7 +100,8 @@
       "FAIL_FAST": "false",
       "DEPLOY_EDGE_STACK": "false",
       "DEPLOY_FRONT_DOOR": "true",
-      "DEPLOY_WAF_FEED": "true"
+      "DEPLOY_WAF_FEED": "true",
+      "DEPLOY_WAF_AUTOBLOCK": "true"
     },
     "prod": {
       "DEPLOYMENT_NAME": "prod",
@@ -108,7 +110,8 @@
       "FAIL_FAST": "false",
       "DEPLOY_EDGE_STACK": "false",
       "DEPLOY_FRONT_DOOR": "false",
-      "DEPLOY_WAF_FEED": "false"
+      "DEPLOY_WAF_FEED": "false",
+      "DEPLOY_WAF_AUTOBLOCK": "false"
     },
     "local": {
       "DEPLOYMENT_NAME": "local",

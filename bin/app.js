@@ -4,6 +4,7 @@ const { createDistributionStack } = require('../lib/distribution-stack/distribut
 const { createWaitingRoomEdgeStack } = require('../lib/waiting-room-edge-stack/waiting-room-edge-stack.js');
 const { createFrontDoorStack } = require('../lib/front-door-stack/front-door-stack.js');
 const { createWafFeedStack } = require('../lib/waf-feed-stack/waf-feed-stack.js');
+const { createWafAutoblockStack } = require('../lib/waf-autoblock-stack/waf-autoblock-stack.js');
 
 class CDKProject {
   constructor() {
@@ -218,6 +219,12 @@ class CDKProject {
     // attached, and go stale either way. Opt-in per environment.
     if (this.context?.DEPLOY_WAF_FEED === 'true') {
       await this.addStack('wafFeedStack', createWafFeedStack);
+    }
+
+    // Producer for edge-autoblock. The rule reading that set has been enforcing
+    // an empty set; this is what puts anything in it. Ships in shadow mode.
+    if (this.context?.DEPLOY_WAF_AUTOBLOCK === 'true') {
+      await this.addStack('wafAutoblockStack', createWafAutoblockStack);
     }
 
   }

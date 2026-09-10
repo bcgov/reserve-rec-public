@@ -25,8 +25,8 @@
 
 <!-- Blurb -->
 <section>
-  <div class="container pt-5 pb-3">
-    <h2 class="text-primary text-center mb-0">Before you book</h2>
+  <div class="blurb-content container mt-4 pt-5 pb-4">
+    <h2 class="text-primary text-center mb-0 pt-2">Before you book</h2>
     <hr class="section-underline mx-auto mb-4">
     <p>
       Day-use passes are required at some popular BC Parks during the summer and winter seasons. Reserving a pass
@@ -43,9 +43,9 @@
       >day-use pass information page</a>.
     </p>
   </div>
-  <!-- Accordion -->
 
-  <div class="container pb-5">
+  <!-- Accordion -->
+  <div class="blurb-accordion container pb-5">
     <div
       id="accordionFlushExample"
       class="accordion accordion-flush"
@@ -63,7 +63,7 @@
             aria-controls="flush-collapseOne"
             (click)="toggleAccordion()"
           >
-            <h6 class="mb-0">Important booking information</h6>
+            <p class="mb-0">Important booking information</p>
           </button>
         </h2>
         <div
@@ -75,10 +75,10 @@
             class="accordion-body accordion-content border-bottom border-2"
             [class.border-top-0]="isAccordionOpen"
           >
-            <div class="d-block">
-              <h6>Book passes starting at 7:00 am PT two days before your visit. Refresh your browser at 7:00 am PT
-                to see new passes available each day.</h6>
-              <ul>
+            <div class="accordion-section d-block">
+              <h3 class="accordion-subheader">Book passes starting at 7:00 am PT two days before your visit. Refresh your browser at 7:00 am PT
+                to see new passes available each day.</h3>
+              <ul class="accordion-copy">
                 <li>
                   There are no first come, first served options upon arrival when passes are required.
                 </li>
@@ -101,12 +101,16 @@
                   request.
                 </li>
               </ul>
-              <h6>Vehicle passes</h6>
-              <p>
+              </div>
+            <div class="accordion-section d-block">
+              <p class="accordion-subheader">Vehicle passes</p>
+              <p class="accordion-copy">
                 Vehicle passes are valid for up to 12 people (adults and children) travelling in the same vehicle.
               </p>
-              <h6>Trail passes</h6>
-              <ul>
+            </div>
+            <div class="accordion-section d-block">
+              <p class="accordion-subheader">Trail passes</p>
+              <ul class="accordion-copy">
                 <li>
                   Trail passes must be booked for each individual person, per day.
                 </li>

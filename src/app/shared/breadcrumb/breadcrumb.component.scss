@@ -1,8 +1,21 @@
 .breadcrumb {
   background-color: transparent;
   padding: 0;
-  margin-bottom: 1rem;
-  margin-top: 1rem;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: hidden;
+  white-space: nowrap;
+
+  .breadcrumb-item {
+    display: inline-block;
+    flex-shrink: 0;
+
+    &.active {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex-shrink: 1;
+    }
+  }
 }
 
 // Hide Bootstrap's default separator

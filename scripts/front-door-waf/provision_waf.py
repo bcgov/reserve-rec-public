@@ -74,9 +74,13 @@ def load_providers(env, session=None):
     return provs
 
 # ── standalone IPSets (populated out of band by ops tooling / investigations) ─
+# The v4 names are unsuffixed because they predate the v6 sets and hold live
+# entries; renaming them would empty a rule that is currently blocking.
 STANDALONE_IPSETS = [
-    ("edge-autoblock",   "IPV4"),   # watchlist / investigation-driven blocks
-    ("edge-reputation",  "IPV4"),   # reputation-feed mirror
+    ("edge-autoblock",     "IPV4"),   # watchlist / investigation-driven blocks
+    ("edge-autoblock-v6",  "IPV6"),
+    ("edge-reputation",    "IPV4"),   # reputation-feed mirror
+    ("edge-reputation-v6", "IPV6"),
 ]
 
 # ── rule priorities ──────────────────────────────────────────────────────────
@@ -166,19 +170,26 @@ def build_rules(ipset_arns, block, provider_names, dc_blocked=frozenset()):
             "VisibilityConfig": vis(f"dc{prov}"),
         })
 
-    # Reputation + autoblock IPSets.
+    # Reputation + autoblock IPSets. Each spans a v4 and a v6 set: most of this
+    # estate's request volume arrives over IPv6, and a v4-only rule cannot act
+    # on it however good the evidence is.
+    def either_family(*names):
+        refs = [{"IPSetReferenceStatement": {"ARN": ipset_arns[n]}}
+                for n in names if n in ipset_arns]
+        return refs[0] if len(refs) == 1 else {"OrStatement": {"Statements": refs}}
+
     rules.append({
         "Name": "edge-reputation",
         "Priority": PRI_REPUTATION,
         "Action": action("reputation"),
-        "Statement": {"IPSetReferenceStatement": {"ARN": ipset_arns["edge-reputation"]}},
+        "Statement": either_family("edge-reputation", "edge-reputation-v6"),
         "VisibilityConfig": vis("edgeReputation"),
     })
     rules.append({
         "Name": "edge-autoblock",
         "Priority": PRI_AUTOBLOCK,
         "Action": action("autoblock"),
-        "Statement": {"IPSetReferenceStatement": {"ARN": ipset_arns["edge-autoblock"]}},
+        "Statement": either_family("edge-autoblock", "edge-autoblock-v6"),
         "VisibilityConfig": vis("edgeAutoblock"),
     })
 

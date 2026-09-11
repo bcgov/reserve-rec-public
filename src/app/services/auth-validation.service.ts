@@ -37,28 +37,18 @@ export interface SignInValidationErrors {
   providedIn: 'root'
 })
 export class AuthValidationService {
-    //Amplifys auto validation will trigger before our validation runs and not allow 
-    //This error to ever actually be displayed, its here already incase we remove Amplify-Form-Fields in the future
   validateEmail(email: string): string {
     if (!email?.trim()) {
-      console.log('Email empty - returning error');
       return 'Email is required';
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      console.log('Email format invalid - returning error');
       return 'Please enter a valid email address';
     }
-    console.log('Email valid - no error');
     return '';
   }
 
   validatePassword(password: string): string {
-    //These validations will actually run, but not until Amplify's built-in has done a pass.
-    //The one strange thing here is that we cannot clear the errors unless we resubmit.
-    // It feels like a reasonable UX tradeoff to give the proper error but cant auto clear like the 
-    // rest of the form, but we can revisit this if it becomes a problem.
-    console.log('validatePassword called with length:', password?.length);
     if (!password?.trim()) {
       return 'Password is required';
     }
@@ -100,10 +90,24 @@ export class AuthValidationService {
     if (!phone?.trim()) {
       return ''; // Optional field
     }
+    return this.validatePhoneFormat(phone, fieldLabel);
+  }
+
+  // Account settings already require a mobile number, so sign-up asks for one
+  // too rather than letting an account start out unable to save its own
+  // contact details (#685).
+  validateMobilePhone(phone: string): string {
+    if (!phone?.trim()) {
+      return 'Mobile phone is required';
+    }
+    return this.validatePhoneFormat(phone, 'Mobile phone');
+  }
+
+  private validatePhoneFormat(phone: string, fieldLabel: string): string {
     // E.164 format: +[country code][number], e.g., +12345678900 or +1-234-567-8900
     const phoneRegex = /^\+?[1-9]\d{1,14}$/;
     if (!phoneRegex.test(phone.replace(/[\s\-()]/g, ''))) {
-      return `${fieldLabel} must be in format (e.g., +12345678900)`;
+      return `${fieldLabel} must be a valid phone number, e.g. +1 (250) 555-1234`;
     }
     return '';
   }
@@ -170,7 +174,7 @@ export class AuthValidationService {
       passwordError: this.validatePassword(input.password),
       givenNameError: this.validateName(input.givenName, 'Given name'),
       familyNameError: this.validateName(input.familyName, 'Surname'),
-      mobilePhoneError: this.validatePhoneNumber(input.mobilePhone ?? '', 'Mobile phone number'),
+      mobilePhoneError: this.validateMobilePhone(input.mobilePhone ?? ''),
       homePhoneError: this.validatePhoneNumber(input.homePhone ?? '', 'Home phone number'),
       streetAddressError: this.validateStreetAddress(input.streetAddress),
       cityError: this.validateCity(input.city),

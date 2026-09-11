@@ -19,13 +19,16 @@ USAGE:
   python3 datacenter_feed.py --env dev --apply --block all # all providers BLOCK
   python3 datacenter_feed.py --env dev --apply --block aws,gcp,azure,oracle
 
-Requires: boto3, netaddr; creds for the target env's account.
+Requires: boto3; creds for the target env's account. Standard library only
+otherwise, so this runs as a Lambda with no packaged dependencies.
 """
 import argparse
 import json
 import sys
+import ipaddress as ip
 import urllib.request
-from netaddr import cidr_merge, IPSet
+
+from provision_waf import load_providers
 
 ENV_ACCOUNTS = {"dev": "623829546818", "test": "623829546818", "prod": "628373393242"}
 REGION = "us-east-1"
@@ -42,15 +45,42 @@ def ripe_asn(asn):
     return [p["prefix"] for p in d["data"]["prefixes"]]
 
 
+def difference(keep, drop):
+    """keep minus drop, as merged CIDRs.
+
+    Two CIDRs either nest or are disjoint — they never partially overlap — so
+    each kept network is either untouched, wholly removed, or split around the
+    one being excluded.
+    """
+    out = [ip.ip_network(n) for n in keep]
+    for r in (ip.ip_network(n) for n in drop):
+        nxt = []
+        for net in out:
+            if not net.overlaps(r):
+                nxt.append(net)
+            elif net.subnet_of(r):
+                continue
+            else:
+                nxt.extend(net.address_exclude(r))
+        out = nxt
+    return [str(c) for c in ip.collapse_addresses(out)]
+
+
+# The one hard safety rule is that we never block our own edge, so prove the
+# exclusion still works on every import rather than trusting it.
+assert difference(["10.0.0.0/24"], ["10.0.0.128/25"]) == ["10.0.0.0/25"]
+
+
 def fetch_aws():
     # EC2 (where bots run) MINUS CloudFront ranges — never block our own edge.
     d = json.loads(http("https://ip-ranges.amazonaws.com/ip-ranges.json"))
     CF = ("CLOUDFRONT", "CLOUDFRONT_ORIGIN_FACING")
-    ec2_4 = IPSet([p["ip_prefix"] for p in d["prefixes"] if p["service"] == "EC2"])
-    cf_4 = IPSet([p["ip_prefix"] for p in d["prefixes"] if p["service"] in CF])
-    ec2_6 = IPSet([p["ipv6_prefix"] for p in d["ipv6_prefixes"] if p["service"] == "EC2"])
-    cf_6 = IPSet([p["ipv6_prefix"] for p in d["ipv6_prefixes"] if p["service"] in CF])
-    return [str(c) for c in (ec2_4 - cf_4).iter_cidrs()], [str(c) for c in (ec2_6 - cf_6).iter_cidrs()]
+    def split(key, vkey):
+        return ([p[vkey] for p in d[key] if p["service"] == "EC2"],
+                [p[vkey] for p in d[key] if p["service"] in CF])
+    ec2_4, cf_4 = split("prefixes", "ip_prefix")
+    ec2_6, cf_6 = split("ipv6_prefixes", "ipv6_prefix")
+    return difference(ec2_4, cf_4), difference(ec2_6, cf_6)
 
 
 def fetch_gcp():
@@ -63,16 +93,6 @@ def fetch_oracle():
     d = json.loads(http("https://docs.oracle.com/iaas/tools/public_ip_ranges.json"))
     cidrs = [c["cidr"] for r in d["regions"] for c in r["cidrs"]]
     return [c for c in cidrs if ":" not in c], [c for c in cidrs if ":" in c]
-
-
-def fetch_azure():
-    pre = []
-    for asn in (8075, 8068, 8069):
-        try:
-            pre += ripe_asn(asn)
-        except Exception as e:
-            print(f"    azure AS{asn} fetch err: {e}", file=sys.stderr)
-    return [p for p in pre if ":" not in p], [p for p in pre if ":" in p]
 
 
 def _asn_provider(*asns):
@@ -89,22 +109,39 @@ def _asn_provider(*asns):
     return fn
 
 
-# Kept in lockstep with provision_waf.py DC_PROVIDERS.
-PROVIDERS = {
-    "aws": fetch_aws, "gcp": fetch_gcp, "oracle": fetch_oracle, "azure": fetch_azure,
-    "hetzner": _asn_provider(24940, 212317), "ovh": _asn_provider(16276),
-    "digitalocean": _asn_provider(14061), "linode": _asn_provider(63949),
-    "vultr": _asn_provider(20473), "m247": _asn_provider(9009),
-}
+# Fetch mechanisms, keyed by source type. WHICH providers use them, and the
+# ASNs behind them, come from SSM at run time — this repo is public and must not
+# name what we block. Providers whose ranges come from a published file get a
+# fetcher here; everything else resolves by ASN.
+SOURCES = {"aws": fetch_aws, "gcp": fetch_gcp, "oracle": fetch_oracle}
+
+
+def build_fetchers(providers):
+    """{name: callable} for the providers SSM lists, or exit saying which failed."""
+    out = {}
+    for p in providers:
+        name, src = p.get("name"), p.get("source")
+        if not name or not src:
+            sys.exit(f"malformed provider entry: {p}")
+        if src == "asn":
+            if not p.get("asns"):
+                sys.exit(f"provider {name}: source 'asn' needs a non-empty asns list")
+            out[name] = _asn_provider(*p["asns"])
+        elif src in SOURCES:
+            out[name] = SOURCES[src]
+        else:
+            sys.exit(f"provider {name}: unknown source {src!r} "
+                     f"(known: asn, {', '.join(sorted(SOURCES))})")
+    return out
 
 
 def merged(lst):
-    return [str(n) for n in cidr_merge(lst)]
+    return [str(n) for n in ip.collapse_addresses(ip.ip_network(x) for x in lst)]
 
 
-def collect():
+def collect(fetchers):
     out = {}
-    for name, fn in PROVIDERS.items():
+    for name, fn in fetchers.items():
         try:
             v4, v6 = fn()
             out[name] = {"v4": merged(v4), "v6": merged(v6)}
@@ -151,8 +188,10 @@ if __name__ == "__main__":
     ap.add_argument("--env", required=True, choices=ENV_ACCOUNTS.keys())
     ap.add_argument("--apply", action="store_true")
     args = ap.parse_args()
-    print(f"Fetching cloud/VPS provider ranges (merged)...  env={args.env}  apply={args.apply}")
-    data = collect()
+    fetchers = build_fetchers(load_providers(args.env))
+    print(f"Fetching ranges for {len(fetchers)} providers (merged)...  "
+          f"env={args.env}  apply={args.apply}")
+    data = collect(fetchers)
     if not args.apply:
         print("\nDRY RUN — no AWS changes. Re-run with --apply.")
     else:

@@ -89,7 +89,9 @@
       "IS_OFFLINE": "false",
       "FAIL_FAST": "false",
       "DEPLOY_EDGE_STACK": "false",
-      "DEPLOY_FRONT_DOOR": "true"
+      "DEPLOY_FRONT_DOOR": "true",
+      "DEPLOY_WAF_FEED": "true",
+      "DEPLOY_WAF_AUTOBLOCK": "true"
     },
     "test": {
       "DEPLOYMENT_NAME": "test",
@@ -97,7 +99,9 @@
       "IS_OFFLINE": "false",
       "FAIL_FAST": "false",
       "DEPLOY_EDGE_STACK": "false",
-      "DEPLOY_FRONT_DOOR": "true"
+      "DEPLOY_FRONT_DOOR": "true",
+      "DEPLOY_WAF_FEED": "true",
+      "DEPLOY_WAF_AUTOBLOCK": "true"
     },
     "prod": {
       "DEPLOYMENT_NAME": "prod",
@@ -105,7 +109,9 @@
       "IS_OFFLINE": "false",
       "FAIL_FAST": "false",
       "DEPLOY_EDGE_STACK": "false",
-      "DEPLOY_FRONT_DOOR": "false"
+      "DEPLOY_FRONT_DOOR": "true",
+      "DEPLOY_WAF_FEED": "true",
+      "DEPLOY_WAF_AUTOBLOCK": "true"
     },
     "local": {
       "DEPLOYMENT_NAME": "local",

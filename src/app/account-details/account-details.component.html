@@ -39,7 +39,7 @@
           <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
               <span class="fw-semibold">Contact information</span>
-              @if (!isBcsc && editing !== 'contact') {
+              @if (editing !== 'contact') {
                 <button class="btn btn-outline-primary"
                 [disabled]="editing" (click)="startEdit('contact')">Edit</button>
               }
@@ -52,17 +52,16 @@
                   <div>{{ user.given_name }} {{ user.family_name }}</div>
                 </div>
 
-                <!-- BCSC Address (read-only from BC Services Card) -->
+                <!-- BCSC Address -->
                 @if (isBcsc) {
-                  @let bcscAddr = getBcscAddress();
-                  @if (bcscAddr) {
+                  @if (getBcscAddress()) {
                     <div class="mb-3 pb-2">
                       <div class="field-label small text-body-emphasis">Home address</div>
-                      <div>{{ bcscAddr.street_address }}</div>
-                      <div>{{ bcscAddr.locality }}@if (bcscAddr.region) {
-                        <span>, {{ bcscAddr.region }}</span>
-                      } {{ bcscAddr.postal_code }}</div>
-                      <div>{{ getCountryName(bcscAddr.country) | uppercase }}</div>
+                      <div>{{ getBcscAddress()['street_address'] || 'N/A' }}</div>
+                      <div>{{ getBcscAddress()['locality'] || 'N/A' }}@if (getBcscAddress()['region']) {
+                        <span>, {{ getBcscAddress()['region'] || 'N/A' }}</span>
+                      } {{ getBcscAddress()['postal_code'] || 'N/A' }}</div>
+                      <div>{{ getBcscAddress()['country'] || 'N/A' }}</div>
                     </div>
                   }
                 }
@@ -101,7 +100,8 @@
                             required: 'Surname is required.',
                             pattern: 'Please use only letters, spaces, hyphens, apostrophes, or periods.',
                           }
-                        }">
+                        }"
+                        [disabled]="isBcsc">
                       </ngds-text-input>
                     </div>
                     <div class="col-md-6">
@@ -113,12 +113,13 @@
                             required: 'Given name is required.',
                             pattern: 'Please use only letters, spaces, hyphens, apostrophes, or periods.',
                           }
-                        }">
+                        }"
+                        [disabled]="isBcsc">
                       </ngds-text-input>
                     </div>
-                    <div class="col-12"><ngds-text-input label="Street address" [control]="contactForm.get('streetAddress')"></ngds-text-input></div>
-                    <div class="col-12"><ngds-text-input label="Suite, apartment or unit" [control]="contactForm.get('unitNumber')"></ngds-text-input></div>
-                    <div class="col-md-6"><ngds-text-input label="City" [control]="contactForm.get('city')"></ngds-text-input></div>
+                    <div class="col-12"><ngds-text-input label="Street address" [control]="contactForm.get('streetAddress')" [disabled]="isBcsc">></ngds-text-input></div>
+                    <div class="col-12"><ngds-text-input label="Suite, apartment or unit" [control]="contactForm.get('unitNumber')" [disabled]="isBcsc">></ngds-text-input></div>
+                    <div class="col-md-6"><ngds-text-input label="City" [control]="contactForm.get('city')" [disabled]="isBcsc"></ngds-text-input></div>
                     <div class="col-md-6">
                       <label class="form-label" for="province-select">Province or state</label>
                       <select id="province-select" class="form-select" formControlName="province">
@@ -128,7 +129,7 @@
                         }
                       </select>
                     </div>
-                    <div class="col-md-6"><ngds-text-input label="Postal or zip code" [control]="contactForm.get('postalCode')"></ngds-text-input></div>
+                    <div class="col-md-6"><ngds-text-input label="Postal or zip code" [control]="contactForm.get('postalCode')" [disabled]="isBcsc"></ngds-text-input></div>
                     <div class="col-md-6">
                       <label class="form-label" for="country-select">Country</label>
                       <select id="country-select" class="form-select" formControlName="country">

@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, ElementRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AmplifyAuthenticatorModule, AuthenticatorService } from '@aws-amplify/ui-angular';
 import { AuthService } from '../services/auth.service';
-import { AuthValidationService, SignUpFormData } from '../services/auth-validation.service';
+import { AuthValidationService, SignUpValidationErrors } from '../services/auth-validation.service';
 import {
   signIn,
   signUp,
@@ -21,7 +21,7 @@ import { ActivatedRoute, Router } from '@angular/router';
     styleUrl: './login.component.scss'
 })
 
-export class LoginComponent implements OnInit{
+export class LoginComponent implements OnInit, AfterViewInit, AfterViewChecked {
   showAmplifyAuth = false;
   authKey = Date.now();
   initialState: 'signIn' | 'signUp' = 'signIn';
@@ -31,6 +31,7 @@ export class LoginComponent implements OnInit{
   // Error message variables to display under each html input field
   emailError = '';
   passwordError = '';
+  confirmPasswordError = '';
   givenNameError = '';
   familyNameError = '';
   mobilePhoneError = '';
@@ -42,25 +43,34 @@ export class LoginComponent implements OnInit{
   countryError = '';
   summaryError = ''; // Track summary error message for display
 
-  // Amplify's built-in sign-up fields default to `required`, which makes the
-  // browser block submit with no visible message: Amplify's own validators
-  // never check blank required fields, so handleSignUp never runs and none of
-  // the per-field errors below can render. Turning the native required off for
-  // all three hands the checking to validateSignUp/validateCustomSignUp (#685).
-  // Placeholders are a single space to suppress Amplify's default placeholder.
+  // Placeholders are a single space to suppress Amplify's default placeholder,
+  // which just repeats the label.
   formFields = {
     signUp: {
-      email: { isRequired: false, placeholder: ' ' },
-      password: { isRequired: false, placeholder: ' ' },
-      confirm_password: { isRequired: false, placeholder: ' ' },
+      email: { placeholder: ' ' },
+      password: { placeholder: ' ' },
+      confirm_password: { placeholder: ' ' },
     },
   };
+
+  // Set on the first Create Account press. Amplify re-runs the validators on
+  // every keystroke, so nothing is flagged before then: validating earlier
+  // paints the form red while the user is still typing it in, and leaves the
+  // Create Account button disabled from the moment the page opens (#685).
+  private submitAttempted = false;
+  private signUpForm: HTMLFormElement | null = null;
+
+  // A duplicate account is only detectable at submit, so the message has to be
+  // held and replayed through the validator to land on the email field. It is
+  // dropped as soon as a different address is typed.
+  private takenEmail = '';
 
   // Error-property name -> the label the user sees, for both the summary and
   // the "invalid fields" message. One map so the two can't drift apart.
   private readonly fieldLabels: Record<string, string> = {
     emailError: 'Email',
     passwordError: 'Password',
+    confirmPasswordError: 'Confirm Password',
     givenNameError: 'Given Name',
     familyNameError: 'Family Name',
     mobilePhoneError: 'Mobile Phone Number',
@@ -89,9 +99,9 @@ export class LoginComponent implements OnInit{
     'We could not create your account. Please check your details and try again.';
 
   private clearAllErrors(): void {
-    console.log('Clearing all errors');
     this.emailError = '';
     this.passwordError = '';
+    this.confirmPasswordError = '';
     this.givenNameError = '';
     this.familyNameError = '';
     this.mobilePhoneError = '';
@@ -102,6 +112,7 @@ export class LoginComponent implements OnInit{
     this.postalCodeError = '';
     this.countryError = '';
     this.summaryError = '';
+    this.takenEmail = '';
   }
 
   // The summary was computed and thrown away, so the alert never rendered and
@@ -127,44 +138,14 @@ export class LoginComponent implements OnInit{
 
     handleSignUp: async (input: Parameters<typeof signUp>[0]) => {
       this.clearAllErrors();
-      
-      // Convert Amplify's input format to our SignUpInput interface
-      const attributes = input.options?.userAttributes ?? {};
-      const attrRecord = attributes as Record<string, unknown>;
-      
-      const signUpData: SignUpFormData = {
-        email: input.username ?? '',
-        password: input.password ?? '',
-        givenName: String(attrRecord['given_name'] ?? ''),
-        familyName: String(attrRecord['family_name'] ?? ''),
-        mobilePhone: String(attrRecord['custom:mobilePhone'] ?? ''),
-        homePhone: String(attrRecord['custom:secondaryNumber'] ?? ''),
-        streetAddress: String(attrRecord['custom:streetAddress'] ?? ''),
-        city: String(attrRecord['custom:city'] ?? ''),
-        province: String(attrRecord['custom:province'] ?? ''),
-        postalCode: String(attrRecord['custom:postalCode'] ?? ''),
-        country: String(attrRecord['custom:country'] ?? ''),
-      };
 
-      const errors = this.validationService.validateSignUp(signUpData);
-      
-      // Assign all errors to component properties for display
-      this.emailError = errors.emailError;
-      this.passwordError = errors.passwordError;
-      this.givenNameError = errors.givenNameError;
-      this.familyNameError = errors.familyNameError;
-      this.mobilePhoneError = errors.mobilePhoneError;
-      this.homePhoneError = errors.homePhoneError;
-      this.streetAddressError = errors.streetAddressError;
-      this.cityError = errors.cityError;
-      this.provinceError = errors.provinceError;
-      this.postalCodeError = errors.postalCodeError;
-      this.countryError = errors.countryError;
+      const email = input.username ?? '';
+      const errors = this.showErrors(
+        email,
+        input.password ?? '',
+        (input.options?.userAttributes ?? {}) as Record<string, unknown>
+      );
 
-      // Update summary error
-      this.updateErrorSummary();
-
-      // Check if there are any errors and throw if so
       const errorEntries = Object.entries(errors).filter(([, message]) => message);
       if (errorEntries.length) {
         const invalidFields = errorEntries.map(([key]) => this.fieldLabels[key]).join(', ');
@@ -174,25 +155,66 @@ export class LoginComponent implements OnInit{
       try {
         return await signUp(input);
       } catch (error) {
-        this.failSignUp(error);
+        this.failSignUp(error, email);
       }
     },
 
-    // confirm_password never reaches handleSignUp: Amplify strips it from the
-    // sign-up input because it is not a Cognito attribute, so the match check
-    // has to live here, the only hook that sees the raw form values. Without it
-    // clearing isRequired above would let an account through on a single typed
-    // password, because Amplify's own check skips a blank, untouched confirm.
-    validateCustomSignUp: async (formData: Record<string, string>) => {
+    // The only hook that can put a message on Amplify's own email, password and
+    // confirm password fields, which the sign-up slot renders as one block. It
+    // runs on every change and on submit, so a field named here is reported
+    // under that field rather than in a list at the foot of the form (#685).
+    validateCustomSignUp: async (
+      formData: Record<string, string>,
+      touchData: Record<string, boolean>,
+    ) => {
+      if (!this.submitAttempted) {
+        return null;
+      }
+
+      const email = formData?.['email'] ?? '';
       const password = formData?.['password'] ?? '';
       const confirmPassword = formData?.['confirm_password'] ?? '';
-      if (!confirmPassword.trim()) {
-        return { confirm_password: 'Please confirm your password.' };
+
+      // Every field is checked on each pass, so one press of Create Account
+      // reports the whole form rather than revealing the address fields only
+      // once the credentials above them are fixed.
+      this.showErrors(email, password, formData);
+
+      if (!this.emailError && this.takenEmail && email === this.takenEmail) {
+        this.emailError = LoginComponent.SIGN_UP_ERRORS['UsernameExistsException'];
       }
-      if (password !== confirmPassword) {
-        return { confirm_password: 'Passwords do not match.' };
+
+      const errors: Record<string, string> = {};
+      if (this.emailError) {
+        errors['email'] = this.emailError;
       }
-      return null;
+
+      // A password Amplify has never seen focus gets no message from its own
+      // validator, so a straight-to-submit blank one needs covering here.
+      // Anything it does report is left to it, to keep to one message.
+      if (this.passwordError && !touchData?.['password']) {
+        errors['password'] = this.passwordError;
+      }
+
+      // confirm_password never reaches handleSignUp: Amplify strips it from the
+      // sign-up input because it is not a Cognito attribute. Its own check only
+      // fires on a mismatch, so without the blank case an account goes through
+      // on a single typed password.
+      this.confirmPasswordError = !confirmPassword.trim()
+        ? 'Please confirm your password.'
+        : password !== confirmPassword
+          ? 'Passwords do not match.'
+          : '';
+      if (this.confirmPasswordError) {
+        errors['confirm_password'] = this.confirmPasswordError;
+      }
+
+      this.updateErrorSummary();
+
+      // Only these three are Amplify's to render. A bad address field is left
+      // to handleSignUp, which refuses the submit with the same message its
+      // own error line is already showing.
+      return Object.keys(errors).length ? errors : null;
     },
 
     handleConfirmSignUp: (input: Parameters<typeof confirmSignUp>[0]) =>
@@ -208,18 +230,52 @@ export class LoginComponent implements OnInit{
         'We could not reset your password. Check the code and try again.'),
   };
 
+  // One place that turns the form's raw values into validation messages on the
+  // component, so the submit path and the live checks can't disagree.
+  private showErrors(
+    email: string,
+    password: string,
+    attributes: Record<string, unknown>
+  ): SignUpValidationErrors {
+    const value = (key: string) => String(attributes[key] ?? '');
+    const errors = this.validationService.validateSignUp({
+      email,
+      password,
+      givenName: value('given_name'),
+      familyName: value('family_name'),
+      mobilePhone: value('custom:mobilePhone'),
+      homePhone: value('custom:secondaryNumber'),
+      streetAddress: value('custom:streetAddress'),
+      city: value('custom:city'),
+      province: value('custom:province'),
+      postalCode: value('custom:postalCode'),
+      country: value('custom:country'),
+    });
+
+    Object.entries(errors).forEach(([key, message]) => {
+      (this as unknown as Record<string, string>)[key] = message;
+    });
+    this.updateErrorSummary();
+
+    return errors;
+  }
+
   // Cognito only reports a duplicate account (including an alias of an
   // existing address) at submit, and the generic wrapper turned that into an
   // unactionable message at the foot of the form (#685). Amplify v6 errors
   // carry `name`, not `code` — matching on `code` silently matches nothing.
-  private failSignUp(error: unknown): never {
+  private failSignUp(error: unknown, email = ''): never {
     console.error('Auth error:', error);
     const name = (error as { name?: string })?.name ?? '';
     const message = LoginComponent.SIGN_UP_ERRORS[name] ?? LoginComponent.SIGN_UP_GENERIC_ERROR;
 
     if (name === 'UsernameExistsException') {
       this.emailError = message;
+      this.takenEmail = email;
       this.updateErrorSummary();
+      // Re-runs the validators so the message lands on the email field itself,
+      // not only in the error line under the credentials.
+      this.authenticator.updateForm({ name: 'email', value: email });
     }
 
     throw new Error(message);
@@ -239,9 +295,36 @@ export class LoginComponent implements OnInit{
     private route: ActivatedRoute,
     private router: Router,
     private authenticator: AuthenticatorService,
-    private validationService: AuthValidationService
+    private validationService: AuthValidationService,
+    private el: ElementRef<HTMLElement>
   ) {}
   currentDate = '';
+
+  ngAfterViewInit(): void {
+    // Capture phase, on our own element: the machine reads submitAttempted
+    // while validating, and Amplify's handler on the form itself would
+    // otherwise get there first on the very first press.
+    this.el.nativeElement.addEventListener(
+      'submit',
+      () => { this.submitAttempted = true; },
+      true
+    );
+  }
+
+  ngAfterViewChecked(): void {
+    const form = this.el.nativeElement.querySelector<HTMLFormElement>('amplify-sign-up form');
+    if (form === this.signUpForm) {
+      return;
+    }
+    this.signUpForm = form;
+    if (form) {
+      // The browser's own check refuses the submit and only moves focus to the
+      // first bad field, so handleSignUp never runs and the user is left with
+      // no message at all. This form reports its own errors (#685).
+      form.noValidate = true;
+    }
+  }
+
   ngOnInit() {
     // Force authenticator reset by updating key
     this.authKey = Date.now();
@@ -272,18 +355,21 @@ export class LoginComponent implements OnInit{
   }
   
   showBCParksLogin() {
+    this.submitAttempted = false;
     this.initialState = 'signIn';
     this.showAmplifyAuth = true;
     this.authenticator.toSignIn();
   }
 
   showBCParksSignUp() {
+    this.submitAttempted = false;
     this.initialState = 'signUp';
     this.showAmplifyAuth = true;
     this.authenticator.toSignUp();
   }
   
   goBack() {
+    this.submitAttempted = false;
     this.showAmplifyAuth = false;
   }
 
@@ -302,7 +388,7 @@ export class LoginComponent implements OnInit{
 
   validateMobilePhone(event: Event): void {
     const input = (event.target as HTMLInputElement).value;
-    this.mobilePhoneError = this.validationService.validatePhoneNumber(input, 'Mobile phone');
+    this.mobilePhoneError = this.validationService.validateMobilePhone(input);
     this.updateErrorSummary();
   }
 

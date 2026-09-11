@@ -34,7 +34,7 @@ export class SearchPageComponent implements OnInit, OnDestroy {
     { value: '/facility/bcparks_15/structure/1', display: 'Daily Additional P1 and Lower P5' },
     { value: '/facility/bcparks_15/structure/2', display: 'P1 and Lower P5' },
     { value: null, display: 'Joffre Lakes Park', disabled: true },
-    { value: '/facility/bcparks_363/structure/1', display: 'Joffre Lakes' },
+    { value: '/facility/bcparks_363/trail/1', display: 'Joffre Lakes' },
   ];
 
   constructor(

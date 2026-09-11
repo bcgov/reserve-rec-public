@@ -54,18 +54,38 @@
   // widen the horizontal padding to 24px. Heading and button sizing are
   // identical across all three breakpoints.
   .card-header {
-    background-color: #f2f2f2;
-    padding: 1rem;
+    background-color: #f2f2f2;    
     font-size: 1rem;
+    padding: 1rem;
+    min-height: 83px;
+    align-content: center;
+
+    @media (min-width: 576px) {
+      padding: 1rem 1.5rem;
+    }
 
     .fw-semibold {
       font-weight: 700;
     }
   }
 
-  @media (min-width: 576px) {
-    .card-header {
-      padding: 1rem 1.5rem;
+  .card-body {
+    padding: 1.5rem 1rem;
+
+    @media (min-width: 576px) {
+      padding: 1.5rem;
+    }
+    
+    div:last-child {
+      margin-bottom: 0.25rem !important;
+    }
+
+    .account-button-group button {
+      width: 100%;
+
+      @media (min-width: 768px) {
+        width: auto;
+      }
     }
   }
 
@@ -101,19 +121,25 @@
     font-size: revert;
   }
 
-  // #634 item 4: verified / not verified use the design's own green and red at
-  // body size, not Bootstrap's semantic colours at 0.875em.
-  .status-verified,
-  .status-unverified {
-    font-size: 1rem;
-  }
+  .wrapper-status-verification {
+    display: flex;
+    gap: .25rem 1rem;
+    flex-wrap: wrap;
 
-  .status-verified {
-    color: #4f8747;
-  }
+    // #634 item 4: verified / not verified use the design's own green and red at
+    // body size, not Bootstrap's semantic colours at 0.875em.
+    .status-verified,
+    .status-unverified {
+      font-size: 1rem;
+    }
 
-  .status-unverified {
-    color: #d8292f;
+    .status-verified {
+      color: #4f8747;
+    }
+
+    .status-unverified {
+      color: #d8292f;
+    }
   }
 
   // #633: the unverified-email alert. The design stacks the resend button under

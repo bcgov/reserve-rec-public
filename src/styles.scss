@@ -148,3 +148,19 @@ body.booking-cancel-action-mode app-footer {
 .btn-booking-action {
   font-size: 1rem;
 }
+
+.form-action-bar {
+  z-index: 1020;
+
+  .action-bar-button-wrapper {
+    gap: 0 1rem;
+
+    button {
+      width: 100%;
+      
+      @media (min-width: 576px) {
+        width: auto;
+      }
+    }
+  }
+}

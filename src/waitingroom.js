@@ -99,9 +99,17 @@
     return '';
   }
 
+  // The SPA passes root-absolute paths like '/checkout'. Behind the front door
+  // the app is mounted at /dayuse/, so a bare '/checkout' escapes the prefix,
+  // hits the root redirect and loses the return. Resolve every return against
+  // APP_BASE, and refuse anything that is not a same-app path — a returnUrl
+  // of 'https://elsewhere' was previously assigned to location.href verbatim.
   function getReturnUrl() {
     var p = new URLSearchParams(window.location.search);
-    return p.get('returnUrl') || APP_BASE;
+    var raw = p.get('returnUrl');
+    if (!raw || /^[a-z][a-z0-9+.-]*:|^\/\//i.test(raw)) return APP_BASE;
+    if (raw.indexOf(APP_BASE) === 0) return raw;
+    return APP_BASE + raw.replace(/^\/+/, '');
   }
 
   // ── Countdown ─────────────────────────────────────────────────────────────
@@ -339,7 +347,7 @@
     // direct hits on the standalone waiting room page without a valid token.
     var p = new URLSearchParams(window.location.search);
     sessionStorage.setItem('returnUrl', p.get('returnUrl') || window.location.href);
-    window.location.href = '/login?reason=waiting-room';
+    window.location.href = APP_BASE + 'login?reason=waiting-room';
   }
 
   // ── Init ──────────────────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, DestroyRef, EventEmitter, inject, OnDestroy, OnInit, Output } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, EventEmitter, inject, OnDestroy, OnInit, Output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { lastValueFrom } from 'rxjs';
 import { DateTime } from 'luxon';
@@ -28,7 +28,7 @@ import { AccountVerificationComponent } from '../shared/components/account-verif
   templateUrl: './facility-details.component.html',
   styleUrls: ['./facility-details.component.scss']
 })
-export class FacilityDetailsComponent implements OnInit, OnDestroy {
+export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestroy {
   @Output() formValue: EventEmitter<any> = new EventEmitter<any>();
   public emailVerified = false;
   public emailVerificationLoaded = false;
@@ -49,6 +49,10 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
   // explicit error state instead of a page with nothing on it.
   public facilityLoadFailed = false;
   
+  public activeSection = 'day-use-pass-notice';
+  private sectionObserver?: IntersectionObserver;
+  private sectionEls: HTMLElement[] = [];
+
   public relatedActivities: any[] = [];
   public availableActivities: any = [];
   
@@ -639,7 +643,44 @@ export class FacilityDetailsComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
+  ngAfterViewInit(): void {
+    // Highlight the "On this page" link for whichever section is near the top of
+    // the viewport. An observer (not a scroll listener) because the page's scroll
+    // container is not always `window` in this layout.
+    this.sectionEls = Array.from(document.querySelectorAll('.scroll-anchor')) as HTMLElement[];
+    if (!this.sectionEls.length) return;
+    this.sectionObserver = new IntersectionObserver(
+      () => this.updateActiveSection(),
+      { rootMargin: '-15% 0px -80% 0px', threshold: [0, 1] }
+    );
+    this.sectionEls.forEach(s => this.sectionObserver!.observe(s));
+    this.updateActiveSection();
+  }
+
+  private updateActiveSection(): void {
+    const vh = window.innerHeight;
+    // The last section whose top has passed the 15% line, else the first.
+    const passed = this.sectionEls.filter(s => s.getBoundingClientRect().top <= vh * 0.15 + 1);
+    const active = (passed[passed.length - 1] ?? this.sectionEls[0]).id;
+    if (active !== this.activeSection) {
+      this.activeSection = active;
+      this.cdr.detectChanges();
+    }
+  }
+
+  scrollToSection(event: Event, id: string): void {
+    event.preventDefault();
+    this.activeSection = id;
+    const el = document.getElementById(id);
+    if (!el) return;
+    // scrollIntoView and smooth scrolling both stall in this layout, so jump
+    // the window directly.
+    const top = el.getBoundingClientRect().top + window.scrollY - 24;
+    window.scrollTo({ top, behavior: 'instant' as ScrollBehavior });
+  }
+
   ngOnDestroy(): void {
+    this.sectionObserver?.disconnect();
     this.cdr.detectChanges()
   }
 }

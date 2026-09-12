@@ -120,7 +120,7 @@
                     <div class="col-12"><ngds-text-input label="Suite, apartment or unit" [control]="contactForm.get('unitNumber')" [disabled]="isBcsc">></ngds-text-input></div>
                     <div class="col-md-6"><ngds-text-input label="City" [control]="contactForm.get('city')" [disabled]="isBcsc"></ngds-text-input></div>
                     <div class="col-md-6">
-                      <label class="form-label" for="province-select">Province or state</label>
+                      <label class="form-label" for="province-select">Province or state <span class="text-danger">*</span></label>
                       <select id="province-select" class="form-select" formControlName="province">
                         <option value="">Select…</option>
                         @for (p of provinces; track p) {
@@ -130,7 +130,7 @@
                     </div>
                     <div class="col-md-6"><ngds-text-input label="Postal or zip code" [control]="contactForm.get('postalCode')" [disabled]="isBcsc"></ngds-text-input></div>
                     <div class="col-md-6">
-                      <label class="form-label" for="country-select">Country</label>
+                      <label class="form-label" for="country-select">Country <span class="text-danger">*</span></label>
                       <select id="country-select" class="form-select" formControlName="country">
                         <option value="">Select…</option>
                         @for (c of countries; track c) {

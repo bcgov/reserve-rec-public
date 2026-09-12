@@ -33,6 +33,11 @@
   color: #C7C7C7 !important;
 }
 
+.custom-alert {
+  background-color: #F7F9FC;
+  border-color: #053662;
+}
+
 // Stops a very, very long picklist from being a giant obelisk on the page
 ::ng-deep ngds-picklist-input .dropdown-menu {
   max-height: 300px;

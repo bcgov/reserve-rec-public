@@ -59,10 +59,35 @@
       </div>
     </div>
 
-    <!-- Park information -->
-    <section class="row mb-5">
-      <div class="col-lg-8 mx-auto">
-        <h2 class="text-primary">Park information</h2>
+    <div class="row">
+      <!-- On this page -->
+      <nav class="col-12 col-lg-3 mb-4 mb-lg-0" aria-label="On this page">
+        <div class="on-this-page">
+          <p class="fw-bold mb-2">On this page</p>
+          <ul class="mb-0">
+            <li>
+              <a href="#day-use-pass-notice" (click)="scrollToSection($event, 'day-use-pass-notice')"
+                [class.active]="activeSection === 'day-use-pass-notice'">Day-use pass notice</a>
+            </li>
+            @if (relatedActivities && relatedActivities.length > 0) {
+              <li>
+                <a href="#know-before-you-go" (click)="scrollToSection($event, 'know-before-you-go')"
+                  [class.active]="activeSection === 'know-before-you-go'">Know before you go</a>
+              </li>
+            }
+            <li>
+              <a href="#request-a-pass" (click)="scrollToSection($event, 'request-a-pass')"
+                [class.active]="activeSection === 'request-a-pass'">Request your pass</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <div class="col-lg-8">
+
+    <!-- Day-use pass notice -->
+    <section id="day-use-pass-notice" class="scroll-anchor mb-5">
+        <h2 class="text-primary">Day-use pass notice</h2>
         <hr class="section-underline mb-5">
         <p class="mb-4">{{ geozone?.description }}</p>
         <div class="mt-2 d-flex flex-column flex-lg-row gap-3">
@@ -88,22 +113,35 @@
             </a>
           }
         </div>
-      </div>
     </section>
 
-    <!-- Park and facility operating dates -->
+    <!-- Know before you go -->
     @if (relatedActivities && relatedActivities.length > 0) {
-      <section class="row mt-4 mb-4">
-        <div class="col-lg-8 mx-auto">
-          <h3 class="section-heading mb-4">Park and facility operating dates</h3>
-          <!-- Passes required box -->
-          <div class="passes-required text-dark rounded-2 border border-1 p-3 mb-5">
-            <p class="fw-bold mb-1">Passes required</p>
-            <p class="mb-0">March 20, 2026 - September 15, 2026</p>
+      <section id="know-before-you-go" class="scroll-anchor mt-4 mb-4">
+          <h2 class="text-primary">Know before you go</h2>
+          <hr class="section-underline mb-5">
+
+          <!-- Important dates -->
+          <h3 class="section-heading mb-3">Important dates</h3>
+          <div class="important-dates rounded-2 border border-1 p-4 mb-5">
+            <p class="fw-bold text-primary mb-3">{{ facility?.displayName }} day-use pass</p>
+            <dl class="mb-0 d-flex align-items-start gap-3">
+              <dt>
+                <i class="fa-regular fa-calendar text-primary" aria-hidden="true"></i>
+                <span class="visually-hidden">Dates</span>
+              </dt>
+              <dd class="mb-0">
+                <span class="d-block fw-bold">Day-use passes required</span>
+                <span class="d-block">March 20, 2026 &ndash; September 15, 2026</span>
+              </dd>
+            </dl>
           </div>
-          <!-- Activities/Facilities list -->
+
+          <!-- Activities/Facilities list — only activities that carry supporting
+               copy; a bare name here just duplicates the card title above. -->
           <div class="row">
             @for (activity of relatedActivities; track activity) {
+              @if (activity?.description || activity?.schedule) {
               <div class="col-lg-6 mb-4">
                 <div class="d-flex align-items-start gap-2">
                   <i
@@ -119,16 +157,15 @@
                   </div>
                 </div>
               </div>
+              }
             }
           </div>
-        </div>
       </section>
     }
 
     <!-- Request your pass -->
-    <section class="container">
-      <div class="row mt-4" id="request-a-pass">
-        <div class="col-lg-8 mx-auto bg-primary rounded-1 px-3 px-sm-4 pt-3 pb-4">
+    <section id="request-a-pass" class="scroll-anchor mt-4">
+        <div class="bg-primary rounded-1 px-3 px-sm-4 pt-3 pb-4">
           <h4 class="text-white mb-3 pt-3">Request your pass</h4>
           <div class="row g-3 align-items-end mb-3">
             <div class="col-12">
@@ -240,7 +277,9 @@
             </div>
           </div>
         </div>
-      </div>
     </section>
+
+      </div><!-- /.col-lg-8 -->
+    </div><!-- /.row -->
   }
 </div>

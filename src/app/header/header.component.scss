@@ -47,13 +47,31 @@
     }
 }
 
-// Truncate long names/emails instead of overflowing the dropdown
-.dropdown-menu .account-info {
-    min-width: 0;
+.dropdown-menu, .hamburger-dropdown {
 
-    > div {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+    .account-avatar {
+        width: 44px;
+        height: 44px;
+        font-size: 1.2rem;
+    }
+
+    // Truncate long names/emails instead of overflowing the dropdown
+    .account-info {
+        min-width: 0;
+
+        > div {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    // Visually center the icons and better align the text in the dropdown items
+    .dropdown-item i {
+        width: 24px;
+        height: 24px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 }

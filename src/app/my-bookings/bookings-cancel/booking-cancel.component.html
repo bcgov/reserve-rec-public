@@ -15,21 +15,21 @@
 }
 
 @if (!loading && booking) {
-  <div class="container mt-5 px-4 mb-5 cancel-page-container" [class.with-action-bar]="showActionBar()">
+  <div class="container mt-4 mb-5 px-4 cancel-page-container" [class.with-action-bar]="showActionBar()">
     <app-breadcrumb></app-breadcrumb>
     <!-- Page heading -->
     <h1 class="fw-bold mb-2 text-primary">Cancel entire booking</h1>
-    <p class="text-muted mb-4">{{ getGeozoneName() }}</p>
+    <p class="text-muted mb-4 pb-2">{{ getGeozoneName() }}</p>
     @if (isBookingCancelled()) {
       <div class="row">
-        <div class="d-flex flex-column col-lg-10 mx-auto">
-          <div class="success-section alert alert-info border border-success mb-4 p-4 text-dark">
+        <div class="d-flex flex-column col-lg-10 mx-auto mb-3">
+          <div class="success-section alert alert-info border border-success mb-4 px-4 py-3 text-dark">
             <div class="d-flex">
               <div class="me-2 flex-shrink-0">
                 <i class="fa-regular fa-check-circle text-success"></i>
               </div>
               <div class="flex-grow-1">
-                <strong>Your booking is cancelled.</strong>
+                <strong class="mb-2 d-inline-block">Your booking is cancelled.</strong>
                 <p class="mb-4">Thank you for cancelling your booking. This gives others the chance to visit the park. We hope to see you soon!</p>
                 <div class="text-end">
                   <button class="btn btn-outline-primary rounded-1 fw-bold py-2 px-3" (click)="goBack()">
@@ -43,16 +43,16 @@
       </div>
     }
     <div class="row">
-      <div class="col-10 mx-auto">
+      <div class="col-lg-10 mx-auto">
         <!-- Shared card: header + switched body -->
-        <div class="card border rounded mb-4">
-          <div class="card-header bg-booking-header ps-4 p-3 border">
+        <div class="booking-card card border rounded mb-4">
+          <div class="card-header bg-booking-header p-3 px-sm-4">
             <b class="text-body-emphasis d-block">{{ getGeozoneName() }}</b>
             <p class="text-muted mb-0">{{ getActivityType() }}</p>
           </div>
-          <div class="card-body p-4">
+          <div class="card-body px-3 px-sm-4 py-4">
             @if (isBookingCancelled()) {
-              <div class="alert alert-danger mb-4" role="alert">
+              <div class="alert alert-danger mb-4 px-4 py-3 card-field-icon-flex" role="alert">
                 <i class="fa-regular fa-circle-exclamation text-danger me-2"></i>
                 <strong class="text-dark">This booking has been cancelled</strong>
               </div>
@@ -83,12 +83,12 @@
 
 <!-- Full width action bar (visible only while cancellation is available) -->
 @if (showActionBar()) {
-  <div class="w-100 bg-light-blue-nav border-top fixed-bottom cancel-action-bar">
+  <div class="w-100 bg-light-blue-nav border-top fixed-bottom form-action-bar">
     <div class="container">
-      <div class="d-flex justify-content-between py-3">
-        <button class="btn btn-outline-primary rounded-1 fw-bold mb-2 py-2 px-3" (click)="goBack()">
+      <div class="action-bar-button-wrapper d-flex justify-content-between py-3 px-2 mx-1">
+        <button class="btn btn-outline-primary rounded-1 fw-bold py-2 px-3" (click)="goBack()">
           <i class="fa-solid fa-circle-chevron-left me-2"></i>
-          Back to booking
+          Back <span class="d-none d-sm-inline">to booking</span>
         </button>
         <button
           type="button"
@@ -189,15 +189,15 @@
   <!-- Arrival / Departure -->
   <div class="row g-3 mb-3">
     <div class="col-md-6">
-      <div class="mb-3">
-        <p class="small fw-semibold mb-2 text-body-emphasis">Arrival</p>
+      <div class="mb-0 mb-md-2">
+        <p class="small fw-semibold mb-1 text-body-emphasis">Arrival</p>
         <div>{{ getArrivalDate() | date:'fullDate' }}</div>
         <div class="text-muted small mt-1">{{ getArrivalTime() }}</div>
       </div>
     </div>
     <div class="col-md-6">
-      <div class="mb-3">
-        <p class="small fw-semibold mb-2 text-body-emphasis">Departure</p>
+      <div class="mb-0 mb-md-2">
+        <p class="small fw-semibold mb-1 text-body-emphasis">Departure</p>
         <div>{{ getDepartureDate() | date:'fullDate' }}</div>
         <div class="text-muted small mt-1">{{ getDepartureTime() }}</div>
       </div>
@@ -207,14 +207,14 @@
   <!-- Pass Type / Passes -->
   <div class="row g-3 mb-3">
     <div class="col-md-6">
-      <div class="mb-3">
-        <p class="small fw-semibold mb-2 text-body-emphasis">Pass type</p>
-        <div><i class="fa-regular fa-map-marker-alt fa-sm ps-1 pe-2"></i> {{ getProductDisplayName() }}</div>
+      <div class="mb-0 mb-md-2">
+        <p class="small fw-semibold mb-1 text-body-emphasis">Pass type</p>
+        <div class="card-field-icon-flex"><i class="fa-regular fa-map-marker-alt fa-sm ps-1 pe-2"></i> {{ getProductDisplayName() }}</div>
       </div>
     </div>
     <div class="col-md-6">
-      <div class="mb-3">
-        <p class="small fw-semibold mb-2 text-body-emphasis">Passes</p>
+      <div class="mb-2">
+        <p class="small fw-semibold mb-1 text-body-emphasis">Passes</p>
         <div><i class="fa-regular fa-tickets-simple fa-sm pe-2"></i> {{ getPassCount() }}</div>
       </div>
     </div>
@@ -225,14 +225,14 @@
   <!-- Visitor / License Plate -->
   <div class="row g-3 mb-3">
     <div class="col-md-6">
-      <div class="mb-3">
-        <p class="small fw-semibold mb-2 text-body-emphasis mt-1">Visitor</p>
+      <div class="mb-0 mb-md-2">
+        <p class="small fw-semibold text-body-emphasis mb-1 mt-1">Visitor</p>
         <div>{{ getNamedOccupant() }}</div>
       </div>
     </div>
     <div class="col-md-6">
-      <div class="mb-3">
-        <p class="small fw-semibold mb-2 text-body-emphasis mt-1">License plate</p>
+      <div class="mb-2">
+        <p class="small fw-semibold text-body-emphasis mb-1 mt-1">License plate</p>
         <div>
           {{ getLicensePlate() }}@if (getLicensePlateRegistrationRegion()) {
           <span>, {{ getLicensePlateRegistrationRegion() }}</span>
@@ -246,7 +246,7 @@
 
 <!-- Confirmation Number -->
 <div>
-  <p class="small fw-semibold mb-2 text-body-emphasis">Confirmation number</p>
+  <p class="small fw-semibold mb-1 pt-1 text-body-emphasis">Confirmation number</p>
   <div>{{ getBookingNumber() }}</div>
 </div>
 </ng-template>

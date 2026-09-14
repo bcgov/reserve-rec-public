@@ -1,7 +1,7 @@
-<div class="container my-4 account-settings">
+<div class="container mt-4 mb-5 account-settings">
 
   <app-breadcrumb></app-breadcrumb>
-  <h1 class="h3 fw-bold mb-4">Account settings</h1>
+  <h1 class="fw-bold mt-2 mb-4 pb-2">Account settings</h1>
 
   <!-- Loading State -->
   @if (loading) {
@@ -47,16 +47,16 @@
             <div class="card-body">
               <!-- Read-only -->
               @if (editing !== 'contact') {
-                <div class="mb-3">
-                  <div class="field-label">Name</div>
+                <div class="mb-3 pb-2">
+                  <div class="field-label small text-body-emphasis">Name</div>
                   <div>{{ user.given_name }} {{ user.family_name }}</div>
                 </div>
 
                 <!-- BCSC Address -->
                 @if (isBcsc) {
                   @if (getBcscAddress()) {
-                    <div class="mb-3">
-                      <div class="field-label">Home address</div>
+                    <div class="mb-3 pb-2">
+                      <div class="field-label small text-body-emphasis">Home address</div>
                       <div>{{ getBcscAddress()['street_address'] || 'N/A' }}</div>
                       <div>{{ getBcscAddress()['locality'] || 'N/A' }}@if (getBcscAddress()['region']) {
                         <span>, {{ getBcscAddress()['region'] || 'N/A' }}</span>
@@ -68,8 +68,8 @@
 
                 <!-- Non-BCSC Address (editable) -->
                 @if (!isBcsc) {
-                  <div class="mb-3">
-                    <div class="field-label">Home address</div>
+                  <div class="mb-3 pb-2">
+                    <div class="field-label small text-body-emphasis">Home address</div>
                     <div>{{ user['custom:streetAddress'] }}@if (user['custom:unitNumber']) {
                       <span>, {{ user['custom:unitNumber'] }}</span>
                     }</div>
@@ -81,7 +81,7 @@
                 }
 
                 <div>
-                  <div class="field-label">Phone numbers</div>
+                  <div class="field-label small text-body-emphasis">Phone numbers</div>
                   <div class="d-flex"><span class="text-muted phone-label">Mobile:</span><span>{{ utils.formatPhone(user['custom:mobilePhone']) || '—' }}</span></div>
                   <div class="d-flex"><span class="text-muted phone-label">Alternate:</span><span>{{ utils.formatPhone(user['custom:secondaryNumber']) || '—' }}</span></div>
                 </div>
@@ -89,9 +89,10 @@
               <!-- Edit -->
               @if (editing === 'contact') {
                 <form [formGroup]="contactForm" (ngSubmit)="saveContact()">
-                  <div class="row g-3">
+                  <div class="fw-light row g-3">
                     <div class="col-md-6">
                       <ngds-text-input
+                        class="form-input"
                         label="Surname"
                         [control]="contactForm.get('family_name')"
                         [invalidConfig]="{
@@ -161,7 +162,7 @@
                       </ngds-text-input>
                     </div>
                   </div>
-                  <div class="d-flex justify-content-end gap-2 mt-3">
+                  <div class="account-button-group d-flex justify-content-end gap-3 mt-4 pt-3">
                     <button type="button" class="btn btn-outline-primary" [disabled]="saving" (click)="cancelEdit()">Cancel</button>
                     <button type="submit" class="btn btn-primary" [disabled]="saving || contactForm.invalid">Save</button>
                   </div>
@@ -171,22 +172,22 @@
           </div>
         </div>
         <!-- Account management -->
-        <div class="col-lg-4 order-3 order-lg-2">
-          <div class="card h-100">
+        <div class="card-account-management col-lg-4 order-3 order-lg-2">
+          <div class="card">
             <div class="card-header"><span class="fw-semibold">Account management</span></div>
             <div class="card-body">
               <div class="mb-3">
-                <div class="field-label">Email address</div>
-                <div class="col-12 col-md-6">
+                <div class="field-label small text-body-emphasis">Email address</div>
+                <div class="wrapper-status-verification">
                   {{ user.email }}
                   <!-- Icons match the Figma status chips: an outline circle-check
                        (node 6231:190938) and a bare xmark with no circle around it
                        (node 6231:191327) — both the regular weight, not solid. -->
                   @if (emailVerified) {
-                    <span class="status-verified ms-1"><i class="fa-regular fa-circle-check"></i> Verified</span>
+                    <span class="status-verified"><i class="fa-regular fa-circle-check"></i> Verified</span>
                   }
                   @if (!emailVerified) {
-                    <span class="status-unverified ms-1"><i class="fa-regular fa-xmark"></i> Not verified</span>
+                    <span class="status-unverified"><i class="fa-regular fa-xmark"></i> Not verified</span>
                   }
                 </div>
                 <!-- Email change is handled in a follow-up ticket -->
@@ -224,7 +225,7 @@
               }
               @if (editing === 'vehicle') {
                 <form [formGroup]="vehicleForm" (ngSubmit)="saveVehicle()">
-                  <div class="row g-3">
+                  <div class="fw-light row g-3">
                     <div class="col-md-6"><ngds-text-input label="Plate number" [control]="vehicleForm.get('licensePlate')"></ngds-text-input></div>
                     <div class="col-md-6">
                       <label class="form-label" for="vehicle-province-select">Province, state or territory</label>
@@ -236,7 +237,7 @@
                       </select>
                     </div>
                   </div>
-                  <div class="d-flex justify-content-end gap-2 mt-3">
+                  <div class="account-button-group d-flex justify-content-end gap-3 mt-4 pt-3">
                     <button type="button" class="btn btn-outline-primary" [disabled]="saving" (click)="cancelEdit()">Cancel</button>
                     <button type="submit" class="btn btn-primary" [disabled]="saving">Save</button>
                   </div>

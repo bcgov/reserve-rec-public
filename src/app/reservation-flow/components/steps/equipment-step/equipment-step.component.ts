@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 
-import { FormGroup, ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
+import { FormGroup, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
 import { StepperService } from '../../../services/stepper.service';

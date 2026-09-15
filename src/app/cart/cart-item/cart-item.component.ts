@@ -40,6 +40,10 @@ export class CartItemComponent implements OnInit {
     return Constants.activityTypes[activityType]?.display || this.item?.productName || 'Activity';
   }
 
+  isAMPass(): boolean {
+    return this.item?.productName?.includes('AM') ?? false;
+  }
+
   getTotalOccupants(occupants: any) {
     return occupants.totalAdult + occupants.totalSenior +
       occupants.totalYouth + occupants.totalChild;

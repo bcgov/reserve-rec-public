@@ -1,10 +1,9 @@
 .checkout-container {
   background-color: #ECF6FF;
-}
 
-.checkout-mobile {
-  display: none;
-  width: 100%;
+  .btn {
+    padding: 0.75rem 1rem !important;
+  }
 }
 
 .shadow-top {
@@ -22,7 +21,8 @@
 
   .cart-container {
     // Ok so this is a magic number
-    margin-bottom: 250px;
+    // Fixed it for you ;) - PG
+    margin-bottom: 120px;
   }
 
   .checkout-desktop {
@@ -34,5 +34,6 @@
     position: fixed;
     bottom: 0;
     z-index: 10;
+    width: 100%;
   }
 }

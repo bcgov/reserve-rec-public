@@ -1,36 +1,36 @@
-<div class="border rounded">
+<div class="booking-card card rounded mb-4">
 
-  <div class="px-4 pt-3 pb-3 bg-grey border">
-    <h5 class="mb-1 fw-bold">{{ item.geozoneName }}</h5>
-    <div class="text-muted fw-medium">{{ getActivityDisplayName() }}</div>
+  <div class="card-header bg-booking-header p-3 px-sm-4">
+    <b class="text-body-emphasis">{{ item.geozoneName }}</b>
+    <p class="text-muted mb-0">{{ getActivityDisplayName() }}</p>
   </div>
 
-  <div class="p-4 bg-white border">
-    <div class="row g-4 mb-3">
-      <div class="col-12 col-lg-6 col-md-6 col-sm-6">
-        <div class="fw-semibold text-dark mb-1">Arrival</div>
-        <div class="text-dark">{{ getDisplayDate(item.checkInAnchor) }}</div>
-        <div class="text-muted small">{{ getDisplayTime(item.checkInAnchor) }}</div>
+  <div class="card-body px-3 px-sm-4 py-4">
+    <div class="row g-3 mb-3">
+      <div class="col-md-6 mb-0 mb-md-2">
+        <div class="small fw-semibold mb-1 text-body-emphasis">Arrival</div>
+        <div>{{ getDisplayDate(item.checkInAnchor) }}</div>
+        <div class="text-muted small mt-1">{{ getDisplayTime(item.checkInAnchor) }}</div>
       </div>
 
-      <div class="col-12 col-lg-6 col-md-6 col-sm-6">
-        <div class="fw-semibold text-dark mb-1">Departure</div>
-        <div class="text-dark">{{ getDisplayDate(item.checkOutAnchor) }}</div>
-        <div class="text-muted small">{{ getDisplayTime(item.checkOutAnchor) }}</div>
+      <div class="col-md-6 mb-0 mb-md-2 pt-2 pt-md-0">
+        <div class="small fw-semibold mb-1 text-body-emphasis">Departure</div>
+        <div>{{ getDisplayDate(item.checkOutAnchor) }}</div>
+        <div class="text-muted small mt-1">{{ getDisplayTime(item.checkOutAnchor) }}</div>
       </div>
     </div>
 
-    <div class="row g-4">
-      <div class="col-12 col-lg-6 col-md-6 col-sm-6">
-        <div class="fw-semibold text-dark mb-1">Pass type</div>
-        <div class="d-flex align-items-center gap-2 text-dark">
-          <i class="fa-regular fa-location-dot fa-sm"></i>
+    <div class="row g-3">
+      <div class="col-md-6 mb-0 pt-2 pt-md-0">
+        <div class="small fw-semibold mb-1 text-body-emphasis">Pass type</div>
+        <div class="card-field-icon-flex">
+          <i class="fa-regular fa-map-marker-alt fa-sm ps-1 pe-2"></i>
           <span>{{ item.productName || getActivityDisplayName() }}</span>
         </div>
       </div>
 
-      <div class="col-12 col-lg-6 col-md-6 col-sm-6">
-        <div class="fw-semibold text-dark mb-1">Passes</div>
+      <div class="col-md-6 mb-0 pt-2 pt-md-0">
+        <div class="small fw-semibold mb-1 text-body-emphasis">Passes</div>
         <div class="d-flex align-items-center gap-2 text-dark">
           <i class="fa-regular fa-tickets-simple fa-sm"></i>
           <span>{{ getTotalPasses() }}</span>
@@ -172,7 +172,7 @@
 
     <!-- Button Row -->
      @if (removeBool) {
-        <div class="d-flex justify-content-between align-items-center mt-5 gap-4">
+        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 gap-4">
           <!-- Remove Button -->
           <button type="button" class="btn btn-outline-primary px-4 py-3 fw-bold" (click)="onRemoveClick()"
           title="Remove from cart">

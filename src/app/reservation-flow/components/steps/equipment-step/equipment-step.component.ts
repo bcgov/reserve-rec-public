@@ -42,12 +42,12 @@ export class EquipmentStepComponent implements OnInit {
   private initializeEquipmentFormControls(): void {
     if (!this.form) return;
 
-    const validators = this.isParkingPass ? [Validators.required] : [];
+    //const validators = this.isParkingPass ? [Validators.required] : []; add this back after we are enforcing for parking passes 
 
     if (!this.form.get('equipmentInfo')) {
       this.form.addControl('equipmentInfo', new FormGroup({
-        licensePlate: new FormControl(this.user?.['custom:licensePlate'] || '', validators),
-        registeredProvince: new FormControl(this.user?.['custom:vehicleRegLocale'] || '', validators)
+        licensePlate: new FormControl(this.user?.['custom:licensePlate'] || ''),
+        registeredProvince: new FormControl(this.user?.['custom:vehicleRegLocale'] || '')
       }));
     }
 
@@ -76,9 +76,9 @@ export class EquipmentStepComponent implements OnInit {
   
   isStepValid(): boolean {
     if (!this.form) return false;
-    if (this.isParkingPass) {
-      return !!this.form.get('equipmentInfo')?.valid;
-    }
+    // if (this.isParkingPass) {
+    //   return !!this.form.get('equipmentInfo')?.valid;
+    // } undo when we go back to validating equipment 
     return true;
   }
   

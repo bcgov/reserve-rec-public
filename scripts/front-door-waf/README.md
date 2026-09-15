@@ -19,6 +19,7 @@ stack attaches it via its `webAclArnSSMPath` config. See bcgov/reserve-rec-api#2
 | `soak_report.py` | **Read-only.** Reads the WAF logs and reports what each Count rule *would* have blocked, the observed per-IP rate distribution, and which rules never matched. Run it before promoting anything to Block. | ✅ |
 | `autoblock_detector.py` | **Producer for `edge-autoblock`.** Scores each client's conversion from availability reads to booking attempts, classifies the operator, and writes time-limited bans. | ✅ mechanism (families and thresholds are runtime policy) |
 | `autoblock_handler.py` | Lambda entry point for the above, deployed by `waf-autoblock-stack`. | ✅ |
+| `ops_queries.py` | Saved Logs Insights queries (`ops/<env>/*`) on the WAF log: top booking and read addresses, blocked addresses, terminating rules, forensics by address, hosts, JA4 fingerprints, user agents. The WAF log is the only place the true client address exists; the API's access log records the CloudFront edge. | ✅ |
 
 ## Ruleset (ported from DUP's `dup-edge-ja`)
 
@@ -71,6 +72,9 @@ python3 provision_waf.py --env dev --apply --block dc:ace
 #    not a finding.
 python3 autoblock_detector.py --env dev
 python3 autoblock_detector.py --env dev --apply
+
+# 8. the saved investigation queries, updated in place on re-run
+python3 ops_queries.py --env dev --apply
 ```
 
 `--block` rebuilds the whole ruleset from the flag, so it must name **every**

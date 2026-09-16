@@ -3,6 +3,7 @@ import { Component, OnInit, OnDestroy, signal, inject, Output, EventEmitter } fr
 import { CartService } from '../../services/cart.service';
 import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 import { BsModalService } from 'ngx-bootstrap/modal';
+import { BookingService } from '../../services/booking.service';
 
 @Component({
   selector: 'app-cart-timer',
@@ -24,7 +25,7 @@ export class CartTimerComponent implements OnInit, OnDestroy {
   private tickInterval: any;
   private modalService = inject(BsModalService)
 
-  constructor(private cartService: CartService) {}
+  constructor(private cartService: CartService, private bookingService: BookingService) {}
 
   async ngOnInit() {
     // Give the user a couple seconds on 0:00 to submit (also works nicely with async tick())
@@ -75,17 +76,16 @@ export class CartTimerComponent implements OnInit, OnDestroy {
             cancelClass: 'btn btn-outline-secondary',
           },
         });
+        this.onRemoveClick();
         let settled = false;
         const settle = (value: boolean) => {
           if (settled) return;
-          this.onRemoveClick()
           settled = true;
           modalRef.hide();
           resolve(value);
         };
         modalRef.content?.confirmButton.subscribe(() => {
           settle(true);
-          this.onRemoveClick();
         });
         modalRef.onHide?.subscribe(() => settle(true));
       });
@@ -97,8 +97,19 @@ export class CartTimerComponent implements OnInit, OnDestroy {
     return expiryTime - currentTime;
   }
 
-  onRemoveClick(): void {
-    this.removeItem.emit(this.cartService.items()[0]?.id);
+  async onRemoveClick() {
+    const cartItem = this.cartService.items()[0];
+    if (!cartItem) {
+      return;
+    }
+
+    // Remove it from the cart
+    this.removeItem.emit(cartItem.id);
+
+    // "Cancel" the booking
+    if (cartItem.bookingId) {
+      await this.bookingService.cancelBooking(cartItem.bookingId);
+    }
   }
 
   ngOnDestroy(): void {

@@ -1,31 +1,31 @@
 <div class="container-fluid">
   <div class="row justify-content-center">
-    <div class="col-lg-10 col-12">
+    <div class="col-12 col-lg-10 px-0">
 
       <!-- Occupant Details Card -->
-      <div class="card occupant-card border mb-4 shadow-none">
-        <div class="card-header bg-booking-header border-1 px-4 py-3">
+      <div class="card booking-card mb-4 shadow-none">
+        <div class="card-header bg-booking-header p-3 px-sm-4">
           <h4 class="fs-6 mb-0 py-3 fw-semibold">Occupant details</h4>
         </div>
-        <div class="card-body p-4">
+        <div class="card-body px-3 px-sm-4 py-4">
           <!-- Explanation Text -->
-          <div class="mb-4">
+          <div class="mb-3">
             <p class="fs-6 mb-4">Day-use passes can only be redeemed by the account holder that booked the reservation.
             </p>
-            <p class="text-muted fw-bold fs-6 mb-4">We will use the following information from your account in this booking:</p>
+            <p class="text-muted fw-bold fs-6 mb-3">We will use the following information from your account in this booking:</p>
           </div>
 
           <!-- Account Information -->
-          <div class="border rounded p-4 bg-booking-header mb-4 occupant-info">
+          <div class="border rounded px-3 py-4 bg-booking-header mb-4 occupant-info">
             <div class="row g-4">
-              <div class="col-md-6">
+              <div class="col-lg-6">
                 <div>
                   <p class="info-label fw-bold mb-2">Name</p>
                   <p class="info-value mb-0">{{ user?.given_name || 'N/A' }} {{ user?.family_name || '' }}</p>
                 </div>
               </div>
-              <div class="col-md-6">
-                <div class="mb-3">
+              <div class="col-lg-6">
+                <div class="mb-4">
                   <p class="info-label fw-bold mb-2">Email address</p>
                   <p class="info-value mb-0">{{ user?.email || 'N/A' }}</p>
                 </div>
@@ -33,7 +33,7 @@
             </div>
 
             <div class="row g-4">
-              <div class="col-md-6">
+              <div class="col-lg-6">
                 <div class="mb-0">
                   <p class="info-label fw-bold mb-2">Home address</p>
                   <p class="info-value mb-0">{{ formatAddress()['streetAddress'] || user['custom:streetAddress'] || 'N/A' }}</p>
@@ -44,15 +44,15 @@
                   <p class="info-value mb-0">{{ formatAddress()['country'] || user['custom:country'] || '' }}</p>
                 </div>
               </div>
-              <div class="col-md-6"><div class="mb-0">
+              <div class="col-lg-6"><div class="mb-0">
                 <p class="info-label fw-bold mb-2">Phone number</p>
                 <div class="phone-container d-flex flex-column">
-                  <div class="d-flex justify-content-between flex-wrap">
+                  <div class="d-flex justify-content-between flex-wrap mb-1">
                     <p class="phone-label info-value mb-0 text-muted" >Mobile:</p>
                     <p class="phone-value text-dark mb-0" >{{ utils.formatPhone(user['custom:mobilePhone']) || 'N/A' }}</p>
                   </div>
                   <div class="d-flex justify-content-between flex-wrap">
-                    <p class="phone label info-value mb-0 text-muted" >Secondary:</p>
+                    <p class="phone label info-value mb-0 text-muted" >Alternate:</p>
                     <p class="phone-value text-dark mb-0" >{{ utils.formatPhone(user['custom:secondaryNumber']) || 'N/A' }}</p>
                   </div>
                 </div>

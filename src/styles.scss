@@ -157,8 +157,12 @@ body.booking-cancel-action-mode app-footer {
 
     button {
       width: 100%;
+      min-height: 48px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
       
-      @media (min-width: 576px) {
+      @media (min-width: 768px) {
         width: auto;
       }
     }

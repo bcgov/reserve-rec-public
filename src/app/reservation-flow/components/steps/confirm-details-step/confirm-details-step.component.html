@@ -1,18 +1,18 @@
 <div class="container-fluid">
   <div class="row justify-content-center">
-    <div class="col-lg-10 col-12">
+    <div class="col-12 col-lg-10 px-0">
 
       <!-- Info Alert -->
-      <div class="alert alert-info mb-4 border border-2 border-primary" role="alert">
+      <div class="alert alert-info mb-4 border border-1 border-primary px-4 py-3" role="alert">
         <div class="d-flex">
-          <div class="flex-shrink-0">
-            <i class="text-primary fa-regular fa-circle-info me-2"></i>
+          <div class="me-2 flex-shrink-0">
+            <i class="text-primary fa-regular fa-circle-info"></i>
           </div>
           <div>
             <div class="mb-1">
               <strong class="text-dark">Passes cannot be transferred or changed.</strong>
             </div>
-            <div class="text-dark">Please review your booking details below carefully.</div>
+            <div class="text-dark small">Please review your booking details below carefully.</div>
           </div>
         </div>
       </div>
@@ -28,9 +28,9 @@
             [formControl]="$any(form?.get('acknowledgeDetails'))"
             id="acknowledgeDetails"
             >
-          <label class="form-check-label" for="acknowledgeDetails">
+          <p class="form-check-label m-0" for="acknowledgeDetails">
             I acknowledge that this information is correct and agree to the terms of the booking.
-          </label>
+          </p>
         </div>
       </div>
 

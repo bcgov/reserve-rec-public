@@ -10,6 +10,10 @@
   box-shadow: 0 0rem 0.3rem rgba(0, 0, 0, 0.45) !important;
 }
 
+.checkout-mobile {
+  display: none;
+}
+
 @media (max-width: 991px) {
   .cart-page {
     display: flex;

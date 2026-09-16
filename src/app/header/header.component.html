@@ -9,7 +9,7 @@
     <div class="d-sm-none d-flex gap-2 ms-auto">
       <!-- Cart icon visible only on smallest screens -->
        @if (user) {
-      <a class="btn text-light d-flex align-items-center gap-1" routerLink="/cart" title="Cart">
+      <a class="btn btn-header-cart text-light d-flex align-items-center gap-1 px-1" routerLink="/cart" title="Cart">
         <i class="fa-regular fa-cart-shopping fa-lg"></i>
         @if (cartItemCount > 0) {
           <span class="badge rounded-circle bg-white text-dark">{{ cartItemCount }}</span>
@@ -19,7 +19,7 @@
 
       <!-- Hamburger only visible only when collapsed -->
       <button
-        class="navbar-toggler border-0"
+        class="navbar-toggler border-0 px-1"
         type="button"
         aria-controls="navbarSupportedContent"
         [attr.aria-expanded]="!hamburgerIcon"
@@ -35,7 +35,7 @@
       <ul class="navbar-nav ms-auto align-items-center">
         <li class="nav-item">
           @if (user){
-          <a class="btn text-light fw-bold d-flex align-items-center gap-1" routerLink="/cart">
+          <a class="btn btn-header-cart text-light fw-bold d-flex align-items-center gap-1" routerLink="/cart">
             <i class="fa-regular fa-cart-shopping"></i>
             @if (cartItemCount > 0) {
               <span class="badge rounded-circle bg-white text-dark">{{ cartItemCount }}</span>

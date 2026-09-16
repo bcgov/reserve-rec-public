@@ -75,3 +75,23 @@
         justify-content: center;
     }
 }
+
+.btn-header-cart {
+    .badge {
+        display: flex;
+        height: 20px;
+        width: 20px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @media (min-width: 576px) {
+        i {
+            transform: translateY(-1px);
+        }
+        .badge {
+            height: 18px;
+            width: 18px;
+        }
+    }
+}

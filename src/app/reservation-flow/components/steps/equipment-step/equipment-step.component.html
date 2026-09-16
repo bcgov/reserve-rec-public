@@ -1,10 +1,10 @@
 <!-- Equipment Card -->
-<div class="card occupant-card border mb-4 shadow-none">
-  <div class="card-header bg-booking-header border-1 px-4 py-3">
+<div class="card booking-card border mb-4 shadow-none">
+  <div class="card-header bg-booking-header p-3 px-sm-4">
     <h4 class="fs-6 mb-0 py-3 fw-semibold">Equipment</h4>
   </div>
-  <div class="card-body px-4 py-2">
-    <h6 class="fs-6 my-3">Vehicle information</h6>
+  <div class="card-body px-3 px-sm-4 py-4">
+    <h6 class="fs-6 mb-2">Vehicle information</h6>
     <!-- Explanation Text -->
     <div class="mb-4">
       <p class="text-muted fs-6 mb-4">Please enter the following details of the vehicle you'll be traveling in. You can
@@ -15,17 +15,17 @@
       </p>
     </div>
     <!-- Vehicle Information Form -->
-    <div class="row">
-      <div class="col-md-6 mb-lg-0 mb-4">
+    <div class="fw-light row mb-md-2">
+      <div class="col-md-6 mb-md-0 mb-3">
         <ngds-text-input
           [label]="isParkingPass ? 'Plate number' : 'Plate number (optional)'"
           [control]="form?.get('equipmentInfo')?.get('licensePlate')" placeholder="Enter license plate number"
         >
         </ngds-text-input>
       </div>
-      <div class="col-md-6 mb-lg-0">
-        <div class="mb-4">
-          <label for="registeredProvince" class="form-label fw-bold">
+      <div class="col-md-6 mb-0">
+        <div class="mb-2 mb-lg-0">
+          <label for="registeredProvince" class="form-label">
             Province, state or territory
             @if (!isParkingPass) {
             (optional)

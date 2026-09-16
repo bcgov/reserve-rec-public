@@ -28,15 +28,13 @@ export class Utils {
 
   // Format phone numbers to be +12 (123) 123-1234
   static formatPhone(digits: string): string {
-    let d = digits
-    
+    if (!digits) return '';
+
+    // Strip punctuation so stored values like "250-555-0123" or "+1 (250) 555-0123"
+    // format from their digits rather than slicing separators into the mask.
+    const d = String(digits).replace(/\D/g, '');
+
     if (!d) return '';
-
-    // Remove starting "+" if it's on there
-    if (d.slice(0,1) == "+") {
-      d = d.slice(1,d.length)
-    }
-
     if (d.length <= 3) return d;
     // hyphen
     if (d.length <= 7) return `${d.slice(0, 3)}-${d.slice(3)}`;

@@ -16,7 +16,7 @@
       <div class="col-md-6 mb-0 mb-md-2 pt-2 pt-md-0">
         <div class="small fw-semibold mb-1 text-body-emphasis">Departure</div>
         <div>{{ getDisplayDate(item.checkOutAnchor) }}</div>
-        <div class="text-muted small mt-1">{{ getDisplayTime(item.checkOutAnchor) }}</div>
+        @if(isAMPass()) { <div class="text-muted small mt-1">{{ getDisplayTime(item.checkOutAnchor) }}</div> }        
       </div>
     </div>
 

@@ -180,7 +180,6 @@ export class AuthService {
       this.session.set(await fetchAuthSession({ forceRefresh: forceRefresh }));
       if (this.session()?.tokens?.accessToken) {
         this.jwtToken = this.session().tokens.accessToken.toString();
-        this.loggerService.debug(JSON.stringify(this.session(), null, 2));
         const refreshInterval = ((this.session().tokens.accessToken.payload.exp * 1000) - Date.now()) / 2;
         if (refreshInterval > 0) {
           setTimeout(async () => {

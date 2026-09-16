@@ -132,7 +132,27 @@
               </dt>
               <dd class="mb-0">
                 <span class="d-block fw-bold">Day-use passes required</span>
-                <span class="d-block">March 20, 2026 &ndash; September 15, 2026</span>
+                @if(facility.displayName === "Cheakamus") {
+                  <span class="d-block">Passes are required at Cheakamus Lake trailhead every day from June 13 to September 7. From September 8 to October 12, they are required Friday, Saturday, Sunday, Monday, and holidays. </span>
+                }
+                @else if (facility.displayName === "Diamond Head") {
+                  <span class="d-block">Passes are required at Diamond Head trailhead Friday, Saturday, Sunday, Monday, and holidays from June 12 to October 12, 2026.</span>
+                }
+                @else if (facility.displayName === "Rubble Creek"){
+                  <span class="d-block">Passes are required at Rubble Creek trailhead Friday, Saturday, Sunday, Monday, and holidays from June 12 to October 12, 2026.</span>
+                }
+                @else if(facility.displayName === "Joffre Lakes") {
+                  <span class="d-block">Day-use trail passes are required from May 11, 2026, to October 25, 2026, for visitors to Pipi7íyekw/Joffre Lakes Park. The park is scheduled to be closed to visitors periodically during this time. Check Pipi7íyekw/Joffre Lakes Park advisories for closure details.</span>
+                }
+                @else if(geozone.displayName === "Golden Ears Park") {
+                  <span class="d-block">Day-use vehicle passes are required at Golden Ears Park Friday, Saturday, Sunday, Monday, and holidays from May 15 to September 7, 2026. Passes are required for all parking lots past the Spirea trailhead.</span>
+                }
+                @else if (facility.displayName === "P1 and Lower P5") {
+                  <span class="d-block">Please review the <a href="https://bcparks.ca/reservations/day-use-passes/" target="_blank">operating dates</a> for this facility.</span>
+                }
+                @else {
+                  <span class="d-block">Please review the <a href="https://bcparks.ca/reservations/day-use-passes/" target="_blank">operating dates</a> for this facility.</span>
+                }
               </dd>
             </dl>
           </div>

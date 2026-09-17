@@ -224,7 +224,7 @@
                 ></i>
               </ngds-date-input>
             </div>
-            @if (isLoggedIn) {
+            @if (isLoggedIn && selectedActivitySubType !== 'vehicleParking') {
               <div class="col-md-6">
                 <ngds-picklist-input
                   [class]="'text-white rounded-1'"
@@ -290,7 +290,7 @@
               } @else if (passStatus === 'available' && isLoggedIn) {
                 <button
                   class="disable-btn btn bg-white text-primary fw-bold rounded-1 px-4 w-100"
-                  [disabled]="!this.form.get('selectedVisitors').value || !this.form.get('selectedDate').value || !this.form.get('selectedProduct').value || !this.passesAvailable"
+                  [disabled]="(!this.form.get('selectedVisitors').value && selectedActivitySubType !== 'vehicleParking') || !this.form.get('selectedDate').value || !this.form.get('selectedProduct').value || !this.passesAvailable"
                   (click)="submit()"
                   >
                   {{ passesAvailable ? "Book day-use pass" : (datesLoadFailed ? "Availability unavailable — try again" : "No passes available") }}

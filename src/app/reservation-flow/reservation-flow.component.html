@@ -3,14 +3,14 @@
   <app-cart-timer (removeItem)="removeItem($event)"></app-cart-timer>
 }
 <div class="bg-container bg-grey">
-  <div class="container">
+  <div class="container mt-4 mb-5">
     <!-- Breadcrumbs -->
     <app-breadcrumb></app-breadcrumb>
 
-    <h1 class="text-primary my-4">Checkout</h1>
+    <h1 class="text-primary mb-4 pb-2">Checkout</h1>
     <app-admission-countdown class="mb-3 d-block"></app-admission-countdown>
 
-    <div class="container-fluid bg-white p-lg-4 p-md-4 p-sm-4 px-0">
+    <div class="container-fluid bg-white p-0">
 
       <app-progress-indicator
         [totalItems]="1"
@@ -21,7 +21,7 @@
       </app-progress-indicator>
 
       <!-- Step Content Container -->
-      <div class="container-fluid bg-grey p-lg-4 p-md-4 p-sm-4 px-0">
+      <div class="container-fluid bg-grey px-0 pt-4 p-md-4">
         <!-- Single step container with exclusive display logic -->
         @switch (currentStep) {
           <!-- Step 0: Details -->
@@ -93,9 +93,9 @@
 </div>
 
 <!-- Full Width Navigation Bar -->
-<div class="w-100 bg-light-blue-nav border-top fixed-bottom">
+<div class="w-100 bg-light-blue-nav border-top fixed-bottom form-action-bar">
   <div class="container">
-    <div class="d-flex justify-content-between py-3">
+    <div class="d-flex justify-content-between py-3 action-bar-button-wrapper">
       <!-- Back to cart on first step, back to the previous step afterwards -->
       <button
         type="button"

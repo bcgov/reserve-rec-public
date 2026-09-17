@@ -1,11 +1,11 @@
-<div class="container">
+<div class="container mt-4 mb-5">
   <div class="row">
     <div class="col-12">
 
       <!-- Breadcrumb -->
       <app-breadcrumb></app-breadcrumb>
 
-      <h2 class="fw-bold mb-5 text-primary">Checkout</h2>
+      <h2 class="fw-bold mb-4 pb-2 text-primary">Checkout</h2>
 
       <!-- Error State -->
       @if (!loading && error) {
@@ -19,24 +19,24 @@
       @if (!loading && !error && booking) {
       <div class="ps-lg-5 ps-md-4">
         <!-- Success Message -->
-        <div class="alert alert-success border border-success mb-2" role="alert">
+        <div class="alert alert-success border border-success mb-2 px-4 py-3 text-dark d-flex align-items-start" role="alert">
           <div class="d-flex">
-            <div class="mt-1">
-              <i class="fa-regular fa-circle-check me-3 fs-4 text-success"></i>
+            <div class="me-2 flex-shrink-0">
+              <i class="fa-regular fa-circle-check text-success"></i>
             </div>
-            <div class="d-flex flex-column align-items-start mb-2">
+            <div class="d-flex flex-column align-items-start mb-2 flex-grow-1">
               <strong class="mb-2">Thank you for booking with BC Parks!</strong>
-              <span>Print or screenshot your day-use pass before you arrive at the park, as mobile internet connectivity
+              <span class="small">Print or screenshot your day-use pass before you arrive at the park, as mobile internet connectivity
                 can be unreliable. You will need it to show to BC Parks staff when requested.</span>
             </div>
           </div>
         </div>
         <!-- Actions Section -->
-        <div class="mb-4 p-0">
+        <div class="mb-4 pb-3">
           <div class="row">
             <div class="col-lg-3 col-md-5 col-12 my-2">
               <div class="dropdown d-grid">
-                <button class="btn btn-outline-primary dropdown-toggle btn-lg fw-bold rounded-2" type="button"
+                <button class="btn btn-outline-primary btn-booking-action dropdown-toggle btn-lg fw-bold rounded-2" type="button"
                   data-bs-toggle="dropdown" aria-expanded="false">
                   Actions
                 </button>
@@ -48,7 +48,7 @@
                     </button>
                   </li>
                   <li>
-                    <button type="button" class="dropdown-item px-4 p-3" (click)="viewBooking()">
+                    <button type="button" class="dropdown-item px-4 p-3 text-primary" (click)="viewBooking()">
                       View this booking
                     </button>
                   </li>
@@ -61,7 +61,7 @@
         <!-- Booking Card -->
         <app-cart-item [item]="booking" [removeBool]="false" (removeItem)="removeItem($event)"></app-cart-item>
 
-        <div class="card border border-2 rounded my-4">
+        <div class="card card-qr-code border-1 rounded my-4">
           <div class="card-body">
             <div class="mb-3">
               <!-- <p class="text-muted small fw-semibold mb-2">Day-use pass QR code</p> -->
@@ -69,7 +69,7 @@
             @if (qrCodeDataUrl) {
             <div class="text-center">
               <div>
-                <img [src]="qrCodeDataUrl" alt="Day-use pass QR code" class="img-fluid p-2" style="max-width: 280px;" />
+                <img [src]="qrCodeDataUrl" alt="Day-use pass QR code" class="img-fluid p-2" style="max-width: 280px;width:100%;" />
               </div>
               <div class="my-3">
                 <button type="button" class="btn btn-primary rounded-1 py-2 px-3" (click)="downloadQRCode()">

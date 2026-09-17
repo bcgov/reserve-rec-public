@@ -149,3 +149,12 @@ ng-container {
 .bg-reservation-grey{
   background-color: blue !important;
 }
+
+.action-bar-wrapper {
+  // Need to build out functionality that hides the previous page name on smaller screens. This is a temporary fix. - PG
+  button {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+}

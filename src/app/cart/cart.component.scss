@@ -1,14 +1,17 @@
 .checkout-container {
   background-color: #ECF6FF;
-}
 
-.checkout-mobile {
-  display: none;
-  width: 100%;
+  .btn {
+    padding: 0.75rem 1rem !important;
+  }
 }
 
 .shadow-top {
   box-shadow: 0 0rem 0.3rem rgba(0, 0, 0, 0.45) !important;
+}
+
+.checkout-mobile {
+  display: none;
 }
 
 @media (max-width: 991px) {
@@ -22,7 +25,8 @@
 
   .cart-container {
     // Ok so this is a magic number
-    margin-bottom: 250px;
+    // Fixed it for you ;) - PG
+    margin-bottom: 120px;
   }
 
   .checkout-desktop {
@@ -34,5 +38,6 @@
     position: fixed;
     bottom: 0;
     z-index: 10;
+    width: 100%;
   }
 }

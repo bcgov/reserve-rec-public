@@ -7,7 +7,12 @@
   // Have dropdown be a bit larger than button, so it hides 
   // the item it appears above (trust me, it just looks nicer)
   min-width: 101%;
-  left: -2px !important;
+  left: -1px !important;
+  border-color: #c7c7c7 !important;
+
+  .border-bottom {
+    border-color: #c7c7c7 !important;
+  }
 }
 
 .card-qr-code {

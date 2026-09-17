@@ -10,7 +10,7 @@
   left: 2%;      
   width: 95%;
   height: 3px;   
-  background-color: #dee2e6; 
+  background-color: #656565; 
   transition: background-color 0.2s ease;
 }
 
@@ -28,12 +28,16 @@
 }
 
 .nav-link.disabled {
-  opacity: 0.5;
+  opacity: 0.75;
   cursor: not-allowed;
+
+  div .text-secondary, &::after {
+    color: #656565 !important;
+  }
 }
 
 // Slightly nicer widths/spacing for stepper underlines
-@media (max-width: 991px) {
+@media (max-width: 768px) {
   .nav-link::after {
     width: 80%;
   }

@@ -1,3 +1,25 @@
+.border-success {
+  background: #F6FFF8;
+}
+
+.dropdown-menu {
+  min-width: 101%;
+  left: -1px !important;
+  border-color: #c7c7c7 !important;
+
+  .border-bottom {
+    border-color: #c7c7c7 !important;
+  }
+}
+
+.card-qr-code {
+  border-color: #C7C7C7;
+
+  button {
+    min-height: 48px;
+  }
+}
+
 // Responsive adjustments for mobile
 @media (max-width: 768px) {
   .d-flex.justify-content-between {

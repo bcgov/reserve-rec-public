@@ -70,7 +70,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   private selectedCollectionId: string;
   private selectedActivityType: string;
   private selectedActivityId: string;
-  private selectedActivitySubType: string | null = null;
+  public selectedActivitySubType: string | null = null;
   private selectedActivityName: string;
   public selectedProductName: string;
   private selectedDateStr: string;
@@ -397,6 +397,12 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
         });
       }
       this.availableVisitorsAllowed = allowedVisitors;
+      
+      // Auto-select 1 pass for vehicle parking
+      if (isParking && this.availableVisitorsAllowed.length > 0) {
+        this.form.get('selectedVisitors').setValue('1', { emitEvent: false });
+      }
+      
       this.loadingPasses = false;
   }
 

@@ -64,7 +64,9 @@ export class AuthValidationService {
     if (!/[0-9]/.test(password)) {
       return 'Password must contain at least one number';
     }
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    // Cognito's RequireSymbols accepts any ASCII punctuation or space, so match
+    // that full set — the old class rejected valid symbols like "_", "-" and "~".
+    if (!/[ !-\/:-@[-`{-~]/.test(password)) {
       return 'Password must contain at least one special character';
     }
     return '';

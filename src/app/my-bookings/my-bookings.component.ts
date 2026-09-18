@@ -142,18 +142,21 @@ export class MyBookingsComponent implements OnInit {
         status: BookingUtils.getStatus(item)
       };
 
+      const timedOut = booking.status === 'timed_out'
+
       // Categorize bookings:
       // 1. Cancelled - any cancelled booking
       // 2. Past - already ended
       // 3. Active - happening now (today falls inside the booking's date range)
       // 4. Upcoming - starts after today
-      if (isCancelled) {
+      // 5. TIMED_OUT/timed_out - hide expired bookings everywhere
+      if (isCancelled && !timedOut) {
         this.cancelledBookings.push(booking);
-      } else if (hasEnded) {
+      } else if (hasEnded && !timedOut) {
         this.pastBookings.push(booking);
-      } else if (hasStarted) {
+      } else if (hasStarted && !timedOut) {
         this.activeBookings.push(booking);
-      } else {
+      } else if (!timedOut) {
         this.upcomingBookings.push(booking);
       }
 

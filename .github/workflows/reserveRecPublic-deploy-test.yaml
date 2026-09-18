@@ -102,8 +102,11 @@ jobs:
         run: |
           echo "Deploying to $S3_BUCKET/$DIR_NAME"
           aws s3 sync dist s3://$S3_BUCKET/$DIR_NAME
-          aws s3 rm s3://$S3_BUCKET/ --recursive --exclude "*" --include "latest/*"
+          # No rm before sync: hashed chunks are immutable and tabs opened before the
+          # deploy still need them. index.html is copied explicitly because sync
+          # skips a file whose size and mtime happen to match.
           aws s3 sync dist s3://$S3_BUCKET/latest
+          aws s3 cp dist/reserve-rec-public/browser/index.html s3://$S3_BUCKET/latest/reserve-rec-public/browser/index.html
 
       ### Publish the /dayuse copy for the front door ###
       # Same artifacts as latest/, but served path-mounted at the reserve-rec front
@@ -116,8 +119,8 @@ jobs:
           cp -r dist/reserve-rec-public/browser dayuse-dist
           sed -i 's@<base href="/">@<base href="/dayuse/">@' dayuse-dist/index.html
           grep -q '<base href="/dayuse/">' dayuse-dist/index.html || { echo "base href rewrite failed"; exit 1; }
-          aws s3 rm s3://$S3_BUCKET/dayuse --recursive
           aws s3 sync dayuse-dist s3://$S3_BUCKET/dayuse
+          aws s3 cp dayuse-dist/index.html s3://$S3_BUCKET/dayuse/index.html
 
       ### Invalidate CloudFront Cache ###
       - name: Invalidate CloudFront Cache

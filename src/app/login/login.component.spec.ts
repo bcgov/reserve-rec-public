@@ -107,6 +107,14 @@ describe('LoginComponent', () => {
         email: 'someone@example.com',
         password: 'Passw0rd!',
         confirm_password: 'Passw0rd!',
+        given_name: 'Sam',
+        family_name: 'Park',
+        'custom:mobilePhone': '2505550123',
+        'custom:streetAddress': '1 Main St',
+        'custom:city': 'Victoria',
+        'custom:province': 'British Columbia',
+        'custom:postalCode': 'V8W 9V1',
+        'custom:country': 'Canada',
       };
 
       it('stays quiet until the first submit', async () => {
@@ -155,6 +163,16 @@ describe('LoginComponent', () => {
 
         it('accepts a complete set of credentials', async () => {
           expect(await validate(filled)).toBeNull();
+        });
+
+        // #834: the submit used to get through to handleSignUp, whose thrown
+        // "Invalid fields" alert then sat under the summary saying the same
+        // thing. Blocking here keeps it to one message.
+        it('blocks the submit when only an address field is bad', async () => {
+          const errors = await validate({ ...filled, 'custom:city': '' });
+
+          expect(errors).not.toBeNull();
+          expect(component.summaryError).toContain('City');
         });
       });
     });

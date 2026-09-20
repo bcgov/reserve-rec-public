@@ -68,6 +68,26 @@ describe('FacilityDetailsComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  // Scrolled to the bottom, the trailing sections can never reach the 15% line,
+  // so the "On this page" list used to stay stuck on an earlier section.
+  it('highlights the last section once the page is scrolled to the bottom', () => {
+    const scrollY = Object.getOwnPropertyDescriptor(window, 'scrollY');
+    Object.defineProperty(window, 'scrollY', { value: 1e6, configurable: true });
+
+    const last = document.createElement('div');
+    last.id = 'last-section';
+    last.className = 'scroll-anchor';
+    document.body.appendChild(last);
+
+    component.ngAfterViewInit();
+
+    expect(component.activeSection).toBe('last-section');
+
+    component.ngOnDestroy();
+    last.remove();
+    if (scrollY) Object.defineProperty(window, 'scrollY', scrollY);
+  });
+
   // The API answers a missing facility with 200 and a null body. The constructor
   // used to dereference it unguarded, which threw and left Angular rendering an
   // entirely blank page instead of anything the user could act on.

@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, EventEmitter, inject, OnDestroy, OnInit, Output } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, EventEmitter, inject, NgZone, OnDestroy, OnInit, Output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { lastValueFrom } from 'rxjs';
 import { DateTime } from 'luxon';
@@ -50,8 +50,8 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   public facilityLoadFailed = false;
   
   public activeSection = 'day-use-pass-notice';
-  private sectionObserver?: IntersectionObserver;
   private sectionEls: HTMLElement[] = [];
+  private readonly scrollEvents = ['scroll', 'resize'];
 
   public relatedActivities: any[] = [];
   public availableActivities: any = [];
@@ -84,6 +84,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   private inventoryPoolService = inject(InventoryPoolService);
   private modalService = inject(BsModalService);
   private bookingService = inject(BookingService);
+  private zone = inject(NgZone);
 
   constructor(
     private route: ActivatedRoute,
@@ -650,24 +651,27 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   ngAfterViewInit(): void {
-    // Highlight the "On this page" link for whichever section is near the top of
-    // the viewport. An observer (not a scroll listener) because the page's scroll
-    // container is not always `window` in this layout.
+    // A scroll listener, not an IntersectionObserver: at the page bottom the last
+    // section's top never reaches the 15% line, so no threshold fires there.
+    // Outside the zone, or every scroll frame runs app-wide change detection.
     this.sectionEls = Array.from(document.querySelectorAll('.scroll-anchor')) as HTMLElement[];
     if (!this.sectionEls.length) return;
-    this.sectionObserver = new IntersectionObserver(
-      () => this.updateActiveSection(),
-      { rootMargin: '-15% 0px -80% 0px', threshold: [0, 1] }
+    this.zone.runOutsideAngular(() =>
+      this.scrollEvents.forEach(e => window.addEventListener(e, this.onScroll, { passive: true }))
     );
-    this.sectionEls.forEach(s => this.sectionObserver!.observe(s));
     this.updateActiveSection();
   }
 
+  private onScroll = (): void => this.updateActiveSection();
+
   private updateActiveSection(): void {
     const vh = window.innerHeight;
-    // The last section whose top has passed the 15% line, else the first.
+    // The last section whose top has passed the 15% line, or the last section
+    // once the page has bottomed out and nothing more can reach that line. The
+    // 4px slack absorbs fractional scroll offsets at non-100% browser zoom.
+    const atBottom = window.scrollY + vh >= document.documentElement.scrollHeight - 4;
     const passed = this.sectionEls.filter(s => s.getBoundingClientRect().top <= vh * 0.15 + 1);
-    const active = (passed[passed.length - 1] ?? this.sectionEls[0]).id;
+    const active = (atBottom ? this.sectionEls.at(-1) : passed.at(-1) ?? this.sectionEls[0])!.id;
     if (active !== this.activeSection) {
       this.activeSection = active;
       this.cdr.detectChanges();
@@ -686,7 +690,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   ngOnDestroy(): void {
-    this.sectionObserver?.disconnect();
+    this.scrollEvents.forEach(e => window.removeEventListener(e, this.onScroll));
     this.cdr.detectChanges()
   }
 }

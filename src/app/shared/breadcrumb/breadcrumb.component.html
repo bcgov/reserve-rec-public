@@ -3,7 +3,7 @@
     <!-- Breadcrumb Navigation -->
     <nav aria-label="breadcrumb" class="py-2 pt-sm-3 mb-4">
       <ol class="breadcrumb custom-breadcrumb mb-0">
-        @for (breadcrumb of breadcrumbs; track breadcrumb; let last = $last; let first = $first) {
+        @for (breadcrumb of breadcrumbs; track breadcrumb.label; let last = $last; let first = $first) {
           <li class="breadcrumb-item" [class.active]="last" [attr.aria-current]="last ? 'page' : null">
             @if (!last) {
               <a

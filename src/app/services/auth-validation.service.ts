@@ -106,8 +106,11 @@ export class AuthValidationService {
   }
 
   private validatePhoneFormat(phone: string, fieldLabel: string): string {
-    // E.164 format: +[country code][number], e.g., +12345678900 or +1-234-567-8900
-    const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+    // E.164: +[country code][number], e.g. +12345678900 or +1-234-567-8900.
+    // The floor is 10 digits, matching the API's normalizer - the old {1,14}
+    // accepted anything from two digits up, so '586588' passed and was stored
+    // as a number no reminder could ever be sent to (#888).
+    const phoneRegex = /^\+?[1-9]\d{9,14}$/;
     if (!phoneRegex.test(phone.replace(/[\s\-()]/g, ''))) {
       return `${fieldLabel} must be a valid phone number, e.g. +1 (250) 555-1234`;
     }

@@ -4,6 +4,7 @@ import { lastValueFrom } from 'rxjs';
 import { DateTime } from 'luxon';
 import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Title } from '@angular/platform-browser';
 import { FormBuilder, FormsModule, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 import { ProductService } from '../services/product.service';
@@ -20,6 +21,7 @@ import { BsModalService } from 'ngx-bootstrap/modal';
 import { ConfirmationModalComponent } from '../shared/components/confirmation-modal/confirmation-modal.component';
 import { BookingService } from '../services/booking.service';
 import { AccountVerificationComponent } from '../shared/components/account-verification/account-verification.component';
+import { pageTitle } from '../page-title.strategy';
 
 @Component({
   selector: 'app-facility-details',
@@ -84,6 +86,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   private inventoryPoolService = inject(InventoryPoolService);
   private modalService = inject(BsModalService);
   private bookingService = inject(BookingService);
+  private titleService = inject(Title);
 
   constructor(
     private route: ActivatedRoute,
@@ -117,6 +120,11 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   async ngOnInit() {
+    // Not in the constructor: the router's TitleStrategy runs after activation and would overwrite it.
+    if (this.facility?.displayName) {
+      this.titleService.setTitle(pageTitle(this.facility.displayName));
+    }
+
     // Initialize the form first so the template can bind immediately
     this.initializeForm();
 

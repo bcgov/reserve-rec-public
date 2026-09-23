@@ -167,7 +167,7 @@ export class CartItemComponent implements OnInit {
       modalRef.content?.confirmButton.subscribe(() => {
         settle(true);
         this.removeItem.emit(this.item.id);
-        this.bookingService.cancelBooking(this.item.bookingId)
+        this.bookingService.cancelBooking(this.item.bookingId, {"removeItemFromCart": true})
         modalRef.hide();
       });
       modalRef.content?.cancelButton.subscribe(() => {

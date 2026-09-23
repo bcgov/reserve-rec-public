@@ -93,9 +93,9 @@ export class BookingService {
     }
   }
 
-  async cancelBooking(bookingId: string) {
+  async cancelBooking(bookingId: string, data = {}) {
     try {
-      const res = (await lastValueFrom(this.apiService.post(`bookings/${bookingId}/cancel`, {}, {})))['data'];
+      const res = (await lastValueFrom(this.apiService.post(`bookings/${bookingId}/cancel`, data, {})))['data'];
       this.toastService.addMessage(
         `Successfully removed from cart`,
         '',

@@ -119,7 +119,7 @@ export class CartService {
   async releaseCartItem(item: CartItem | undefined): Promise<void> {
     if (!item?.bookingId) return;
     try {
-      await this.bookingService.cancelBooking(item.bookingId);
+      await this.bookingService.cancelBooking(item.bookingId, {"removeItemFromCart": true});
     } catch (error) {
       console.warn('Failed to cancel booking for discarded cart item:', error);
     }

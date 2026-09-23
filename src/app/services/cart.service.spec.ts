@@ -51,7 +51,7 @@ describe('CartService booking release', () => {
 
   it('cancels the booking of a released item', async () => {
     await service.releaseCartItem(makeItem('booking-1'));
-    expect(bookingServiceSpy.cancelBooking).toHaveBeenCalledWith('booking-1');
+    expect(bookingServiceSpy.cancelBooking).toHaveBeenCalledWith('booking-1', Object({ removeItemFromCart: true }));
   });
 
   it('does not call the API for an item with no booking', async () => {

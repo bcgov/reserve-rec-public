@@ -108,7 +108,7 @@ export class CartTimerComponent implements OnInit, OnDestroy {
 
     // "Cancel" the booking
     if (cartItem.bookingId) {
-      await this.bookingService.cancelBooking(cartItem.bookingId);
+      await this.bookingService.cancelBooking(cartItem.bookingId, {"removeItemFromCart": true});
     }
   }
 

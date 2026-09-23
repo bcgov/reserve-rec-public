@@ -273,15 +273,6 @@
                     <strong class="text-dark">This park area is closed for the selected date and time.</strong>
                   </div>
                 </div>
-              } @else if (passStatus === 'not-required') {
-                <div class="alert alert-info p-3 d-flex align-items-start" role="status">
-                  <div class="me-3" style="margin-top: 2px;">
-                    <i class="fa-regular fa-circle-info text-primary fs-5"></i>
-                  </div>
-                  <div>
-                    <strong class="text-dark">Day use passes not required for this day.</strong>
-                  </div>
-                </div>
               } @else if (passStatus === 'sold-out') {
                 <div class="alert alert-danger p-3 d-flex align-items-start" role="status">
                   <div class="me-3">
@@ -302,6 +293,15 @@
                   >
                   {{ passesAvailable ? "Book day-use pass" : (datesLoadFailed ? "Availability unavailable — try again" : "No passes available") }}
                 </button>
+              } @else { <!-- Status is passes not required.... or unknown  -->
+                <div class="alert alert-info p-3 d-flex align-items-start" role="status">
+                  <div class="me-3" style="margin-top: 2px;">
+                    <i class="fa-regular fa-circle-info text-primary fs-5"></i>
+                  </div>
+                  <div>
+                    <strong class="text-dark">Day use passes not required for this day.</strong>
+                  </div>
+                </div>
               }
             </div>
           </div>

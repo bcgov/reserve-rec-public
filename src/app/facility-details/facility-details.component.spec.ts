@@ -19,6 +19,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideToastr } from 'ngx-toastr';
 import { BsModalService } from 'ngx-bootstrap/modal';
+import { Title } from '@angular/platform-browser';
 
 describe('FacilityDetailsComponent', () => {
   let component: FacilityDetailsComponent;
@@ -43,6 +44,7 @@ describe('FacilityDetailsComponent', () => {
             snapshot: {
               data: {
                 facility: {
+                  displayName: 'Joffre Lakes Park',
                   geozones: [],
                   isOpen: true,
                   activities: []
@@ -66,6 +68,10 @@ describe('FacilityDetailsComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('sets the browser title to the facility name', () => {
+    expect(TestBed.inject(Title).getTitle()).toBe('Joffre Lakes Park | BC Parks');
   });
 
   // The API answers a missing facility with 200 and a null body. The constructor

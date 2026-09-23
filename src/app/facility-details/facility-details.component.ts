@@ -366,11 +366,12 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
 
       // inventoryPool.isOpen indicates if passes are required. Display the banner
 
-      if (inventoryPool && inventoryPool.isOpen === false) {
+      if ((inventoryPool && inventoryPool.isOpen === false) || inventoryPool?.available === null) {
         this.passStatus = 'not-required';
         this.passesAvailable = false;
         this.availableVisitorsAllowed = [{display: 'Unavailable', value: '0' }];
         this.loadingPasses = false;
+        this.cdr.detectChanges();
         return;
       }
 
@@ -381,6 +382,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
         this.passesAvailable = false;
         this.availableVisitorsAllowed = [{display: 'Unavailable', value: '0' }];
         this.loadingPasses = false;
+        this.cdr.detectChanges();
         return;
       }
 
@@ -412,6 +414,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
       }
       
       this.loadingPasses = false;
+      this.cdr.detectChanges();
   }
 
   private parseDateTimeValue(value: unknown): DateTime {

@@ -23,7 +23,7 @@ export class EquipmentStepComponent implements OnInit {
   @Output() stepCompleted = new EventEmitter<boolean>();
   @Output() stepValidated = new EventEmitter<boolean>();
   
-  provincesStates: string[] = [...CA_PROVINCES, ...US_STATES];
+  provincesStates: string[] = [...CA_PROVINCES, ...US_STATES, 'Other'];
   
   constructor(private stepperService: StepperService) {}
   

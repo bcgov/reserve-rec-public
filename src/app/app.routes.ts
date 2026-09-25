@@ -5,20 +5,24 @@ import { UserResolver } from './resolvers/user.resolver';
 import { CheckoutGuard } from './guards/checkout.guard';
 import { WaitingRoomGuard } from './guards/waiting-room.guard';
 import { FacilityResolver } from './resolvers/facility.resolver';
+import { DEFAULT_PAGE_TITLE } from './page-title.strategy';
 
 export const routes: Routes = [
   {
     path: '',
+    title: DEFAULT_PAGE_TITLE,
     loadComponent: () => import('./home/home.component')
       .then(mod => mod.HomeComponent)
   },
   {
     path: 'account',
+    title: 'My account',
     loadComponent: () => import('./account/account.component')
       .then(mod => mod.AccountComponent)
   },
   {
     path: 'account/bookings/:id',
+    title: 'Booking details',
     canActivate: [UserGuard],
     loadComponent: () => import('./my-bookings/booking-details/booking-details.component')
       .then(m => m.BookingDetailsComponent),
@@ -29,6 +33,7 @@ export const routes: Routes = [
   },
   {
     path: 'account/bookings/cancel/:id',
+    title: 'Cancel booking',
     canActivate: [UserGuard],
     loadComponent: () => import('./my-bookings/bookings-cancel/booking-cancel.component')
       .then(m => m.BookingCancelComponent),
@@ -39,6 +44,7 @@ export const routes: Routes = [
   },
   {
     path: 'account-details',
+    title: 'Account settings',
     canActivate: [UserGuard],
     loadComponent: () => import('./account-details/account-details.component')
       .then(mod => mod.AccountDetailsComponent),
@@ -51,6 +57,7 @@ export const routes: Routes = [
   // },
   {
     path: 'booking-confirmation/:bookingId',
+    title: 'Booking confirmation',
     canActivate: [UserGuard],
     loadComponent: () => import('./booking-confirmation/booking-confirmation.component')
       .then(mod => mod.BookingConfirmationComponent),
@@ -61,12 +68,14 @@ export const routes: Routes = [
   },
   {
     path: 'booking/:id',
+    title: 'Booking details',
     canActivate: [UserGuard],
     loadComponent: () => import('./my-bookings/booking-details/booking-details.component')
       .then(mod => mod.BookingDetailsComponent)
   },
   {
     path: 'cart',
+    title: 'Cart',
     loadComponent: () => import('./cart/cart.component')
       .then(mod => mod.CartComponent),
     canActivate: [UserGuard, WaitingRoomGuard],
@@ -74,6 +83,7 @@ export const routes: Routes = [
   },
   {
     path: 'checkout',
+    title: 'Checkout',
     loadComponent: () => import('./reservation-flow/reservation-flow.component')
       .then(mod => mod.ReservationFlowComponent),
     canActivate: [UserGuard, CheckoutGuard, WaitingRoomGuard],
@@ -84,6 +94,7 @@ export const routes: Routes = [
   },
   {
     path: 'facility/:collectionId/:facilityType/:facilityId',
+    title: 'Day-use area',
     loadComponent: () => import('./facility-details/facility-details.component')
       .then(mod => mod.FacilityDetailsComponent),
     resolve: { facility: FacilityResolver },
@@ -93,12 +104,14 @@ export const routes: Routes = [
   },
   {
     path: 'login',
+    title: 'Log in',
     canActivate: [LoginGuard],
     loadComponent: () => import('./login/login.component')
       .then(mod => mod.LoginComponent)
   },
   {
     path: 'my-bookings',
+    title: 'My bookings',
     loadComponent: () => import('./my-bookings/my-bookings.component')
       .then(mod => mod.MyBookingsComponent),
     canActivate: [UserGuard],
@@ -107,6 +120,7 @@ export const routes: Routes = [
   },
   {
     path: 'my-bookings/previous',
+    title: 'Previous bookings',
     loadComponent: () => import('./my-bookings/my-bookings.component')
       .then(mod => mod.MyBookingsComponent),
     canActivate: [UserGuard],
@@ -119,11 +133,13 @@ export const routes: Routes = [
   },
   {
     path: 'payment-retry',
+    title: 'Payment failed',
     loadComponent: () => import('./payment-retry/payment-retry.component')
       .then(mod => mod.PaymentRetryComponent)
   },
   {
     path: 'reservation-flow',
+    title: 'Checkout',
     loadComponent: () => import('./reservation-flow/reservation-flow.component')
       .then(mod => mod.ReservationFlowComponent),
     canActivate: [UserGuard, CheckoutGuard, WaitingRoomGuard],
@@ -134,16 +150,19 @@ export const routes: Routes = [
   },
   {
     path: 'results',
+    title: 'Search results',
     loadComponent: () => import('./search-results/search-results.component')
       .then(mod => mod.SearchResultsComponent)
   },
   {
     path: 'search',
+    title: 'Book a day-use pass',
     loadComponent: () => import('./search-page/search-page.component')
       .then(mod => mod.SearchPageComponent)
   },
   {
     path: 'transaction-status',
+    title: 'Transaction status',
     loadComponent: () => import('./transaction-status/transaction-status.component')
       .then(mod => mod.TransactionStatusComponent),
     canActivate: [UserGuard]

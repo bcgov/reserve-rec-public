@@ -105,12 +105,22 @@ export class BookingService {
     } catch (error) {
       this.loadingService.removeFromFetchList(Constants.dataIds.PRODUCT_RESULT);
       this.loggerService.error(error);
-      const errorMessage = 
+      const errorMessage =
         (error as any)?.error?.msg ||
         (error as any)?.error?.error ||
         (error as any)?.error?.Message ||
         (error as any)?.message ||
         'Unknown error';
+      // A 409 for a hold that already timed out/was cancelled means the item is
+      // already gone from the cart - that's the outcome the caller wanted.
+      if ((error as any)?.status === 409 && /status "(TIMED_OUT|cancelled)"/i.test(errorMessage)) {
+        this.toastService.addMessage(
+          `Successfully removed from cart`,
+          '',
+          ToastTypes.SUCCESS
+        );
+        return null;
+      }
       // log error to console
       console.error('Error removing item from cart: ', errorMessage);
       this.toastService.addMessage(

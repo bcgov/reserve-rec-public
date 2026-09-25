@@ -23,13 +23,10 @@
           <label for="registeredProvince" class="form-label">
             Province, state or territory
           </label>
-          <div class="province-input-wrapper">
-            <input id="registeredProvince" type="text" class="form-control province-input"
-              placeholder="Start typing to search..."
-              [formControl]="$any(form?.get('equipmentInfo')?.get('registeredProvince'))" [typeahead]="provincesStates"
-              [typeaheadOptionsLimit]="5" [typeaheadMinLength]="0" />
-            <i class="fa-solid fa-chevron-down province-input-icon text-muted" aria-hidden="true"></i>
-          </div>
+          <input id="registeredProvince" type="text" class="form-control"
+            placeholder="Start typing to search..."
+            [formControl]="$any(form?.get('equipmentInfo')?.get('registeredProvince'))" [typeahead]="provincesStates"
+            [typeaheadOptionsLimit]="5" [typeaheadMinLength]="1" />
         </div>
       </div>
     </div>

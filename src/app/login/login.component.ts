@@ -211,9 +211,14 @@ export class LoginComponent implements OnInit, AfterViewInit, AfterViewChecked {
 
       this.updateErrorSummary();
 
-      // Only these three are Amplify's to render. A bad address field is left
-      // to handleSignUp, which refuses the submit with the same message its
-      // own error line is already showing.
+      // Only the three above are Amplify's to render, but the submit still has
+      // to be stopped when an address field is bad. Naming a key Amplify does
+      // not render blocks it here, so handleSignUp's guard never fires and its
+      // "Invalid fields" alert no longer doubles up on the summary (#834).
+      if (this.summaryError) {
+        errors['bcparks_form'] = this.summaryError;
+      }
+
       return Object.keys(errors).length ? errors : null;
     },
 

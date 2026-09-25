@@ -58,6 +58,7 @@ export const routes: Routes = [
   {
     path: 'booking-confirmation/:bookingId',
     title: 'Booking confirmation',
+    canActivate: [UserGuard],
     loadComponent: () => import('./booking-confirmation/booking-confirmation.component')
       .then(mod => mod.BookingConfirmationComponent),
     data: { 
@@ -68,6 +69,7 @@ export const routes: Routes = [
   {
     path: 'booking/:id',
     title: 'Booking details',
+    canActivate: [UserGuard],
     loadComponent: () => import('./my-bookings/booking-details/booking-details.component')
       .then(mod => mod.BookingDetailsComponent)
   },
@@ -76,7 +78,7 @@ export const routes: Routes = [
     title: 'Cart',
     loadComponent: () => import('./cart/cart.component')
       .then(mod => mod.CartComponent),
-    canActivate: [WaitingRoomGuard],
+    canActivate: [UserGuard, WaitingRoomGuard],
     data: { breadcrumb: 'Cart' }
   },
   {
@@ -84,7 +86,7 @@ export const routes: Routes = [
     title: 'Checkout',
     loadComponent: () => import('./reservation-flow/reservation-flow.component')
       .then(mod => mod.ReservationFlowComponent),
-    canActivate: [CheckoutGuard, WaitingRoomGuard],
+    canActivate: [UserGuard, CheckoutGuard, WaitingRoomGuard],
     data: { 
       breadcrumb: 'Checkout',
       parentBreadcrumb: { label: 'Cart', url: '/cart' }
@@ -140,7 +142,7 @@ export const routes: Routes = [
     title: 'Checkout',
     loadComponent: () => import('./reservation-flow/reservation-flow.component')
       .then(mod => mod.ReservationFlowComponent),
-    canActivate: [CheckoutGuard, WaitingRoomGuard],
+    canActivate: [UserGuard, CheckoutGuard, WaitingRoomGuard],
     data: { 
       breadcrumb: 'Checkout',
       parentBreadcrumb: { label: 'Cart', url: '/cart' }

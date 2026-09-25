@@ -80,6 +80,7 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
     } else {
       this.filteredProvinces = ['Other'];
     }
+    this.cd.detectChanges();
   }
 
   async ngOnInit(): Promise<void> {

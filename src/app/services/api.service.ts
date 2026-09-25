@@ -3,6 +3,7 @@ import { inject, Injectable, OnDestroy } from '@angular/core';
 import { Subscription, merge, of, fromEvent, map, throwError, catchError } from 'rxjs';
 import { ConfigService } from './config.service';
 import { AuthService } from './auth.service';
+import { ServerTimeService } from './server-time.service';
 
 
 @Injectable({
@@ -19,7 +20,8 @@ export class ApiService implements OnDestroy {
   apiPath: string;
   env: 'local' | 'dev' | 'test' | 'prod';
 
-  constructor(private configService: ConfigService,
+  constructor(private serverTime: ServerTimeService,
+    private configService: ConfigService,
     private authService: AuthService
   ) {
     this.http = inject(HttpClient);
@@ -94,6 +96,11 @@ export class ApiService implements OnDestroy {
     return this.env;
   }
 
+  private readBody(response: any) {
+    this.serverTime.record(response?.body);
+    return response?.body;
+  }
+
   get(pk, queryParamsObject = null as any) {
     if (this.networkStatus) {
       const queryString = this.generateQueryString(queryParamsObject);
@@ -101,7 +108,7 @@ export class ApiService implements OnDestroy {
       this.updateHeaders();
       return this.http.get(`${this.apiPath}/${pk}?${queryString}`, { headers: this.headers, observe: 'response' })
         .pipe(
-          map(response => response?.body),
+          map(response => this.readBody(response)),
           catchError(this.errorHandler)
         );
     } else {
@@ -116,7 +123,7 @@ export class ApiService implements OnDestroy {
       this.updateHeaders();
       return this.http.put<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: this.headers, observe: 'response' })
         .pipe(
-          map(response => response?.body),
+          map(response => this.readBody(response)),
           catchError(this.errorHandler));
     } else {
       throw 'Network Offline';
@@ -131,7 +138,7 @@ export class ApiService implements OnDestroy {
       return this.http
         .post<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: this.headers, observe: 'response' })
         .pipe(
-          map(response => response?.body),
+          map(response => this.readBody(response)),
           catchError(this.errorHandler)
         );
     } else {

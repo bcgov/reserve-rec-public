@@ -5,7 +5,7 @@ import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
 import { StepperService } from '../../../services/stepper.service';
 import { CartItem } from '../../../../services/cart.service';
-import { PROVINCES_STATES } from '../../../../data/provinces-states.data';
+import { CA_PROVINCES, US_STATES } from '../../../../data/geographical.data';
 
 @Component({
   selector: 'app-equipment-step',
@@ -23,7 +23,7 @@ export class EquipmentStepComponent implements OnInit {
   @Output() stepCompleted = new EventEmitter<boolean>();
   @Output() stepValidated = new EventEmitter<boolean>();
   
-  provincesStates: string[] = PROVINCES_STATES;
+  provincesStates: string[] = [...CA_PROVINCES, ...US_STATES, 'Other'];
   
   constructor(private stepperService: StepperService) {}
   

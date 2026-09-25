@@ -121,23 +121,34 @@
                     <div class="col-12"><ngds-text-input label="Suite, apartment or unit" [control]="contactForm.get('unitNumber')" [disabled]="isBcsc">></ngds-text-input></div>
                     <div class="col-md-6"><ngds-text-input label="City" [control]="contactForm.get('city')" [disabled]="isBcsc"></ngds-text-input></div>
                     <div class="col-md-6">
-                      <label class="form-label" for="province-select">Province or state <span class="text-danger">*</span></label>
-                      <select id="province-select" class="form-select" formControlName="province">
-                        <option value="">Select…</option>
-                        @for (p of provinces; track p) {
-                          <option [value]="p">{{ p }}</option>
+                      <label class="form-label create-account-form-label" for="provinceSelect">Province or state <span class="text-danger">*</span></label>
+                      <select
+                        id="province-select"
+                        class="form-select"
+                        formControlName="province"
+                        name="custom:province">
+                        <option value="">Select Province / State</option>
+                        @for (prov of filteredProvinces; track prov) {
+                          <option [value]="prov" [disabled]="!prov">{{ prov }}</option>
                         }
                       </select>
                     </div>
                     <div class="col-md-6"><ngds-text-input label="Postal or zip code" [control]="contactForm.get('postalCode')" [disabled]="isBcsc"></ngds-text-input></div>
                     <div class="col-md-6">
-                      <label class="form-label" for="country-select">Country <span class="text-danger">*</span></label>
-                      <select id="country-select" class="form-select" formControlName="country">
-                        <option value="">Select…</option>
-                        @for (c of countries; track c) {
-                          <option [value]="c">{{ c }}</option>
-                        }
-                      </select>
+                      <label class="form-label create-account-form-label" for="countrySelect">Country <span class="text-danger">*</span></label>
+                        <select
+                          id="country-select"
+                          class="form-select"
+                          formControlName="country"
+                          name="custom:country"
+                          (change)="onCountryChange($event)">
+                          <option value="">Select Country</option>
+                          @for (country of countries; track country) {
+                            <option [value]="country" [disabled]="!country">{{ country }}</option>
+                          }
+                        </select>
+
+
                     </div>
                     <div class="col-md-6">
                       <ngds-text-input
@@ -228,11 +239,15 @@
                   <div class="fw-light row g-3">
                     <div class="col-md-6"><ngds-text-input label="Plate number" [control]="vehicleForm.get('licensePlate')"></ngds-text-input></div>
                     <div class="col-md-6">
-                      <label class="form-label" for="vehicle-province-select">Province, state or territory</label>
-                      <select id="vehicle-province-select" class="form-select" formControlName="vehicleRegLocale">
-                        <option value="">Select…</option>
-                        @for (p of provinces; track p) {
-                          <option [value]="p">{{ p }}</option>
+                      <label class="form-label create-account-form-label" for="provinceSelect">Province or state</label>
+                      <select
+                        id="provinceSelect"
+                        class="form-select"
+                        formControlName="vehicleRegLocale">
+                        name="custom:province">
+                        <option value="">Select Province / State</option>
+                        @for (prov of filteredProvinces; track prov) {
+                          <option [value]="prov" [disabled]="!prov">{{ prov }}</option>
                         }
                       </select>
                     </div>

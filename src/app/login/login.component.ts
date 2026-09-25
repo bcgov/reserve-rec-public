@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AmplifyAuthenticatorModule, AuthenticatorService } from '@aws-amplify/ui-angular';
 import { AuthService } from '../services/auth.service';
 import { AuthValidationService, SignUpValidationErrors } from '../services/auth-validation.service';
+import { CA_PROVINCES, US_STATES, COUNTRIES } from '../data/geographical.data';
 import {
   signIn,
   signUp,
@@ -304,6 +305,25 @@ export class LoginComponent implements OnInit, AfterViewInit, AfterViewChecked {
     private el: ElementRef<HTMLElement>
   ) {}
   currentDate = '';
+
+  countries: string[] = COUNTRIES
+  canadianProvinces: string[] = CA_PROVINCES
+  usStates: string[] = US_STATES
+
+  filteredProvinces: string[] = [];
+
+  onCountryChange(event: Event): void {
+    const selected = (event.target as HTMLSelectElement).value;
+    this.validateCountry(event);
+
+    if (selected === 'Canada') {
+      this.filteredProvinces = this.canadianProvinces;
+    } else if (selected === 'United States of America') {
+      this.filteredProvinces = this.usStates;
+    } else {
+      this.filteredProvinces = ['Other'];
+    }
+  }
 
   ngAfterViewInit(): void {
     // Capture phase, on our own element: the machine reads submitAttempted

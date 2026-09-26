@@ -1,5 +1,5 @@
 import { ApplicationConfig, provideZoneChangeDetection, inject, provideAppInitializer } from '@angular/core';
-import { provideRouter, withInMemoryScrolling } from '@angular/router';
+import { provideRouter, TitleStrategy, withInMemoryScrolling } from '@angular/router';
 
 import { routes } from './app.routes';
 import { ConfigService } from './services/config.service';
@@ -10,6 +10,7 @@ import { FeatureFlagService } from './services/feature-flag.service';
 import { WaitingRoomService } from './services/waiting-room.service';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideToastr } from 'ngx-toastr';
+import { PageTitleStrategy } from './page-title.strategy';
 
 export function initConfig(configService: ConfigService, apiService: ApiService, authService: AuthService, featureFlagService: FeatureFlagService, waitingRoomService: WaitingRoomService) {
   return async () => {
@@ -29,6 +30,7 @@ export const appConfig: ApplicationConfig = {
       scrollPositionRestoration: 'enabled',  // top on forward nav, restore on back
       anchorScrolling: 'enabled',
     })),
+    { provide: TitleStrategy, useClass: PageTitleStrategy },
     provideAppInitializer(() => {
       const initializerFn = (initConfig)(inject(ConfigService), inject(ApiService), inject(AuthService), inject(FeatureFlagService), inject(WaitingRoomService));
       return initializerFn();

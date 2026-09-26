@@ -115,6 +115,29 @@ describe('AccountDetailsComponent', () => {
       expect(formCount()).toBe(1);
     });
 
+    it('loads the saved country options and selects the saved province', () => {
+      component.startEdit('contact');
+      fixture.detectChanges();
+
+      const provinceSelect = (fixture.nativeElement as HTMLElement)
+        .querySelector('#province-select') as HTMLSelectElement;
+
+      expect(component.filteredProvinces).toEqual(component.canadianProvinces);
+      expect(provinceSelect.value).toBe('British Columbia');
+    });
+
+    it('updates province options when changing away from the saved country', () => {
+      component.startEdit('contact');
+      fixture.detectChanges();
+
+      const countrySelect = (fixture.nativeElement as HTMLElement)
+        .querySelector('#country-select') as HTMLSelectElement;
+      countrySelect.value = 'United States of America';
+      countrySelect.dispatchEvent(new Event('change'));
+
+      expect(component.filteredProvinces).toEqual(component.usStates);
+    });
+
     it('hides the read-only vehicle details while editing vehicle', () => {
       component.startEdit('vehicle');
       fixture.detectChanges();

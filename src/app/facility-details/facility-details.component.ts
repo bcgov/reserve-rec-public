@@ -4,6 +4,7 @@ import { lastValueFrom } from 'rxjs';
 import { DateTime } from 'luxon';
 import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Title } from '@angular/platform-browser';
 import { FormBuilder, FormsModule, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 import { ProductService } from '../services/product.service';
@@ -13,6 +14,7 @@ import { Constants } from '../constants';
 import { CartService, CartItem } from '../services/cart.service';
 import { ToastService, ToastTypes } from '../services/toast.service';
 import { AuthService } from '../services/auth.service';
+import { ServerTimeService } from '../services/server-time.service';
 import { WaitingRoomService } from '../services/waiting-room.service';
 import { ApiService } from '../services/api.service';
 import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
@@ -20,6 +22,7 @@ import { BsModalService } from 'ngx-bootstrap/modal';
 import { ConfirmationModalComponent } from '../shared/components/confirmation-modal/confirmation-modal.component';
 import { BookingService } from '../services/booking.service';
 import { AccountVerificationComponent } from '../shared/components/account-verification/account-verification.component';
+import { pageTitle } from '../page-title.strategy';
 
 @Component({
   selector: 'app-facility-details',
@@ -37,7 +40,10 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   public facilityOpen = true;
   public isLoggedIn = false;
   public passesAvailable = false;
-  public passStatus: 'available' | 'not-required' | 'sold-out' = 'available';
+  public passStatus: 'available' | 'not-required' | 'sold-out' | 'not-open-yet' = 'available';
+  // In park time, so a visitor in another zone is told 7:00 AM Pacific, not their local hour.
+  public reservationOpensAt: DateTime | null = null;
+  private windowTimer: any = null;
   public loadingProducts = false;
   public loadingDates = false;
   public loadingPasses = false;
@@ -85,6 +91,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   private modalService = inject(BsModalService);
   private bookingService = inject(BookingService);
   private zone = inject(NgZone);
+  private titleService = inject(Title);
 
   constructor(
     private route: ActivatedRoute,
@@ -94,6 +101,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
     private productService: ProductService,
     private productDateService: ProductDateService,
     private authService: AuthService,
+    private serverTime: ServerTimeService,
   ) {
     this.facility = this.route.snapshot.data['facility'] ?? null;
     this.facilityLoadFailed = !this.facility;
@@ -118,6 +126,11 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   async ngOnInit() {
+    // Not in the constructor: the router's TitleStrategy runs after activation and would overwrite it.
+    if (this.facility?.displayName) {
+      this.titleService.setTitle(pageTitle(this.facility.displayName));
+    }
+
     // Initialize the form first so the template can bind immediately
     this.initializeForm();
 
@@ -314,6 +327,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   private async loadPassesAvailable(date: any) {
+      clearTimeout(this.windowTimer);
       this.loadingPasses = true;
       this.passesAvailable = false;
       this.passStatus = 'available';
@@ -355,15 +369,16 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
       const reservationWindow = resContext?.temporalWindows?.reservationWindow;
       const reservationWindowOpen = this.parseDateTimeValue(reservationWindow?.open);
       const reservationWindowClose = this.parseDateTimeValue(reservationWindow?.close);
-      const currentDateTime = DateTime.now();
+      const currentDateTime = this.serverTime.now();
 
       // inventoryPool.isOpen indicates if passes are required. Display the banner
 
-      if (inventoryPool && inventoryPool.isOpen === false) {
+      if ((inventoryPool && inventoryPool.isOpen === false) || inventoryPool?.available === null) {
         this.passStatus = 'not-required';
         this.passesAvailable = false;
         this.availableVisitorsAllowed = [{display: 'Unavailable', value: '0' }];
         this.loadingPasses = false;
+        this.cdr.detectChanges();
         return;
       }
 
@@ -374,14 +389,21 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
         this.passesAvailable = false;
         this.availableVisitorsAllowed = [{display: 'Unavailable', value: '0' }];
         this.loadingPasses = false;
+        this.cdr.detectChanges();
         return;
       }
 
-      // Check if today is within the reservation window
+      // Server time, not the device clock, so a fast clock can't offer a booking the API refuses.
       if (reservationWindowOpen?.isValid && reservationWindowClose?.isValid && currentDateTime >= reservationWindowOpen && currentDateTime <= reservationWindowClose) {
         this.passesAvailable = true;
+        this.reservationOpensAt = null;
       } else {
         this.passesAvailable = false;
+        if (reservationWindowOpen?.isValid && currentDateTime < reservationWindowOpen) {
+          this.passStatus = 'not-open-yet';
+          this.reservationOpensAt = reservationWindowOpen.setZone(Constants.timeZoneIANA);
+          this.scheduleWindowRecheck(reservationWindowOpen);
+        }
       }
 
       // Provide the number of passes allowed using minimum count up to maximum.
@@ -405,6 +427,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
       }
       
       this.loadingPasses = false;
+      this.cdr.detectChanges();
   }
 
   private parseDateTimeValue(value: unknown): DateTime {
@@ -689,8 +712,20 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
     window.scrollTo({ top, behavior: 'instant' as ScrollBehavior });
   }
 
+  // Short steps rather than one long timeout: timers pause while a device sleeps.
+  private scheduleWindowRecheck(opensAt: DateTime): void {
+    clearTimeout(this.windowTimer);
+    const msUntilOpen = opensAt.toMillis() - this.serverTime.now().toMillis();
+    if (msUntilOpen <= 0) {
+      this.loadPassesAvailable(this.form.get('selectedDate').value).then(() => this.cdr.detectChanges());
+      return;
+    }
+    this.windowTimer = setTimeout(() => this.scheduleWindowRecheck(opensAt), Math.min(msUntilOpen + 250, 60_000));
+  }
+
   ngOnDestroy(): void {
     this.scrollEvents.forEach(e => window.removeEventListener(e, this.onScroll));
+    clearTimeout(this.windowTimer);
     this.cdr.detectChanges()
   }
 }

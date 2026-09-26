@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AmplifyAuthenticatorModule, AuthenticatorService } from '@aws-amplify/ui-angular';
 import { AuthService } from '../services/auth.service';
 import { AuthValidationService, SignUpValidationErrors } from '../services/auth-validation.service';
+import { CA_PROVINCES, US_STATES, COUNTRIES } from '../data/geographical.data';
 import {
   signIn,
   signUp,
@@ -211,9 +212,14 @@ export class LoginComponent implements OnInit, AfterViewInit, AfterViewChecked {
 
       this.updateErrorSummary();
 
-      // Only these three are Amplify's to render. A bad address field is left
-      // to handleSignUp, which refuses the submit with the same message its
-      // own error line is already showing.
+      // Only the three above are Amplify's to render, but the submit still has
+      // to be stopped when an address field is bad. Naming a key Amplify does
+      // not render blocks it here, so handleSignUp's guard never fires and its
+      // "Invalid fields" alert no longer doubles up on the summary (#834).
+      if (this.summaryError) {
+        errors['bcparks_form'] = this.summaryError;
+      }
+
       return Object.keys(errors).length ? errors : null;
     },
 
@@ -299,6 +305,25 @@ export class LoginComponent implements OnInit, AfterViewInit, AfterViewChecked {
     private el: ElementRef<HTMLElement>
   ) {}
   currentDate = '';
+
+  countries: string[] = COUNTRIES
+  canadianProvinces: string[] = CA_PROVINCES
+  usStates: string[] = US_STATES
+
+  filteredProvinces: string[] = [];
+
+  onCountryChange(event: Event): void {
+    const selected = (event.target as HTMLSelectElement).value;
+    this.validateCountry(event);
+
+    if (selected === 'Canada') {
+      this.filteredProvinces = this.canadianProvinces;
+    } else if (selected === 'United States of America') {
+      this.filteredProvinces = this.usStates;
+    } else {
+      this.filteredProvinces = ['Other'];
+    }
+  }
 
   ngAfterViewInit(): void {
     // Capture phase, on our own element: the machine reads submitAttempted

@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, DestroyRef, inject, OnDestroy, OnInit } f
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
-import { PROVINCES_STATES } from '../data/provinces-states.data';
+import { CA_PROVINCES, US_STATES, COUNTRIES } from '../data/geographical.data';
 import { AuthService } from '../services/auth.service';
 import { ToastService, ToastTypes } from '../services/toast.service';
 import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
@@ -28,9 +28,6 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
   public loading = true;
   public saving = false;
   public emailVerified = false;
-
-  public readonly provinces = PROVINCES_STATES;
-  public readonly countries = ['Canada', 'United States', 'Other'];
 
   public contactForm = new FormGroup({
     given_name: new FormControl('', [Validators.required, this.nameValidator.bind(this)]),
@@ -62,6 +59,28 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
     this.setupPhoneFormatter(this.contactForm.controls.mobilePhone);
     this.setupPhoneFormatter(this.contactForm.controls.secondaryNumber);
 
+  }
+
+  countries: string[] = COUNTRIES
+  canadianProvinces: string[] = CA_PROVINCES
+  usStates: string[] = US_STATES
+
+  filteredProvinces: string[] = [];
+  
+  onCountryChange(event: Event): void {
+    const selected = (event.target as HTMLSelectElement).value;
+    this.updateProvinceOptions(selected);
+  }
+
+  private updateProvinceOptions(country: string | null): void {
+    if (country === 'Canada') {
+      this.filteredProvinces = this.canadianProvinces;
+    } else if (country === 'United States of America') {
+      this.filteredProvinces = this.usStates;
+    } else {
+      this.filteredProvinces = ['Other'];
+    }
+    this.cd.detectChanges();
   }
 
   async ngOnInit(): Promise<void> {
@@ -126,6 +145,7 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
         mobilePhone: u['custom:mobilePhone'] || '',
         secondaryNumber: u['custom:secondaryNumber'] || '',
       });
+      this.updateProvinceOptions(this.contactForm.controls.country.value || u["custom:country"]);
 
       if (this.isBcsc) {
         this.contactForm.controls.province.disable();
@@ -140,6 +160,7 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
         licensePlate: u['custom:licensePlate'] || '',
         vehicleRegLocale: u['custom:vehicleRegLocale'] || '',
       });
+      this.updateProvinceOptions(this.contactForm.controls.country.value || u["custom:country"]);
     }
     this.editing = section;
 
@@ -375,13 +396,13 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
       if (address?.['country'] === 'CA') {
         address['country'] = 'CANADA'
       } else {
-        address['country'] = '';
+        address['country'] = 'Other';
       }
-
+      
       if (address?.['province'] === 'BC') {
         address['province'] = 'BRITISH COLUMBIA'
       } else {
-        address['province'] = '';
+        address['province'] = 'Other';
       }
       
       return address;

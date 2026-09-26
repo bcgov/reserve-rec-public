@@ -134,25 +134,7 @@
                 </div>
                 <div class="col-md-6">
                   <amplify-text-field
-                    label="Province"
-                    name="custom:province"
-                    autocomplete="false"
-                    placeholder=""
-                    type="text"
-                    [required]="true"
-                    (change)="validateProvince($event)">
-                  </amplify-text-field>
-                  @if (provinceError) {
-                    <div class="form-error">
-                      {{ provinceError }}
-                    </div>
-                  }
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-6">
-                  <amplify-text-field
-                    label="Postal Code"
+                    label="Postal or zip code"
                     name="custom:postalCode"
                     autocomplete="false"
                     placeholder=""
@@ -166,19 +148,41 @@
                     </div>
                   }
                 </div>
+              </div>
+              <div class="row">
                 <div class="col-md-6">
-                  <amplify-text-field
-                    label="Country"
+                  <label class="form-label create-account-form-label" for="countrySelect">Country</label>
+                  <select
+                    id="countrySelect"
+                    class="form-select create-account-dropdown"
                     name="custom:country"
-                    autocomplete="false"
-                    placeholder=""
-                    type="text"
-                    [required]="true"
-                    (change)="validateCountry($event)">
-                  </amplify-text-field>
+                    (change)="onCountryChange($event)">
+                    <option value="">Select Country</option>
+                    @for (country of countries; track country) {
+                      <option [value]="country" [disabled]="!country">{{ country }}</option>
+                    }
+                  </select>
                   @if (countryError) {
                     <div class="form-error">
                       {{ countryError }}
+                    </div>
+                  }
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label create-account-form-label" for="provinceSelect">Province or state</label>
+                  <select
+                    id="provinceSelect"
+                    class="form-select create-account-dropdown"
+                    name="custom:province"
+                    (change)="validateProvince($event)">
+                    <option value="">Select Province / State</option>
+                    @for (prov of filteredProvinces; track prov) {
+                      <option [value]="prov" [disabled]="!prov">{{ prov }}</option>
+                    }
+                  </select>
+                  @if (provinceError) {
+                    <div class="form-error">
+                      {{ provinceError }}
                     </div>
                   }
                 </div>
@@ -202,7 +206,7 @@
                 </div>
                 <div class="col-md-6">
                   <amplify-text-field
-                    label="Home Phone Number (Optional)"
+                    label="Home phone number (Optional)"
                     name="custom:secondaryNumber"
                     autocomplete="false"
                     placeholder=""
@@ -228,14 +232,24 @@
                 type="text"
                 [required]="false">
               </amplify-text-field>
-              <amplify-text-field
-                label="Province of Vehicle Registration"
-                name="custom:vehicleRegLocale"
-                autocomplete="false"
-                placeholder=""
-                type="text"
-                [required]="false">
-              </amplify-text-field>
+              <div class="col-12">
+                <label class="form-label create-account-form-label" for="provinceSelect">Province or state</label>
+                <select
+                  id="provinceSelect"
+                  class="form-select create-account-dropdown"
+                  name="custom:vehicleRegLocale"
+                  (change)="validateProvince($event)">
+                  <option value="">Select Province / State</option>
+                  @for (prov of filteredProvinces; track prov) {
+                    <option [value]="prov" [disabled]="!prov">{{ prov }}</option>
+                  }
+                </select>
+                @if (provinceError) {
+                  <div class="form-error">
+                    {{ provinceError }}
+                  </div>
+                }
+              </div>
               <input
                 type="hidden"
                 name="custom:pwUpdate"
@@ -246,7 +260,7 @@
                 <p>
                   This information is collected by BC Parks, under Section 26(c) and 26(e) of the
                   Freedom of Information and Protection of Privacy Act for the purpose of making and
-                  maintaining a reservation at a day use location and to evaluate the reservation
+                  maintaining a reservation at a day-use location and to evaluate the reservation
                   system and process.
                 </p>
                 <p>

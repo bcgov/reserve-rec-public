@@ -113,3 +113,15 @@ padding: var(--amplify-space-medium);
     color: #002855;
   }
 }
+
+// Match the amplify styling for dropdowns
+.create-account-dropdown {
+  border: 1px solid #00404d8c;
+  border-radius: 4px;
+  height: 43px;
+}
+
+.create-account-form-label {
+  color: #304050;
+  margin-bottom: 0px;
+}

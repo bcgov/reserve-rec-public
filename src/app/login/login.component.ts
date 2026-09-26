@@ -266,6 +266,15 @@ export class LoginComponent implements OnInit, AfterViewInit, AfterViewChecked {
     return errors;
   }
 
+  // Every trigger refusal arrives under the same exception name, so only the
+  // message says which field to fix.
+  private static refusalMessage(error: unknown): string {
+    const raw = String((error as { message?: string })?.message ?? '');
+    // Cognito appends its own full stop to a message that already ends in one.
+    const text = /^PreSignUp failed with error (.+)$/s.exec(raw)?.[1].trim().replace(/\.+$/, '');
+    return text ? `${text}.` : '';
+  }
+
   // Cognito only reports a duplicate account (including an alias of an
   // existing address) at submit, and the generic wrapper turned that into an
   // unactionable message at the foot of the form (#685). Amplify v6 errors
@@ -273,7 +282,9 @@ export class LoginComponent implements OnInit, AfterViewInit, AfterViewChecked {
   private failSignUp(error: unknown, email = ''): never {
     console.error('Auth error:', error);
     const name = (error as { name?: string })?.name ?? '';
-    const message = LoginComponent.SIGN_UP_ERRORS[name] ?? LoginComponent.SIGN_UP_GENERIC_ERROR;
+    const message =
+      LoginComponent.refusalMessage(error) ||
+      (LoginComponent.SIGN_UP_ERRORS[name] ?? LoginComponent.SIGN_UP_GENERIC_ERROR);
 
     if (name === 'UsernameExistsException') {
       this.emailError = message;

@@ -691,8 +691,10 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
     const vh = window.innerHeight;
     // The last section whose top has passed the 15% line, or the last section
     // once the page has bottomed out and nothing more can reach that line. The
-    // 4px slack absorbs fractional scroll offsets at non-100% browser zoom.
-    const atBottom = window.scrollY + vh >= document.documentElement.scrollHeight - 4;
+    // 4px slack absorbs fractional scroll offsets at non-100% browser zoom. A page
+    // too short to scroll is "at the bottom" at rest, so it doesn't count.
+    const scrollHeight = document.documentElement.scrollHeight;
+    const atBottom = scrollHeight > vh && window.scrollY + vh >= scrollHeight - 4;
     const passed = this.sectionEls.filter(s => s.getBoundingClientRect().top <= vh * 0.15 + 1);
     const active = (atBottom ? this.sectionEls.at(-1) : passed.at(-1) ?? this.sectionEls[0])!.id;
     if (active !== this.activeSection) {

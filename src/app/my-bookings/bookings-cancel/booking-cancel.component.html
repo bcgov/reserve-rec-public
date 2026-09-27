@@ -56,12 +56,17 @@
                 <i class="fa-regular fa-circle-exclamation text-danger me-2"></i>
                 <strong class="text-dark">This booking has been cancelled</strong>
               </div>
+            } @else if (isExpired()) {
+              <div class="alert alert-danger mb-4 px-4 py-3 card-field-icon-flex" role="alert">
+                <i class="fa-regular fa-circle-exclamation text-danger me-2"></i>
+                <strong class="text-dark">This pass has expired, so it can't be cancelled</strong>
+              </div>
             }
             <ng-container *ngTemplateOutlet="paymentsEnabled ? paymentsEnabledBody : paymentsDisabledBody"></ng-container>
           </div>
         </div>
         <!-- Acknowledgement Checkbox -->
-        @if (!isBookingCancelled()) {
+        @if (!isBookingCancelled() && !isExpired()) {
           <div class="mb-4 p-3 border border-1 rounded-2 border-medium-grey bg-light-blue-nav">
             <div class="form-check">
               <input
@@ -75,6 +80,10 @@
               </label>
             </div>
           </div>
+        } @else if (!isBookingCancelled()) {
+          <button class="btn btn-outline-primary rounded-1 fw-bold py-2 px-3" (click)="goBack()">
+            Return to my bookings
+          </button>
         }
       </div>
     </div>

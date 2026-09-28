@@ -203,7 +203,7 @@
                   [selectionListItems]="availableProducts"
                   [label]="'Pass type'"
                   [placeholder]="loadingProducts ? 'Loading...' : 'Select a pass type'"
-                  [disabled]="!this.form.get('selectedActivity').value || this.availableProducts.length === 0 || loadingProducts || !facilityOpen"
+                  [disabled]="!this.form.get('selectedActivity').value || this.availableProducts.length === 0 || loadingProducts"
                 ></ngds-picklist-input>
               </div>
             </div>
@@ -222,7 +222,7 @@
                 [hideInvalidState]="true"
                 [minDate]="startDate"
                 [maxDate]="endDate"
-                [disabled]="!isLoggedIn || !this.form.get('selectedProduct').value || this.availableProducts.length === 0 || loadingDates || !facilityOpen"
+                [disabled]="!isLoggedIn || !this.form.get('selectedProduct').value || this.availableProducts.length === 0 || loadingDates"
                 (displayChange)="onCalendarDisplayChange()"
                 >
                 <i
@@ -242,7 +242,7 @@
                   [disabled]="!this.form.get('selectedProduct').value ||
                     this.availableProducts.length === 0 ||
                     loadingPasses ||
-                    !passesAvailable || !facilityOpen"
+                    !passesAvailable"
                 ></ngds-picklist-input>
               </div>
             }
@@ -264,10 +264,24 @@
                   </div>
                   <a routerLink="/login" class="btn btn-primary btn-sm">Log in</a>
                 </div>
-              } @else if (!facilityOpen) {
+                
+              <!--Remove check on facility and manage by date for re-opening facility.
+              Go back to original system once scheduled closures have been implemented
+              allowing booking of future dates while currently closed.   -->  
+
+              <!-- } @else if (!facilityOpen) {
                 <div class="alert alert-warning p-3 d-flex align-items-start" role="status">
                   <div class="me-3">
                     <i class="fa-regular fa-circle-exclamation text-warning fs-5"></i>
+                  </div>
+                  <div>
+                    <strong class="text-dark">This park area is closed for the selected date and time.</strong>
+                  </div>
+                </div> -->
+              } @else if (passStatus === 'closed') {
+                <div class="alert alert-danger p-3 d-flex align-items-start" role="status">
+                  <div class="me-3">
+                    <i class="fa-regular fa-circle-exclamation text-danger fs-5"></i>
                   </div>
                   <div>
                     <strong class="text-dark">This park area is closed for the selected date and time.</strong>

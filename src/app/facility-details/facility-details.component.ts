@@ -40,7 +40,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   public facilityOpen = true;
   public isLoggedIn = false;
   public passesAvailable = false;
-  public passStatus: 'available' | 'not-required' | 'sold-out' | 'not-open-yet' = 'available';
+  public passStatus: 'closed' | 'available' | 'not-required' | 'sold-out' | 'not-open-yet' = 'available';
   // In park time, so a visitor in another zone is told 7:00 AM Pacific, not their local hour.
   public reservationOpensAt: DateTime | null = null;
   private windowTimer: any = null;
@@ -388,6 +388,14 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
         this.passStatus = 'sold-out';
         this.passesAvailable = false;
         this.availableVisitorsAllowed = [{display: 'Unavailable', value: '0' }];
+        this.loadingPasses = false;
+        this.cdr.detectChanges();
+        return;
+      }
+
+      if (inventoryPool && inventoryPool?.closureStatus === true) {
+        this.passStatus = 'closed';
+        this.passesAvailable = false;
         this.loadingPasses = false;
         this.cdr.detectChanges();
         return;

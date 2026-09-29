@@ -9,6 +9,7 @@ import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
 import { AccountVerificationComponent } from '../shared/components/account-verification/account-verification.component';
 import { debounceTime } from 'rxjs/operators';
 import { Utils } from '../utils/utils';
+import { normalizePhone } from '../utils/phone-utils';
 import { ActivatedRoute, Router } from '@angular/router';
 
 type EditSection = 'contact' | 'vehicle' | null;
@@ -196,19 +197,9 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
     if (!v.country?.trim()) missingFields.push('Country');
     if (!v.mobilePhone?.trim()) missingFields.push('Mobile phone');
     
-    // Change numbers to be E.164 format on save if they have the country code attached
-    // TODO: should probably have people specify country separately in an input, then enter phone in another input
-    if (v.mobilePhone.length > 14) {
-      v.mobilePhone = v.mobilePhone.replace(/(?!^\+)\D/g, '');
-    } else {
-      v.mobilePhone = v.mobilePhone.replace(/\D/g, '');
-    }
-    if (v.secondaryNumber.length > 14) {
-      v.secondaryNumber = v.secondaryNumber.replace(/(?!^\+)\D/g, '');
-    } else {
-      v.secondaryNumber = v.secondaryNumber.replace(/\D/g, '');
-    }
-    
+    v.mobilePhone = normalizePhone(v.mobilePhone) ?? '';
+    v.secondaryNumber = normalizePhone(v.secondaryNumber) ?? '';
+
     if (missingFields.length > 0) {
       const fieldList = missingFields.join(', ');
       this.toastService.addMessage(`Please fill in the following required fields: ${fieldList}`, 'Validation Error', ToastTypes.ERROR);
@@ -320,23 +311,19 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
   // required actual data first (phone number entered), then we check the pattern
   phoneValidator(control: AbstractControl): ValidationErrors | null {
     const val = (control.value ?? '').toString();
-    const digits = val.replace(/\D/g, '').slice(0,12);
 
-    if (!digits) return { required: true };
-    if (digits.length < 10 || digits.length > 12) return { pattern: true };
-    return null;
+    if (!val.replace(/\D/g, '')) return { required: true };
+    return this.phoneOptionalValidator(control);
   }
 
   phoneOptionalValidator(control: AbstractControl): ValidationErrors | null {
     const val = (control.value ?? '').toString();
-    const digits = val.replace(/\D/g, '');
 
-    if (!digits) return null;
-    if (digits.length < 10 || digits.length > 12) return { pattern: true };
-    return null;
+    if (!val.replace(/\D/g, '')) return null;
+    return normalizePhone(val) ? null : { pattern: true };
   }
 
-  // Pass the digits into the formatter after a short debounce
+  // Pass the value into the formatter after a short debounce
   // which allow them to go back and edit digits before formatter kicks in
   setupPhoneFormatter(control: FormControl<string | null>): void {
     control.valueChanges.pipe(
@@ -345,9 +332,7 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
     ).subscribe((value) => {
       if (!value) return;
 
-      // Extract up to 12 digits
-      const digits = value.replace(/\D/g, '').slice(0,12);
-      const formatted = this.utils.formatPhone(digits);
+      const formatted = this.utils.formatPhone(value);
       
       // Only update if the value actually changed to avoid infinite loop
       if (formatted !== value) {
@@ -359,8 +344,8 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
-  formatPhone(digits: string): string {
-    return this.utils.formatPhone(digits);
+  formatPhone(value: string): string {
+    return this.utils.formatPhone(value);
   }
 
   /**

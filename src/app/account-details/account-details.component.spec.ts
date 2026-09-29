@@ -17,7 +17,7 @@ const MOCK_USER = {
   'custom:postalCode': 'V9C 4G1',
   'custom:country': 'Canada',
   'custom:mobilePhone': '6786786761',
-  'custom:secondaryNumber': '8989090981',
+  'custom:secondaryNumber': '6045550181',
   'custom:licensePlate': 'ABC123',
   'custom:vehicleRegLocale': 'Yukon',
 };
@@ -377,8 +377,67 @@ describe('AccountDetailsComponent', () => {
       expect(component.formatPhone('')).toBe('');
       expect(component.formatPhone('2505551234')).toBe('(250) 555-1234');
       expect(component.formatPhone('12505551234')).toBe('+1 (250) 555-1234');
-      expect(component.formatPhone('123456789012')).toBe('+12 (345) 678-9012');
+      expect(component.formatPhone('+12505550123')).toBe('+1 (250) 555-0123');
+      expect(component.formatPhone('+447911123456')).toBe('+44 7911 123456');
+      expect(component.formatPhone('821012345678')).toBe('+82 10 1234 5678');
     });
+
+    it('keeps a typed + and every digit of a number it cannot place yet', () => {
+      // A 10-digit international number would otherwise read as Canadian (#887).
+      expect(component.formatPhone('+3545551')).toBe('+3545551');
+      expect(component.formatPhone('+999123456789012')).toBe('+999123456789012');
+    });
+
+    it('accepts international numbers up to 15 digits and refuses what the API refuses', () => {
+      expect(component.phoneValidator(new FormControl('+44 7911 123456'))).toBeNull();
+      expect(component.phoneValidator(new FormControl('+4915123456789'))).toBeNull();
+      expect(component.phoneValidator(new FormControl('821012345678'))).toBeNull();
+      expect(component.phoneValidator(new FormControl('44791112345'))).toEqual({ pattern: true });
+      expect(component.phoneOptionalValidator(new FormControl('586588'))).toEqual({ pattern: true });
+    });
+
+    it('saves numbers as E.164 without dropping the country code', async () => {
+      component.startEdit('contact');
+      component.contactForm.patchValue({ mobilePhone: '+44 7911 123456', secondaryNumber: '(250) 555-0123' });
+
+      await component.saveContact();
+
+      expect(authService.updateUserProfile).toHaveBeenCalledWith(jasmine.objectContaining({
+        'custom:mobilePhone': '+447911123456',
+        'custom:secondaryNumber': '+12505550123',
+      }));
+    });
+
+    it('saves an empty alternate number as empty', async () => {
+      component.startEdit('contact');
+      component.contactForm.patchValue({ secondaryNumber: '' });
+
+      await component.saveContact();
+
+      expect(authService.updateUserProfile).toHaveBeenCalledWith(jasmine.objectContaining({
+        'custom:secondaryNumber': '',
+      }));
+    });
+
+    for (const [stored, shown, saved] of [
+      ['+12505550123', '+1 (250) 555-0123', '+12505550123'],
+      ['+447911123456', '+44 7911 123456', '+447911123456'],
+      ['2505550123', '(250) 555-0123', '+12505550123'],
+    ]) {
+      it(`round-trips a stored ${stored} through load, display and save`, async () => {
+        authService.getCurrentUser.and.returnValue({ ...MOCK_USER, 'custom:mobilePhone': stored });
+        expect(component.formatPhone(stored)).toBe(shown);
+
+        component.startEdit('contact');
+        await component.saveContact();
+        expect(authService.updateUserProfile.calls.mostRecent().args[0]['custom:mobilePhone']).toBe(saved);
+
+        component.startEdit('contact');
+        component.contactForm.patchValue({ mobilePhone: shown });
+        await component.saveContact();
+        expect(authService.updateUserProfile.calls.mostRecent().args[0]['custom:mobilePhone']).toBe(saved);
+      });
+    }
 
     it('auto-formats typed phone values after the debounce window', fakeAsync(() => {
       const mobile = component.contactForm.get('mobilePhone')!;

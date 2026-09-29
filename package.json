@@ -41,6 +41,7 @@
     "bootstrap-icons": "^1.13.1",
     "constructs": "^10.4.2",
     "guid-typescript": "^1.0.9",
+    "libphonenumber-js": "^1.13.14",
     "luxon": "^3.6.1",
     "maplibre-gl": "^5.2.0",
     "ngx-bootstrap": "^21.2.1",

@@ -241,6 +241,28 @@ describe('LoginComponent', () => {
 
       expect(thrown?.message).not.toContain('already exists');
     });
+
+    // A trigger refusal already names the field to fix; the generic fallback
+    // threw that away and left the visitor retyping the whole form.
+    it('shows what a trigger refusal actually said', () => {
+      const thrown = fail({
+        name: 'UserLambdaValidationException',
+        message:
+          'PreSignUp failed with error Enter a phone number with its area code, ' +
+          'including a leading + for numbers outside Canada and the US..',
+      });
+
+      expect(thrown?.message).toBe(
+        'Enter a phone number with its area code, including a leading + for ' +
+        'numbers outside Canada and the US.'
+      );
+    });
+
+    it('leaves an unwrapped failure on its canned message', () => {
+      const thrown = fail({ name: 'InvalidPasswordException', message: 'Password did not conform' });
+
+      expect(thrown?.message).toBe('That password does not meet the requirements listed above.');
+    });
   });
 
   // #685: the field carried no "(Optional)" marker, so it read as mandatory

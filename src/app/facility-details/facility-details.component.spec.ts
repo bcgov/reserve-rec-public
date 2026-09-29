@@ -92,6 +92,26 @@ describe('FacilityDetailsComponent', () => {
     if (scrollY) Object.defineProperty(window, 'scrollY', scrollY);
   });
 
+  // A page too short to scroll is "at the bottom" at rest; that must not
+  // highlight the last section before the visitor has scrolled at all.
+  it('does not highlight the last section on a page too short to scroll', () => {
+    Object.defineProperty(document.documentElement, 'scrollHeight', { value: window.innerHeight, configurable: true });
+
+    const last = document.createElement('div');
+    last.id = 'last-section';
+    last.className = 'scroll-anchor';
+    last.style.cssText = 'position: fixed; top: 50vh;';
+    document.body.appendChild(last);
+
+    component.ngAfterViewInit();
+
+    expect(component.activeSection).not.toBe('last-section');
+
+    component.ngOnDestroy();
+    last.remove();
+    delete (document.documentElement as any).scrollHeight;
+  });
+
   it('sets the browser title to the facility name', () => {
     expect(TestBed.inject(Title).getTitle()).toBe('Joffre Lakes Park | BC Parks');
   });

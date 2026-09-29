@@ -39,6 +39,11 @@ describe('AuthValidationService.validateMobilePhone', () => {
 
   it('accepts an international number in E.164', () => {
     expect(service.validateMobilePhone('+447911123456')).toBe('');
+    expect(service.validateMobilePhone('+44 7911 123456')).toBe('');
+  });
+
+  it('accepts a 12-15 digit international number typed without its +', () => {
+    expect(service.validateMobilePhone('821012345678')).toBe('');
   });
 
   it('refuses a number too short to reach anyone', () => {
@@ -47,6 +52,16 @@ describe('AuthValidationService.validateMobilePhone', () => {
     for (const number of ['586588', '12', '+44 20 7946']) {
       expect(service.validateMobilePhone(number)).toContain('must be a valid phone number');
     }
+  });
+
+  it('refuses an 11-digit non-NANP number without its +, as the PreSignUp trigger does', () => {
+    expect(service.validateMobilePhone('44791112345')).toContain('must be a valid phone number');
+  });
+
+  it('tells the user to add the + outside Canada and the US', () => {
+    expect(service.validateMobilePhone('586588')).toBe(
+      'Mobile phone must be a valid phone number, e.g. +1 (250) 555-1234, or +44 7911 123456 outside Canada and the US'
+    );
   });
 
   it('still requires a mobile number at sign-up', () => {

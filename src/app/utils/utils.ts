@@ -1,3 +1,5 @@
+import { formatInternationalPhone, normalizePhone } from './phone-utils';
+
 export class Utils {
   buildInnerHTMLRow(arr): string {
     let str = `<div class="row">`;
@@ -26,23 +28,25 @@ export class Utils {
     }
   }
 
-  // Format phone numbers to be +12 (123) 123-1234
-  static formatPhone(digits: string): string {
-    if (!digits) return '';
+  // (250) 555-1234 or +1 (250) 555-1234 for Canada and the US, +44 7911 123456 elsewhere
+  static formatPhone(value: string): string {
+    if (!value) return '';
 
     // Strip punctuation so stored values like "250-555-0123" or "+1 (250) 555-0123"
     // format from their digits rather than slicing separators into the mask.
-    const d = String(digits).replace(/\D/g, '');
-
+    const d = String(value).replace(/\D/g, '');
     if (!d) return '';
+
+    const e164 = normalizePhone(value);
+    if (e164 && !e164.startsWith('+1')) return formatInternationalPhone(e164);
+    if (e164 && d.length === 11) return `+1 (${d.slice(1, 4)}) ${d.slice(4, 7)}-${d.slice(7)}`;
+    // Keep a typed +: without it an international number reads as a Canadian one.
+    if (String(value).trim().startsWith('+')) return `+${d}`;
     if (d.length <= 3) return d;
     // hyphen
     if (d.length <= 7) return `${d.slice(0, 3)}-${d.slice(3)}`;
     // parenthesis and hyphen
     if (d.length <= 10) return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
-    // 11 or 12 digits -> include "+" and country code
-    if (d.length === 11) return `+${d.slice(0, 1)} (${d.slice(1, 4)}) ${d.slice(4, 7)}-${d.slice(7)}`;
-    if (d.length === 12) return `+${d.slice(0, 2)} (${d.slice(2, 5)}) ${d.slice(5, 8)}-${d.slice(8)}`;
     return d;
   }
 }

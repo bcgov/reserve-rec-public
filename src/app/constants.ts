@@ -19,6 +19,9 @@ export class Constants {
     USER_UPDATE: 'userUpdate'
   };
 
+  public static readonly bcscLoginIncompleteMessage =
+    'Your BC Services Card login did not finish. Please try again.';
+
   public static readonly timeZoneIANA = 'America/Vancouver';
 
   public static readonly entityTypes = [

@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { SearchService } from './search.service';
 import { ConfigService } from './config.service';
+import { provideToastr } from 'ngx-toastr';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 
@@ -12,7 +13,8 @@ describe('SearchService', () => {
     TestBed.configureTestingModule({
       imports: [],
       providers: [ConfigService, provideHttpClient(),
-        provideHttpClientTesting()]
+        provideHttpClientTesting(),
+        provideToastr()]
     });
     service = TestBed.inject(SearchService);
   });

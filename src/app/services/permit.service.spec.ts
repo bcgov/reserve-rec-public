@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { PermitService } from './permit.service';
 import { ConfigService } from './config.service';
+import { provideToastr } from 'ngx-toastr';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
@@ -13,7 +14,8 @@ describe('PermitService', () => {
       providers: [
         ConfigService,
         provideHttpClient(),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        provideToastr()
       ]
     });
     service = TestBed.inject(PermitService);

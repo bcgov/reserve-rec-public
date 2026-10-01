@@ -13,6 +13,7 @@ import {
 } from 'aws-amplify/auth';
 
 import { ActivatedRoute, Router } from '@angular/router';
+import { Constants } from '../constants';
 
 
 @Component({
@@ -28,6 +29,8 @@ export class LoginComponent implements OnInit, AfterViewInit, AfterViewChecked {
   initialState: 'signIn' | 'signUp' = 'signIn';
 
   loginReason: string | null = null;
+  bcscRetry = false;
+  readonly bcscRetryMessage = Constants.bcscLoginIncompleteMessage;
 
   // Error message variables to display under each html input field
   emailError = '';
@@ -365,6 +368,7 @@ export class LoginComponent implements OnInit, AfterViewInit, AfterViewChecked {
     // Force authenticator reset by updating key
     this.authKey = Date.now();
     this.loginReason = this.route.snapshot.queryParamMap.get('reason');
+    this.bcscRetry = this.route.snapshot.queryParamMap.get('bcsc') === 'retry';
 
     const now = new Date();
     const options: Intl.DateTimeFormatOptions = { month: 'short', day: '2-digit', year: 'numeric' };
@@ -379,9 +383,6 @@ export class LoginComponent implements OnInit, AfterViewInit, AfterViewChecked {
     return !!this.summaryError;
   }
 
-  signInWithRedirect() {
-    return this.authService.federatedSignIn(); // Default to Cognito-hosted UI
-  }
   logCurrentDate() {
     console.log('Current Date:', this.currentDate);
   }

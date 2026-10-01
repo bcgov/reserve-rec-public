@@ -199,7 +199,7 @@
       <div class="mb-0 mb-md-2">
         <p class="small fw-semibold mb-1 text-body-emphasis">Departure</p>
         <div>{{ getDepartureDate() | date:'fullDate' }}</div>
-        <div class="text-muted small mt-1">{{ getDepartureTime() }}</div>
+        @if (isAMPass()) { <div class="text-muted small mt-1">{{ getDepartureTime() }}</div> }
       </div>
     </div>
   </div>

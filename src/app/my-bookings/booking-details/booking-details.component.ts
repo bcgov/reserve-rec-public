@@ -53,6 +53,10 @@ export class BookingDetailsComponent implements OnInit {
     }
   }
 
+  isAMPass(): boolean {
+    return BookingUtils.isAMPass(this.booking);
+  }
+
   getBookingNumber(): string {
     return BookingUtils.getBookingNumber(this.booking);
   }

@@ -73,6 +73,15 @@ export class BookingUtils {
     return end < today;
   }
 
+  static isAMPass(booking: any): boolean {
+    const PRODUCT_IDS = {
+      AM: "1",
+      PM: "2",
+      DAY: "3",
+    }
+    return booking?.activityId === PRODUCT_IDS.AM;
+  }
+
   /**
    * Get formatted arrival/check-in time
    */

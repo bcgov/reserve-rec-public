@@ -79,7 +79,8 @@ export class BookingUtils {
       PM: "2",
       DAY: "3",
     }
-    return booking?.activityId === PRODUCT_IDS.AM;
+
+    return booking?.productId === PRODUCT_IDS.AM;
   }
 
   /**

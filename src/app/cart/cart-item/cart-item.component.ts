@@ -6,6 +6,7 @@ import { FeatureFlagService } from '../../services/feature-flag.service';
 import { BookingService } from '../../services/booking.service';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
+import { BookingUtils } from '../../utils/booking-utils';
 
 @Component({
   selector: 'app-cart-item',
@@ -41,7 +42,7 @@ export class CartItemComponent implements OnInit {
   }
 
   isAMPass(): boolean {
-    return this.item?.productName?.includes('AM') ?? false;
+    return BookingUtils.isAMPass(this.item);
   }
 
   getTotalOccupants(occupants: any) {

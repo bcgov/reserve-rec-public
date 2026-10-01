@@ -84,6 +84,10 @@ constructor(
     document.body.classList.remove(this.hideFooterClass);
   }
 
+  isAMPass(): boolean {
+    return BookingUtils.isAMPass(this.booking);
+  }
+
   isBookingCancelled(): boolean {
     return BookingUtils.isCancelled(this.booking);
   }

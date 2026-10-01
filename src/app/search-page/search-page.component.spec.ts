@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { SearchPageComponent } from './search-page.component';
 import { ConfigService } from '../services/config.service';
+import { provideToastr } from 'ngx-toastr';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
@@ -15,7 +16,8 @@ describe('SearchPageComponent', () => {
       providers: [
         ConfigService,
         provideHttpClient(),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        provideToastr()
       ]
     })
       .compileComponents();

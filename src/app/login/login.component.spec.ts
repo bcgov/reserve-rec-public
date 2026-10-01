@@ -2,9 +2,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { LoginComponent } from './login.component';
 import { ConfigService } from '../services/config.service';
+import { provideToastr } from 'ngx-toastr';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -13,7 +14,7 @@ describe('LoginComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [LoginComponent],
-      providers: [ConfigService, provideHttpClient(), provideHttpClientTesting(), provideRouter([])]
+      providers: [ConfigService, provideHttpClient(), provideHttpClientTesting(), provideRouter([]), provideToastr()]
     })
       .compileComponents();
 
@@ -24,6 +25,32 @@ describe('LoginComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('BC Services Card retry notice', () => {
+    const MESSAGE = 'Your BC Services Card login did not finish. Please try again.';
+    const render = (params: Record<string, string>) => {
+      Object.defineProperty(TestBed.inject(ActivatedRoute).snapshot, 'queryParamMap', {
+        value: convertToParamMap(params),
+      });
+      fixture = TestBed.createComponent(LoginComponent);
+      fixture.detectChanges();
+      return fixture.nativeElement as HTMLElement;
+    };
+
+    it('is shown as an alert with ?bcsc=retry', () => {
+      const alert = render({ bcsc: 'retry' }).querySelector('[role="alert"]');
+
+      expect(alert?.textContent?.trim()).toBe(MESSAGE);
+    });
+
+    it('is not shown without the param', () => {
+      expect(render({}).textContent).not.toContain(MESSAGE);
+    });
+
+    it('is not shown for other values', () => {
+      expect(render({ bcsc: 'other' }).textContent).not.toContain(MESSAGE);
+    });
   });
 
   // #628: Cognito's own errors named the user pool client in the sign-in alert.

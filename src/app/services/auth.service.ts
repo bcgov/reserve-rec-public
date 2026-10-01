@@ -7,6 +7,7 @@ import { LoggerService } from './logger.service';
 import { Router } from '@angular/router';
 import { LoadingService } from './loading.service';
 import { Constants } from '../constants';
+import { ToastService, ToastTypes } from './toast.service';
 
 @Injectable({
   providedIn: 'root'
@@ -21,7 +22,8 @@ export class AuthService {
     private configService: ConfigService, 
     private loggerService: LoggerService, 
     private router: Router, 
-    private loadingService: LoadingService)
+    private loadingService: LoadingService,
+    private toastService: ToastService)
   {}
 
   async init() {
@@ -98,14 +100,6 @@ export class AuthService {
     }
   }
 
-  async federatedSignIn(): Promise<void> {
-    try {
-      await signInWithRedirect();
-    } catch (error) {
-      this.loggerService.error(`Error during federated sign-in: ${error}`);
-      throw error;
-    }
-  }
   /**
    * Listens to authentication events and handles them accordingly.
    *
@@ -159,7 +153,12 @@ export class AuthService {
           break;
         }
         case 'signInWithRedirect_failure': {
-          this.loggerService.info('Failure while trying to resolve signInWithRedirect API.');
+          this.loggerService.error(`Failure while trying to resolve signInWithRedirect API: ${payload.data?.error}`);
+          this.toastService.addMessage(
+            Constants.bcscLoginIncompleteMessage,
+            'Login failed',
+            ToastTypes.ERROR
+          );
           break;
         }
       }

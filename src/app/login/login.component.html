@@ -11,6 +11,9 @@
             </div>
           }
           <h1 class="mb-4 text-start">Log in to BC Parks</h1>
+          @if (bcscRetry) {
+            <div class="alert alert-danger text-start" role="alert">{{ bcscRetryMessage }}</div>
+          }
           <div class="d-flex flex-column align-items-center">
             <button
               class="btn btn-primary btn-lg login-choice-button"

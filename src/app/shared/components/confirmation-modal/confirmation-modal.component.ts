@@ -19,6 +19,7 @@ export interface ModalRowSpec {
 export class ConfirmationModalComponent {
   @Input() title: string;
   @Input() body: string;
+  @Input() notes: string[] = [];
   @Input() confirmText = 'Confirm';
   @Input() cancelText = 'Cancel';
   @Input() confirmClass = 'btn btn-primary';

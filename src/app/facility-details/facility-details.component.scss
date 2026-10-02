@@ -124,7 +124,8 @@
   }
 }
 
-.disable-btn[disabled] {
+.disable-btn[disabled],
+.disable-btn[aria-disabled="true"] {
   opacity: 1;
   color: #C7C7C7 !important;
 }

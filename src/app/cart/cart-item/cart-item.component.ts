@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CartItem, CartService } from '../../services/cart.service';
+import { CartItem, CartService, holdReleaseNotes } from '../../services/cart.service';
 import { Constants } from '../../constants';
 import { FeatureFlagService } from '../../services/feature-flag.service';
 import { BsModalService } from 'ngx-bootstrap/modal';
@@ -150,6 +150,7 @@ export class CartItemComponent implements OnInit {
         initialState: {
           title: 'Remove booking',
           body: `Confirm remove this booking from your cart?`,
+          notes: holdReleaseNotes(this.item),
           confirmText: 'Remove',
           cancelText: 'Cancel',
           confirmClass: 'btn btn-danger',

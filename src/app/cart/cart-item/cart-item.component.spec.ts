@@ -33,4 +33,23 @@ describe('CartItemComponent', () => {
     expect(removed).toEqual(['item-1']);
     expect(cartService.releaseCartItem).toHaveBeenCalledOnceWith(component.item);
   });
+
+  it('warns in the remove dialog when no free removals are left', () => {
+    const show = jasmine.createSpy('show').and.returnValue({
+      content: { confirmButton: new Subject<void>(), cancelButton: new Subject<void>() },
+      hide: () => undefined,
+      onHide: new Subject<void>(),
+    });
+    TestBed.configureTestingModule({ providers: [{ provide: BsModalService, useValue: { show } }] });
+    const component = TestBed.runInInjectionContext(
+      () => new CartItemComponent({} as FeatureFlagService, {} as CartService)
+    );
+    component.item = { id: 'item-1', bookingId: 'booking-1', startDate: '2026-10-03', holdLimits: { freeRemovalsLeft: 0 } } as CartItem;
+
+    component.onRemoveClick();
+
+    const notes = show.calls.mostRecent().args[1].initialState.notes;
+    expect(notes.length).toBe(2);
+    expect(notes[0]).toContain('wait before you can book');
+  });
 });

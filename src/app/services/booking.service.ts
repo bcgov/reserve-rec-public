@@ -1,11 +1,32 @@
 import { Injectable } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
+import { DateTime } from 'luxon';
 import { Constants } from '../constants';
 import { ApiService } from './api.service';
 import { DataService } from './data.service';
 import { LoadingService } from './loading.service';
 import { LoggerService } from './logger.service';
 import { ToastService, ToastTypes } from './toast.service';
+
+export interface HoldLimits {
+  freeRemovalsLeft: number;
+}
+
+const HOLD_RETRY_CODES = ['HOLD_COOLDOWN', 'HOLD_CAP'];
+
+// A 429 from hold creation carries code and retryAt at the body root or under `data`.
+export function parseHoldRetryAt(error: any): DateTime | null {
+  if (error?.status !== 429) return null;
+  const body = error?.error;
+  const code = HOLD_RETRY_CODES.find(c => c === body?.code || c === body?.data?.code);
+  const retryAt = DateTime.fromISO(String(body?.retryAt ?? body?.data?.retryAt ?? ''), { zone: 'utc' });
+  return code && retryAt.isValid ? retryAt : null;
+}
+
+function parseHoldLimits(value: any): HoldLimits | undefined {
+  const left = value?.freeRemovalsLeft;
+  return Number.isInteger(left) ? { freeRemovalsLeft: left } : undefined;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -48,7 +69,11 @@ export class BookingService {
     try {
       this.dataService.clearItemValue(Constants.dataIds.CREATE_BOOKING_RESULT);
       this.loadingService.addToFetchList(Constants.dataIds.CREATE_BOOKING_RESULT);
-      const res = (await lastValueFrom(this.apiService.post(`bookings`, bookingData, queryParams)))['data'];
+      const body = await lastValueFrom(this.apiService.post(`bookings`, bookingData, queryParams));
+      const res = body?.['data'];
+      if (res && typeof res === 'object') {
+        res.holdLimits = parseHoldLimits(res.holdLimits ?? body?.['holdLimits']);
+      }
       this.dataService.setItemValue(Constants.dataIds.CREATE_BOOKING_RESULT, res);
       this.loadingService.removeFromFetchList(Constants.dataIds.CREATE_BOOKING_RESULT);
       return res;

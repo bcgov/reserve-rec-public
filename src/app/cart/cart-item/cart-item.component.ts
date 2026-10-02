@@ -1,9 +1,8 @@
 import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CartItem } from '../../services/cart.service';
+import { CartItem, CartService } from '../../services/cart.service';
 import { Constants } from '../../constants';
 import { FeatureFlagService } from '../../services/feature-flag.service';
-import { BookingService } from '../../services/booking.service';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 import { BookingUtils } from '../../utils/booking-utils';
@@ -25,7 +24,7 @@ export class CartItemComponent implements OnInit {
   public paymentsEnabled;
   public hideBookingCostsBool = false;
 
-  constructor(private featureFlagService: FeatureFlagService, private bookingService: BookingService) { }
+  constructor(private featureFlagService: FeatureFlagService, private cartService: CartService) { }
 
   async ngOnInit() {
     try {
@@ -168,7 +167,7 @@ export class CartItemComponent implements OnInit {
       modalRef.content?.confirmButton.subscribe(() => {
         settle(true);
         this.removeItem.emit(this.item.id);
-        this.bookingService.cancelBooking(this.item.bookingId)
+        this.cartService.releaseCartItem(this.item);
         modalRef.hide();
       });
       modalRef.content?.cancelButton.subscribe(() => {

@@ -93,9 +93,27 @@ export class BookingService {
     }
   }
 
-  async cancelBooking(bookingId: string) {
+  async fetchBooking(bookingId: string) {
     try {
-      const res = (await lastValueFrom(this.apiService.post(`bookings/${bookingId}/cancel`, {}, {})))['data'];
+      return (await lastValueFrom(this.apiService.get(`bookings/${bookingId}`)))['data'];
+    } catch (error) {
+      this.loggerService.error(error);
+      return null;
+    }
+  }
+
+  notifyAlreadyConfirmed() {
+    this.toastService.addMessage(
+      'This booking is already confirmed. You can manage it from My bookings.',
+      'Removed from cart',
+      ToastTypes.INFO
+    );
+  }
+
+  async cancelBooking(bookingId: string, options: { cartRemoval?: boolean } = {}) {
+    const body = options.cartRemoval ? { cartRemoval: true } : {};
+    try {
+      const res = (await lastValueFrom(this.apiService.post(`bookings/${bookingId}/cancel`, body, {})))['data'];
       this.toastService.addMessage(
         `Successfully removed from cart`,
         '',
@@ -111,9 +129,13 @@ export class BookingService {
         (error as any)?.error?.Message ||
         (error as any)?.message ||
         'Unknown error';
+      if ((error as any)?.status === 409 && (error as any)?.error?.data?.status === 'confirmed') {
+        this.notifyAlreadyConfirmed();
+        return null;
+      }
       // A 409 for a hold that already timed out/was cancelled means the item is
       // already gone from the cart - that's the outcome the caller wanted.
-      if ((error as any)?.status === 409 && /status "(TIMED_OUT|cancelled)"/i.test(errorMessage)) {
+      if ((error as any)?.status === 409 && /status "(TIMED_OUT|cancelled|expired)"/i.test(errorMessage)) {
         this.toastService.addMessage(
           `Successfully removed from cart`,
           '',

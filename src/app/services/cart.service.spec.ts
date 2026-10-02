@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 
-import { CartItem, CartService } from './cart.service';
+import { CartItem, CartService, holdReleaseNotes } from './cart.service';
 import { AuthService } from './auth.service';
 import { BookingService } from './booking.service';
 
@@ -132,5 +132,28 @@ describe('CartService cross-tab sync', () => {
     localStorage.setItem(STORAGE_KEY, '[]');
     window.dispatchEvent(new StorageEvent('storage', { key: 'bcparks-cart::someone-else' }));
     expect(service.items().length).toBe(1);
+  });
+});
+
+describe('holdReleaseNotes', () => {
+  const item = (holdLimits?: { freeRemovalsLeft: number }) =>
+    ({ id: 'item-1', bookingId: 'booking-1', startDate: '2026-10-03', holdLimits } as CartItem);
+  const takenNote = 'Someone else may book these passes after they leave your cart.';
+
+  it('warns about the wait and the passes when no free removals are left', () => {
+    expect(holdReleaseNotes(item({ freeRemovalsLeft: 0 }))).toEqual([
+      'You will have to wait before you can book this pass for October 3 again.',
+      takenNote,
+    ]);
+  });
+
+  it('only mentions the passes when removals are left or no limit applies', () => {
+    expect(holdReleaseNotes(item({ freeRemovalsLeft: 1 }))).toEqual([takenNote]);
+    expect(holdReleaseNotes(item())).toEqual([takenNote]);
+  });
+
+  it('adds nothing for an item with no hold', () => {
+    expect(holdReleaseNotes({ ...item({ freeRemovalsLeft: 0 }), bookingId: undefined })).toEqual([]);
+    expect(holdReleaseNotes(undefined)).toEqual([]);
   });
 });

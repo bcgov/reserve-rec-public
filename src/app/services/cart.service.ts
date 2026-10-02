@@ -1,7 +1,8 @@
 import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { AuthService } from './auth.service';
-import { BookingService } from './booking.service';
+import { BookingService, HoldLimits } from './booking.service';
 import { BookingUtils } from '../utils/booking-utils';
+import { DateTime } from 'luxon';
 
 export interface CartItem {
   id: string;
@@ -47,12 +48,25 @@ export interface CartItem {
   sessionId?: string; // Session ID from initial booking creation
   sessionInitTime?: number;
   sessionExpiry?: number;
+  holdLimits?: HoldLimits; // Absent means no limit applies
   vehicleInformation: [
     {
       licensePlate: string,
       licensePlateRegistrationRegion: string,
     }
   ]
+}
+
+// Extra confirm-dialog lines for an action that cancels the item's hold.
+export function holdReleaseNotes(item: CartItem | undefined): string[] {
+  if (!item?.bookingId) return [];
+  const notes = ['Someone else may book these passes after they leave your cart.'];
+  if (item.holdLimits?.freeRemovalsLeft === 0) {
+    const date = DateTime.fromISO(item.startDate);
+    const day = date.isValid ? date.toFormat('LLLL d') : 'this date';
+    notes.unshift(`You will have to wait before you can book this pass for ${day} again.`);
+  }
+  return notes;
 }
 
 @Injectable({

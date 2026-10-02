@@ -21,6 +21,12 @@ import { provideToastr } from 'ngx-toastr';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { Title } from '@angular/platform-browser';
 import { ServerTimeService } from '../services/server-time.service';
+import { Router } from '@angular/router';
+import { of } from 'rxjs';
+import { DateTime } from 'luxon';
+import { BookingService } from '../services/booking.service';
+import { CartItem, CartService } from '../services/cart.service';
+import { ToastService } from '../services/toast.service';
 
 describe('FacilityDetailsComponent', () => {
   let component: FacilityDetailsComponent;
@@ -237,5 +243,133 @@ describe('FacilityDetailsComponent', () => {
       expect(component.passStatus).toBe('available');
       expect(component.passesAvailable).toBeTrue();
     }));
+  });
+
+  describe('hold retry', () => {
+    const date = '2026-10-03';
+    let bookingService: BookingService;
+    let cartService: CartService;
+    let toastSpy: jasmine.Spy;
+
+    const retryError = (retryAt: DateTime) => ({
+      status: 429,
+      error: { msg: 'Try later', code: 'HOLD_COOLDOWN', retryAt: retryAt.toUTC().toISO() },
+    });
+    const el = (): HTMLElement => fixture.nativeElement;
+    const notice = () => el().querySelector('#hold-retry-notice')?.textContent?.trim() ?? '';
+    const bookButton = () => Array.from(el().querySelectorAll('button')).find(b => b.textContent?.includes('Book day-use pass'));
+
+    beforeEach(() => {
+      localStorage.clear();
+      bookingService = TestBed.inject(BookingService);
+      cartService = TestBed.inject(CartService);
+      toastSpy = spyOn(TestBed.inject(ToastService), 'addMessage');
+      spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+      spyOn(component as any, 'loadProductDates').and.resolveTo();
+      spyOn(component as any, 'loadPassesAvailable').and.resolveTo();
+
+      component.isLoggedIn = true;
+      component.passStatus = 'available';
+      component.passesAvailable = true;
+      component.availableProducts = [{ display: 'Trail pass', value: 'product::c1::dayuse::a1#p1' }];
+      component.form.get('selectedProduct').setValue('product::c1::dayuse::a1#p1', { emitEvent: false });
+      component.form.get('selectedDate').setValue(date, { emitEvent: false });
+      component.form.get('selectedVisitors').setValue('2', { emitEvent: false });
+      (component as any).selectedDateStr = date;
+      fixture.detectChanges();
+    });
+
+    afterEach(() => {
+      fixture.destroy();
+      localStorage.clear();
+    });
+
+    it('shows the try-again notice and holds the Book button on a 429', async () => {
+      spyOn(bookingService, 'createBooking').and.rejectWith(retryError(DateTime.now().plus({ minutes: 10 })));
+
+      await component.submit();
+      fixture.detectChanges();
+
+      expect(notice()).toContain("You've changed this booking several times. You can try again at");
+      expect(bookButton()?.getAttribute('aria-disabled')).toBe('true');
+      expect(bookButton()?.getAttribute('aria-describedby')).toBe('hold-retry-notice');
+      expect(toastSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not try another hold while waiting', async () => {
+      const create = spyOn(bookingService, 'createBooking').and.rejectWith(retryError(DateTime.now().plus({ minutes: 10 })));
+
+      await component.submit();
+      await component.submit();
+
+      expect(create).toHaveBeenCalledTimes(1);
+    });
+
+    it('applies the wait only to the date it was returned for', async () => {
+      spyOn(bookingService, 'createBooking').and.rejectWith(retryError(DateTime.now().plus({ minutes: 10 })));
+      await component.submit();
+
+      (component as any).selectedDateStr = '2026-10-04';
+
+      expect(component.holdRetryAt).toBeNull();
+    });
+
+    it('re-enables the Book button when the wait ends', async () => {
+      spyOn(bookingService, 'createBooking').and.rejectWith(retryError(DateTime.now().plus({ minutes: 10 })));
+      await component.submit();
+
+      component.onHoldRetryElapsed();
+
+      expect(component.holdRetryAt).toBeNull();
+      expect(bookButton()?.hasAttribute('aria-disabled')).toBeFalse();
+      expect(notice()).toBe('');
+    });
+
+    it('shows sold out instead of the notice', async () => {
+      spyOn(bookingService, 'createBooking').and.rejectWith(retryError(DateTime.now().plus({ minutes: 10 })));
+      await component.submit();
+
+      component.passStatus = 'sold-out';
+      fixture.detectChanges();
+
+      expect(el().querySelector('#hold-retry-notice')).toBeNull();
+      expect(el().textContent).toContain('have been fully reserved');
+    });
+
+    it('falls back to the error toast for a 429 without a retry time', async () => {
+      spyOn(bookingService, 'createBooking').and.rejectWith({ status: 429, error: { msg: 'Too Many Requests' } });
+
+      await component.submit();
+
+      expect(component.holdRetryAt).toBeNull();
+      expect(toastSpy).toHaveBeenCalledWith('Too Many Requests', 'Error', jasmine.anything());
+    });
+
+    it('leaves the cart empty when the replacement hold is refused', async () => {
+      cartService.addToCart({ bookingId: 'old-booking', startDate: date } as CartItem);
+      spyOn(TestBed.inject(BsModalService), 'show').and.returnValue({
+        content: { confirmButton: of(undefined), cancelButton: of() },
+        hide: () => undefined,
+        onHide: of(),
+      } as any);
+      const release = spyOn(cartService, 'releaseCartItem').and.resolveTo();
+      spyOn(bookingService, 'createBooking').and.rejectWith(retryError(DateTime.now().plus({ minutes: 10 })));
+
+      await component.submit();
+
+      expect(release).toHaveBeenCalled();
+      expect(cartService.items()).toEqual([]);
+      expect(component.holdRetryAt).not.toBeNull();
+    });
+
+    it('stores holdLimits with the new cart item', async () => {
+      spyOn(bookingService, 'createBooking').and.resolveTo({
+        bookingId: 'b1', sessionId: 's1', holdLimits: { freeRemovalsLeft: 1 },
+      });
+
+      await component.submit();
+
+      expect(cartService.items()[0]?.holdLimits).toEqual({ freeRemovalsLeft: 1 });
+    });
   });
 });

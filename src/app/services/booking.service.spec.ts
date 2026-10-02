@@ -4,7 +4,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideToastr } from 'ngx-toastr';
 import { of, throwError } from 'rxjs';
 
-import { BookingService } from './booking.service';
+import { BookingService, parseHoldRetryAt } from './booking.service';
 import { ApiService } from './api.service';
 import { ConfigService } from './config.service';
 import { ToastService } from './toast.service';
@@ -102,5 +102,48 @@ describe('BookingService', () => {
 
     getSpy.and.callFake(() => throwError(() => ({ status: 500 })));
     expect(await service.fetchBooking('booking-1')).toBeNull();
+  });
+
+  describe('hold limits on create', () => {
+    const create = (body: any) => {
+      spyOn(TestBed.inject(ApiService), 'post').and.returnValue(of(body));
+      return service.createBooking({ productId: 'p1', quantity: 1 }, 'c1', 'dayuse', 'a1', '2026-10-03');
+    };
+
+    it('keeps holdLimits returned in data', async () => {
+      const res = await create({ data: { bookingId: 'b1', holdLimits: { freeRemovalsLeft: 2 } } });
+      expect(res.holdLimits).toEqual({ freeRemovalsLeft: 2 });
+    });
+
+    it('reads holdLimits from the body root', async () => {
+      const res = await create({ data: { bookingId: 'b1' }, holdLimits: { freeRemovalsLeft: 0 } });
+      expect(res.holdLimits).toEqual({ freeRemovalsLeft: 0 });
+    });
+
+    it('leaves holdLimits unset when absent or malformed', async () => {
+      const res = await create({ data: { bookingId: 'b1', holdLimits: { freeRemovalsLeft: 'x' } } });
+      expect(res.holdLimits).toBeUndefined();
+    });
+  });
+});
+
+describe('parseHoldRetryAt', () => {
+  const retryAt = '2026-10-02T14:15:00.000Z';
+
+  it('reads code and retryAt from the body root', () => {
+    const parsed = parseHoldRetryAt({ status: 429, error: { msg: 'x', code: 'HOLD_COOLDOWN', retryAt } });
+    expect(parsed?.toMillis()).toBe(Date.parse(retryAt));
+  });
+
+  it('reads code and retryAt from data', () => {
+    const parsed = parseHoldRetryAt({ status: 429, error: { code: 429, data: { code: 'HOLD_CAP', retryAt } } });
+    expect(parsed?.toMillis()).toBe(Date.parse(retryAt));
+  });
+
+  it('ignores other statuses, other codes and a bad retryAt', () => {
+    expect(parseHoldRetryAt({ status: 409, error: { code: 'HOLD_COOLDOWN', retryAt } })).toBeNull();
+    expect(parseHoldRetryAt({ status: 429, error: { code: 'THROTTLED', retryAt } })).toBeNull();
+    expect(parseHoldRetryAt({ status: 429, error: { code: 'HOLD_COOLDOWN', retryAt: 'soon' } })).toBeNull();
+    expect(parseHoldRetryAt({ status: 429, error: { message: 'Too Many Requests' } })).toBeNull();
   });
 });

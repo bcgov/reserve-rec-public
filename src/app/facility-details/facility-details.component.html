@@ -312,9 +312,12 @@
               } @else if (emailVerificationLoaded && !emailVerified) {
                 <app-account-verification (emailVerified)="onEmailVerified()" />
               } @else if (passStatus === 'available' && isLoggedIn) {
+                <app-hold-retry-notice [retryAt]="holdRetryAt" (elapsed)="onHoldRetryElapsed()" />
                 <button
                   class="disable-btn btn bg-white text-primary fw-bold rounded-1 px-4 w-100"
                   [disabled]="(!this.form.get('selectedVisitors').value && selectedActivitySubType !== 'vehicleParking') || !this.form.get('selectedDate').value || !this.form.get('selectedProduct').value || !this.passesAvailable"
+                  [attr.aria-disabled]="holdRetryAt ? 'true' : null"
+                  [attr.aria-describedby]="holdRetryAt ? 'hold-retry-notice' : null"
                   (click)="submit()"
                   >
                   {{ passesAvailable ? "Book day-use pass" : (datesLoadFailed ? "Availability unavailable — try again" : "No passes available") }}

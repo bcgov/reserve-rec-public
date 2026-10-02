@@ -1,0 +1,17 @@
+<div [ngClass]="message ? 'alert alert-warning p-3 mb-3 d-flex align-items-start' : ''">
+  @if (message) {
+    <div class="me-3">
+      <i class="fa-regular fa-clock text-dark fs-5" aria-hidden="true"></i>
+    </div>
+  }
+  <div>
+    <p [id]="noticeId" class="text-dark mb-0" aria-live="polite" aria-atomic="true">
+      @if (message) {
+        <strong>{{ message }}</strong>
+      }
+    </p>
+    @if (countdown) {
+      <p class="text-dark mb-0 mt-1" aria-hidden="true">Time left: <strong>{{ countdown }}</strong></p>
+    }
+  </div>
+</div>

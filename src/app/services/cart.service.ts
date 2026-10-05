@@ -137,7 +137,7 @@ export class CartService {
   // booking, otherwise the stale hold blocks the new one. removeFromCart does
   // not release; every cart path that drops a held item calls this as well.
   // (Ref bcgov/reserve-rec-public#650.)
-  async releaseCartItem(item: CartItem | undefined): Promise<void> {
+  async releaseCartItem(item: CartItem | undefined, { quiet = false } = {}): Promise<void> {
     if (!item?.bookingId) return;
     try {
       const booking = await this.bookingService.fetchBooking(item.bookingId);
@@ -147,7 +147,7 @@ export class CartService {
         }
         return;
       }
-      await this.bookingService.cancelBooking(item.bookingId, { cartRemoval: true });
+      await this.bookingService.cancelBooking(item.bookingId, { cartRemoval: true, quiet });
     } catch (error) {
       console.warn('Failed to cancel booking for discarded cart item:', error);
     }

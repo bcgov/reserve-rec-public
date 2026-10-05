@@ -357,7 +357,7 @@ describe('FacilityDetailsComponent', () => {
 
       await component.submit();
 
-      expect(release).toHaveBeenCalled();
+      expect(release).toHaveBeenCalledWith(jasmine.objectContaining({ bookingId: 'old-booking' }), { quiet: true });
       expect(cartService.items()).toEqual([]);
       expect(component.holdRetryAt).not.toBeNull();
     });

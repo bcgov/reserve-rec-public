@@ -135,15 +135,17 @@ export class BookingService {
     );
   }
 
-  async cancelBooking(bookingId: string, options: { cartRemoval?: boolean } = {}) {
+  // quiet: skip the "removed" toast, for a replace that shows "added" instead.
+  async cancelBooking(bookingId: string, options: { cartRemoval?: boolean; quiet?: boolean } = {}) {
     const body = options.cartRemoval ? { cartRemoval: true } : {};
+    const notifyRemoved = () => {
+      if (!options.quiet) {
+        this.toastService.addMessage('Item removed from cart', 'Success', ToastTypes.SUCCESS);
+      }
+    };
     try {
       const res = (await lastValueFrom(this.apiService.post(`bookings/${bookingId}/cancel`, body, {})))['data'];
-      this.toastService.addMessage(
-        `Successfully removed from cart`,
-        '',
-        ToastTypes.SUCCESS
-      );
+      notifyRemoved();
       return res;
     } catch (error) {
       this.loadingService.removeFromFetchList(Constants.dataIds.PRODUCT_RESULT);
@@ -158,14 +160,14 @@ export class BookingService {
         this.notifyAlreadyConfirmed();
         return null;
       }
-      // A 409 for a hold that already timed out/was cancelled means the item is
-      // already gone from the cart - that's the outcome the caller wanted.
-      if ((error as any)?.status === 409 && /status "(TIMED_OUT|cancelled|expired)"/i.test(errorMessage)) {
-        this.toastService.addMessage(
-          `Successfully removed from cart`,
-          '',
-          ToastTypes.SUCCESS
-        );
+      // A hold that already timed out, was cancelled (409, or 400 on a lost
+      // race) or no longer exists is already gone from the cart - that's the
+      // outcome the caller wanted.
+      const alreadyGone =
+        (error as any)?.error?.data?.refusal === 'not_found' ||
+        /status "(TIMED_OUT|cancelled|expired)"|already cancelled/i.test(errorMessage);
+      if ([400, 409].includes((error as any)?.status) && alreadyGone) {
+        notifyRemoved();
         return null;
       }
       // log error to console

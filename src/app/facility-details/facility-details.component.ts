@@ -559,7 +559,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
       if (!proceed) return;
       // Release the old hold before creating the new booking — otherwise the
       // API rejects a re-book of the same pass/date. (Ref #650.)
-      await this.cartService.releaseCartItem(existingCartItem);
+      await this.cartService.releaseCartItem(existingCartItem, { quiet: true });
       // Drop the released item now; a failed new hold must leave the cart empty.
       this.cartService.removeFromCart(existingCartItem.id);
     }

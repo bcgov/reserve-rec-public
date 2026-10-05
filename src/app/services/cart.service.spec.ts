@@ -52,7 +52,12 @@ describe('CartService booking release', () => {
 
   it('cancels the booking of a released item as a cart removal', async () => {
     await service.releaseCartItem(makeItem('booking-1'));
-    expect(bookingServiceSpy.cancelBooking).toHaveBeenCalledWith('booking-1', { cartRemoval: true });
+    expect(bookingServiceSpy.cancelBooking).toHaveBeenCalledWith('booking-1', { cartRemoval: true, quiet: false });
+  });
+
+  it('passes quiet through so a replaced item only shows the added toast', async () => {
+    await service.releaseCartItem(makeItem('booking-1'), { quiet: true });
+    expect(bookingServiceSpy.cancelBooking).toHaveBeenCalledWith('booking-1', { cartRemoval: true, quiet: true });
   });
 
   it('drops a confirmed item without cancelling it and tells the user', async () => {
@@ -72,7 +77,7 @@ describe('CartService booking release', () => {
   it('still sends the cart removal when the status check fails', async () => {
     bookingServiceSpy.fetchBooking.and.resolveTo(null);
     await service.releaseCartItem(makeItem('booking-1'));
-    expect(bookingServiceSpy.cancelBooking).toHaveBeenCalledWith('booking-1', { cartRemoval: true });
+    expect(bookingServiceSpy.cancelBooking).toHaveBeenCalledWith('booking-1', { cartRemoval: true, quiet: false });
   });
 
   it('does not call the API for an item with no booking', async () => {

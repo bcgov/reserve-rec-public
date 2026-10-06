@@ -161,11 +161,6 @@ export class AuthValidationService {
     if (!country?.trim()) {
       return 'Country is required';
     }
-    // Only letters and spaces allowed
-    const countryRegex = /^[a-zA-Z\s-]+$/;
-    if (!countryRegex.test(country)) {
-      return 'Country can only contain letters, spaces, and hyphens';
-    }
     return '';
   }
 

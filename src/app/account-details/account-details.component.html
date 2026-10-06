@@ -120,19 +120,6 @@
                     <div class="col-12"><ngds-text-input label="Street address" [control]="contactForm.get('streetAddress')" [disabled]="isBcsc">></ngds-text-input></div>
                     <div class="col-12"><ngds-text-input label="Suite, apartment or unit" [control]="contactForm.get('unitNumber')" [disabled]="isBcsc">></ngds-text-input></div>
                     <div class="col-md-6"><ngds-text-input label="City" [control]="contactForm.get('city')" [disabled]="isBcsc"></ngds-text-input></div>
-                    <div class="col-md-6">
-                      <label class="form-label create-account-form-label" for="provinceSelect">Province or state <span class="text-danger">*</span></label>
-                      <select
-                        id="province-select"
-                        class="form-select"
-                        formControlName="province"
-                        name="custom:province">
-                        <option value="">Select Province / State</option>
-                        @for (prov of filteredProvinces; track prov) {
-                          <option [value]="prov" [disabled]="!prov">{{ prov }}</option>
-                        }
-                      </select>
-                    </div>
                     <div class="col-md-6"><ngds-text-input label="Postal or zip code" [control]="contactForm.get('postalCode')" [disabled]="isBcsc"></ngds-text-input></div>
                     <div class="col-md-6">
                       <label class="form-label create-account-form-label" for="countrySelect">Country <span class="text-danger">*</span></label>
@@ -149,6 +136,19 @@
                         </select>
 
 
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label create-account-form-label" for="provinceSelect">Province or state <span class="text-danger">*</span></label>
+                      <select
+                        id="province-select"
+                        class="form-select"
+                        formControlName="province"
+                        name="custom:province">
+                        <option value="">Select Province / State</option>
+                        @for (prov of filteredProvinces; track prov) {
+                          <option [value]="prov" [disabled]="!prov">{{ prov }}</option>
+                        }
+                      </select>
                     </div>
                     <div class="col-md-6">
                       <ngds-text-input

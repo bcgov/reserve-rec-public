@@ -27,6 +27,7 @@ import { DateTime } from 'luxon';
 import { BookingService } from '../services/booking.service';
 import { CartItem, CartService } from '../services/cart.service';
 import { ToastService } from '../services/toast.service';
+import { ProductDateService } from '../services/product-date.service';
 
 describe('FacilityDetailsComponent', () => {
   let component: FacilityDetailsComponent;
@@ -243,6 +244,74 @@ describe('FacilityDetailsComponent', () => {
       expect(component.passStatus).toBe('available');
       expect(component.passesAvailable).toBeTrue();
     }));
+  });
+
+  describe('pass validity', () => {
+    const product = 'product::c1::dayuse::a1#1';
+    const at = (date: string, hour: number) => DateTime.fromISO(`${date}T${String(hour).padStart(2, '0')}:00`, { zone: 'America/Vancouver' }).toMillis();
+    const productDate = (date: string, checkIn?: number, checkOut?: number) => ({
+      sk: date,
+      reservationContext: {
+        minDailyInventory: 1,
+        maxDailyInventory: 4,
+        temporalAnchors: { checkInTime: checkIn, checkOutTime: checkOut },
+      },
+      inventoryPool: { isOpen: true, available: 10 },
+    });
+    const hint = () => (fixture.nativeElement as HTMLElement).querySelector('#pass-validity')?.textContent?.trim() ?? null;
+    let getProductDates: jasmine.Spy;
+
+    beforeEach(() => {
+      component.isLoggedIn = true;
+      getProductDates = spyOn(TestBed.inject(ProductDateService), 'getProductDates');
+      fixture.detectChanges();
+    });
+
+    afterEach(() => fixture.destroy());
+
+    it('shows the validity window once a pass type is loaded', async () => {
+      getProductDates.and.resolveTo([productDate('2026-07-15', at('2026-07-15', 7), at('2026-07-15', 13))]);
+
+      await (component as any).loadProductDates(product);
+      fixture.detectChanges();
+
+      expect(hint()).toBe('Valid 7 am – 1 pm');
+    });
+
+    it('follows the selected date', async () => {
+      getProductDates.and.resolveTo([
+        productDate('2026-07-15', at('2026-07-15', 7), at('2026-07-15', 13)),
+        productDate('2026-07-16', at('2026-07-16', 13), at('2026-07-16', 19)),
+      ]);
+      await (component as any).loadProductDates(product);
+
+      await (component as any).loadPassesAvailable('2026-07-16');
+      fixture.detectChanges();
+
+      expect(hint()).toBe('Valid 1 pm – 7 pm');
+    });
+
+    it('is hidden when an anchor is missing', async () => {
+      getProductDates.and.resolveTo([productDate('2026-07-15', at('2026-07-15', 7))]);
+
+      await (component as any).loadProductDates(product);
+      fixture.detectChanges();
+
+      expect(component.passValidity).toBeNull();
+      expect(hint()).toBeNull();
+    });
+
+    it('clears when the pass type changes', async () => {
+      getProductDates.and.resolveTo([productDate('2026-07-15', at('2026-07-15', 7), at('2026-07-15', 13))]);
+      await (component as any).loadProductDates(product);
+
+      getProductDates.and.returnValue(new Promise(() => undefined));
+      (component as any).loadProductDates('product::c1::dayuse::a1#2');
+      fixture.detectChanges();
+
+      expect(component.passValidity).toBeNull();
+      expect(hint()).toBeNull();
+    });
   });
 
   describe('hold retry', () => {

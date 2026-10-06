@@ -3,6 +3,7 @@
  * Provides consistent data access and formatting across booking components.
  */
 import { DateTime } from 'luxon';
+import { Constants } from '../constants';
 
 export class BookingUtils {
   
@@ -276,12 +277,31 @@ export class BookingUtils {
     return '0';
   }
 
+  /**
+   * Format epoch millis as a park-time clock time: "7 am", "1:30 pm", "12 pm".
+   * Returns null for missing or invalid input.
+   */
+  static formatParkTime(millis: number | null | undefined): string | null {
+    if (typeof millis !== 'number' || !Number.isFinite(millis)) {
+      return null;
+    }
+    // Fixed locale: en-CA renders the meridiem as "a.m.".
+    const dt = DateTime.fromMillis(millis, { zone: Constants.timeZoneIANA, locale: 'en-US' });
+    if (!dt.isValid) {
+      return null;
+    }
+    return dt.toFormat(dt.minute ? 'h:mm a' : 'h a').toLowerCase();
+  }
+
   private static formatBookingTime(timeValue: unknown, fallbackDate?: string): string {
+    if (typeof timeValue === 'number') {
+      return BookingUtils.formatParkTime(timeValue) ?? '';
+    }
     const dt = BookingUtils.parseDateTime(timeValue, fallbackDate);
     if (!dt) {
       return '';
     }
-    return dt.toFormat('h a').toLowerCase();
+    return dt.toFormat(dt.minute ? 'h:mm a' : 'h a').toLowerCase();
   }
 
   private static parseDateTime(value: unknown, fallbackDate?: string): DateTime | null {

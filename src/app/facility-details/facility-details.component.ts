@@ -24,6 +24,7 @@ import { BookingService, parseHoldRetryAt } from '../services/booking.service';
 import { AccountVerificationComponent } from '../shared/components/account-verification/account-verification.component';
 import { HoldRetryNoticeComponent } from '../shared/components/hold-retry-notice/hold-retry-notice.component';
 import { pageTitle } from '../page-title.strategy';
+import { BookingUtils } from '../utils/booking-utils';
 
 @Component({
   selector: 'app-facility-details',
@@ -80,6 +81,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   public selectedActivitySubType: string | null = null;
   private selectedActivityName: string;
   public selectedProductName: string;
+  public passValidity: string | null = null;
   private selectedDateStr: string;
   private waitingRoomActive = false;
   // Set from a hold-create 429; applies only to the product and date it was returned for.
@@ -247,6 +249,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
 
     this.loadingProducts = true;
     this.availableProducts = [];
+    this.passValidity = null;
 
     // The related product pk/sk is made up from the selected activity's pk/sk
     const relatedProducts = (await this.productService.getProductsByActivity(collectionId, activityType, activityId))?.items || [];
@@ -280,6 +283,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
     const productId = selectedProductId || null;
 
     this.loadingDates = true;
+    this.passValidity = null;
     this.passStatus = 'available'; // Reset these when product changges and clear the other fields. 
     this.form.get('selectedDate').setValue(null, { emitEvent: false });
     this.form.get('selectedVisitors').setValue(null, { emitEvent: false });
@@ -320,6 +324,15 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
     }
 
     this.availableDates = availableDatesMap;
+    this.updatePassValidity(this.form.get('selectedDate').value);
+  }
+
+  private updatePassValidity(date?: string | null) {
+    const productDate = (date && this.availableDates[date]) || Object.values(this.availableDates)[0];
+    const context = productDate?.reservationContext;
+    const start = BookingUtils.formatParkTime(context?.checkInAnchor ?? context?.temporalAnchors?.checkInTime);
+    const end = BookingUtils.formatParkTime(context?.checkOutAnchor ?? context?.temporalAnchors?.checkOutTime);
+    this.passValidity = start && end ? `Valid ${start} – ${end}` : null;
   }
 
   setFormPassesAvailable() {
@@ -337,6 +350,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
       this.availableVisitorsAllowed = [];
       this.selectedDateStr = typeof date === 'string' ? date : (date?.['toISODate'] ? date['toISODate']() : String(date));
       this.waitingRoomActive = false;
+      this.updatePassValidity(this.selectedDateStr);
 
       // Check Mode 1 waiting room status for the selected date
       if (this.selectedCollectionId && this.selectedActivityType && this.selectedActivityId) {

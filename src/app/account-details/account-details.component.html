@@ -246,8 +246,8 @@
                         formControlName="vehicleRegLocale">
                         name="custom:province">
                         <option value="">Select Province / State</option>
-                        @for (prov of filteredProvinces; track prov) {
-                          <option [value]="prov" [disabled]="!prov">{{ prov }}</option>
+                        @for (provState of allProvincesStates; track provState) {
+                          <option [value]="provState" [disabled]="!provState">{{ provState }}</option>
                         }
                       </select>
                     </div>

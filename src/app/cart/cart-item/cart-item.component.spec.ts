@@ -52,4 +52,16 @@ describe('CartItemComponent', () => {
     expect(notes.length).toBe(2);
     expect(notes[0]).toContain('wait before you can book');
   });
+
+  it('shows arrival and departure in park time', () => {
+    const component = TestBed.runInInjectionContext(
+      () => new CartItemComponent({} as FeatureFlagService, {} as CartService)
+    );
+    // 2026-07-16 06:30 UTC = July 15, 11:30 pm Pacific.
+    const millis = Date.UTC(2026, 6, 16, 6, 30);
+
+    expect(component.getDisplayTime(millis)).toBe('11:30 pm');
+    expect(component.getDisplayDate(millis)).toBe('Wednesday, July 15, 2026');
+    expect(component.getDisplayTime(undefined)).toBe('N/A');
+  });
 });

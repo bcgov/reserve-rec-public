@@ -63,26 +63,14 @@ export class CartItemComponent implements OnInit {
       weekday: 'long',
       month: 'long',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
+      timeZone: Constants.timeZoneIANA
     });
   }
 
   getDisplayTime(timestamp) {
     const date = this.getDateFromTimestamp(timestamp);
-    if (!date) {
-      return 'N/A';
-    }
-
-    const hour = date.getHours();
-    const minute = date.getMinutes();
-    const isPm = hour >= 12;
-    const normalizedHour = hour % 12 || 12;
-
-    if (minute === 0) {
-      return `${normalizedHour} ${isPm ? 'pm' : 'am'}`;
-    }
-
-    return `${normalizedHour}:${String(minute).padStart(2, '0')} ${isPm ? 'pm' : 'am'}`;
+    return BookingUtils.formatParkTime(date?.getTime()) ?? 'N/A';
   }
 
   getDateFromTimestamp(timestamp) {

@@ -66,6 +66,7 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
   canadianProvinces: string[] = CA_PROVINCES
   usStates: string[] = US_STATES
 
+  allProvincesStates: string[] = ['Other', '', ...CA_PROVINCES, '', ...US_STATES];
   filteredProvinces: string[] = [];
   
   onCountryChange(event: Event): void {

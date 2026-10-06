@@ -324,6 +324,8 @@ export class LoginComponent implements OnInit, AfterViewInit, AfterViewChecked {
   canadianProvinces: string[] = CA_PROVINCES
   usStates: string[] = US_STATES
 
+  // Offer all provinces and states to users for license plates
+  allProvincesStates: string[] = ['Other', '', ...CA_PROVINCES, '', ...US_STATES];
   filteredProvinces: string[] = [];
 
   onCountryChange(event: Event): void {

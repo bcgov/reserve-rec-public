@@ -485,10 +485,16 @@ async onStepCompleted(completed: boolean): Promise<void> {
   }
 
   canProceed(): boolean {
-    return this.stepperService.getCurrentStep().isValid;
+    // Check that the cart has items, and current step is valid too
+    return this.cartService.items().length > 0 && this.stepperService.getCurrentStep().isValid;
   }
 
   proceedToNext(): void {
+    // If cart items are empty, send back to /cart
+    if (this.cartService.items().length === 0) {
+      this.router.navigate(['/cart']);
+      return;
+    }
     if (!this.canProceed()) return;
     if (this.isSubmitting) return;
 

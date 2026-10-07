@@ -12,8 +12,9 @@ import { CartService } from '../../services/cart.service';
 export class CartTimerComponent implements OnInit, OnDestroy {
   displayTimer = signal('');
   isWarning = signal(false);
+  visible = signal(false);
 
-  remaining = this.getRemainingSeconds();
+  remaining = 0;
 
   private tickInterval;
 
@@ -21,15 +22,26 @@ export class CartTimerComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.tick();
-    this.tickInterval = setInterval(() => this.tick(), 1000);
+    if (this.visible()) {
+      this.tickInterval = setInterval(() => this.tick(), 1000);
+    }
   }
 
   tick(): void {
-    this.remaining = this.getRemainingSeconds();
+    const remaining = this.getRemainingSeconds();
+    if (remaining === null) {
+      this.visible.set(false);
+      this.displayTimer.set('');
+      clearInterval(this.tickInterval);
+      return;
+    }
 
     if (!this.cartService.getCartTimerIsActive()) {
       clearInterval(this.tickInterval);
     }
+
+    this.remaining = remaining;
+    this.visible.set(true);
 
     // Show minutes and seconds remaining as 00:00 - also don't show negative timer
     const mins = Math.max(0, Math.floor(this.remaining / 60));
@@ -39,7 +51,13 @@ export class CartTimerComponent implements OnInit, OnDestroy {
   }
 
   getRemainingSeconds() {
-    const expiryTime = Math.floor(Number(this.cartService.items()[0]?.['sessionExpiry']) / 1000);
+    // Get session expiry or set sessionExpiry as null (skip setting timer)
+    const sessionExpiry = this.cartService.items()[0]?.sessionExpiry;
+    if (sessionExpiry === undefined || sessionExpiry === null) return null;
+
+    const expiryTime = Math.floor(Number(sessionExpiry) / 1000);
+    if (!Number.isFinite(expiryTime)) return null;
+
     const currentTime = Math.floor(Date.now() / 1000);
     return expiryTime - currentTime;
   }

@@ -63,12 +63,22 @@ describe('CartExpiryService', () => {
     }));
   });
 
-  it('returns to the cart if the item expires during checkout', () => {
-    router.url = '/reservation-flow';
+  for (const checkoutRoute of ['/reservation-flow', '/checkout']) {
+    it(`returns to the cart if the item expires at ${checkoutRoute}`, () => {
+      router.url = checkoutRoute;
+
+      service.tick();
+
+      expect(router.navigate).toHaveBeenCalledOnceWith(['/cart']);
+    });
+  }
+
+  it('does not leave a non-checkout route when an item expires', () => {
+    router.url = '/search';
 
     service.tick();
 
-    expect(router.navigate).toHaveBeenCalledOnceWith(['/cart']);
+    expect(router.navigate).not.toHaveBeenCalled();
   });
 
   it('does not remove an item before its expiry', () => {

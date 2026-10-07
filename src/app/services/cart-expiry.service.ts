@@ -42,7 +42,8 @@ export class CartExpiryService implements OnDestroy {
 
     this.cartService.removeFromCart(cartItem.id);
     this.cartService.releaseCartItem(cartItem);
-    if (this.router.url.includes('/reservation-flow')) {
+    // Send the user back to /cart wherever they may be in reservation flow or checkout
+    if (this.router.url.includes('/reservation-flow') || this.router.url.includes('/checkout')) {
       this.router.navigate(['/cart']);
     }
 

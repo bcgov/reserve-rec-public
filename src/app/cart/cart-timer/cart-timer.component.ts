@@ -1,8 +1,6 @@
 import { NgClass } from '@angular/common';
-import { Component, OnInit, OnDestroy, signal, inject, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CartService } from '../../services/cart.service';
-import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
-import { BsModalService } from 'ngx-bootstrap/modal';
 
 @Component({
   selector: 'app-cart-timer',
@@ -12,50 +10,39 @@ import { BsModalService } from 'ngx-bootstrap/modal';
   styleUrl: './cart-timer.component.scss'
 })
 export class CartTimerComponent implements OnInit, OnDestroy {
-  @Output() removeItem = new EventEmitter<string>();
-
   displayTimer = signal('');
-  visible = signal(true);
   isWarning = signal(false);
-  continueCountdown: boolean;
+  visible = signal(false);
 
-  remaining = this.getRemainingSeconds();
+  remaining = 0;
 
-  private tickInterval: any;
-  private modalService = inject(BsModalService)
+  private tickInterval;
 
   constructor(private cartService: CartService) {}
 
-  async ngOnInit() {
-    // Give the user a couple seconds on 0:00 to submit (also works nicely with async tick())
-    if (this.remaining < -2) {
-      this.displayTimer.set('');
-      this.visible.set(false);
-      clearInterval(this.tickInterval);
-      this.confirmDeletedCart();
-    } else {
-      this.tick();
+  ngOnInit(): void {
+    this.tick();
+    if (this.visible()) {
       this.tickInterval = setInterval(() => this.tick(), 1000);
     }
   }
 
-  async tick() {
-    this.remaining = this.getRemainingSeconds();
-    this.continueCountdown = this.cartService.getCartTimerIsActive();
-
-    if (!this.continueCountdown) {
-      clearInterval(this.tickInterval);
-    }
-
-    // Only continue the countdown if time is remaining, the counter is visible
-    // and if the counter isn't stopped by Step progression.
-    // Also give the user a couple seconds on 0:00 to submit (also works nicely with async tick())
-    if (this.remaining < -2 && this.visible()) {
+  tick(): void {
+    const remaining = this.getRemainingSeconds();
+    if (remaining === null) {
+      this.visible.set(false);
       this.displayTimer.set('');
       clearInterval(this.tickInterval);
-      this.confirmDeletedCart();
+      return;
     }
-    
+
+    if (!this.cartService.getCartTimerIsActive()) {
+      clearInterval(this.tickInterval);
+    }
+
+    this.remaining = remaining;
+    this.visible.set(true);
+
     // Show minutes and seconds remaining as 00:00 - also don't show negative timer
     const mins = Math.max(0, Math.floor(this.remaining / 60));
     const secs = Math.max(0, this.remaining % 60);
@@ -63,49 +50,16 @@ export class CartTimerComponent implements OnInit, OnDestroy {
     this.isWarning.set(this.remaining < 120);
   }
 
-  private confirmDeletedCart() {
-      return new Promise(resolve => {
-        const modalRef = this.modalService.show(ConfirmationModalComponent, {
-          initialState: {
-            title: 'Booking timer expired',
-            body: `This booking has expired. The booking item has been returned.`,
-            confirmText: 'Ok',
-            cancelText: '', // No cancel option
-            confirmClass: 'btn btn-primary',
-            cancelClass: 'btn btn-outline-secondary',
-          },
-        });
-        this.onRemoveClick();
-        let settled = false;
-        const settle = (value: boolean) => {
-          if (settled) return;
-          settled = true;
-          modalRef.hide();
-          resolve(value);
-        };
-        modalRef.content?.confirmButton.subscribe(() => {
-          settle(true);
-        });
-        modalRef.onHide?.subscribe(() => settle(true));
-      });
-    }
-
   getRemainingSeconds() {
-    const expiryTime = Math.floor(Number(this.cartService.items()[0]?.['sessionExpiry']) / 1000);
+    // Get session expiry or set sessionExpiry as null (skip setting timer)
+    const sessionExpiry = this.cartService.items()[0]?.sessionExpiry;
+    if (sessionExpiry === undefined || sessionExpiry === null) return null;
+
+    const expiryTime = Math.floor(Number(sessionExpiry) / 1000);
+    if (!Number.isFinite(expiryTime)) return null;
+
     const currentTime = Math.floor(Date.now() / 1000);
     return expiryTime - currentTime;
-  }
-
-  async onRemoveClick() {
-    const cartItem = this.cartService.items()[0];
-    if (!cartItem) {
-      return;
-    }
-
-    // Remove it from the cart
-    this.removeItem.emit(cartItem.id);
-
-    await this.cartService.releaseCartItem(cartItem);
   }
 
   ngOnDestroy(): void {

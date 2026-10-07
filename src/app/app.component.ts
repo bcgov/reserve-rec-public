@@ -4,6 +4,7 @@ import { HeaderComponent } from "./header/header.component";
 import { FooterComponent } from './footer/footer.component';
 import { InfiniteLoadingBarComponent } from './infinite-loading-bar/infinite-loading-bar.component';
 import { LoadingOverlayComponent } from './shared/components/loading-overlay/loading-overlay.component';
+import { CartExpiryService } from './services/cart-expiry.service';
 
 import { filter } from 'rxjs/operators';
 
@@ -17,7 +18,9 @@ export class AppComponent {
   title = 'reserve-rec-public';
   hideFooter = false;
 
-  constructor(private router: Router) {
+  constructor(private router: Router, cartExpiryService: CartExpiryService) {
+    // Track cart timer items everywhere
+    cartExpiryService.start();
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {

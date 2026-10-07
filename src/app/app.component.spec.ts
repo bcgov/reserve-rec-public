@@ -3,12 +3,18 @@ import { AppComponent } from './app.component';
 import { ConfigService } from './services/config.service';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
+import { CartExpiryService } from './services/cart-expiry.service';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
-      providers: [ConfigService, provideHttpClient(), provideHttpClientTesting()]
+      providers: [
+        ConfigService,
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: CartExpiryService, useValue: { start: jasmine.createSpy('start') } }
+      ]
     }).compileComponents();
   });
 

@@ -258,6 +258,7 @@ async onStepCompleted(completed: boolean): Promise<void> {
     // flight the Finish button is disabled, but block re-entry too (#541).
     if (this.isSubmitting) { return; }
     this.isSubmitting = true;
+    let submissionSucceeded = false;
 
     // Turn off cart timer when submitting to avoid pop up
     this.cartService.cartTimerIsActive.set(false)
@@ -295,6 +296,7 @@ async onStepCompleted(completed: boolean): Promise<void> {
         const completionPayload = this.getCompletionPayload(formValue, this.currentSessionId, queryTime);
         await this.bookingService.completeBooking(this.currentBookingId, completionPayload);
         if (this.currentBookingId) {
+          submissionSucceeded = true;
           window.location.assign(this.absoluteUrl(`booking-confirmation/${this.currentBookingId}`));
         }
         return;
@@ -307,6 +309,7 @@ async onStepCompleted(completed: boolean): Promise<void> {
         // Fallback to target payment step index if current validation state blocks goNext.
         this.stepperService.goToStep(3);
       }
+      submissionSucceeded = true;
       this.changeDetectorRef.detectChanges();
       
     } catch (error: any) {
@@ -345,6 +348,11 @@ async onStepCompleted(completed: boolean): Promise<void> {
       // Re-enable the button on any exit (error/retry, or advancing to the
       // payment step). On the navigate-away success path the page unloads.
       this.isSubmitting = false;
+      // Reactivate the cart timer on a failed submission, so expired item can be
+      // removed and released
+      if (!submissionSucceeded) {
+        this.cartService.cartTimerIsActive.set(true);
+      }
       this.changeDetectorRef.detectChanges();
     }
   }
@@ -477,10 +485,16 @@ async onStepCompleted(completed: boolean): Promise<void> {
   }
 
   canProceed(): boolean {
-    return this.stepperService.getCurrentStep().isValid;
+    // Check that the cart has items, and current step is valid too
+    return this.cartService.items().length > 0 && this.stepperService.getCurrentStep().isValid;
   }
 
   proceedToNext(): void {
+    // If cart items are empty, send back to /cart
+    if (this.cartService.items().length === 0) {
+      this.router.navigate(['/cart']);
+      return;
+    }
     if (!this.canProceed()) return;
     if (this.isSubmitting) return;
 
@@ -524,6 +538,7 @@ async onStepCompleted(completed: boolean): Promise<void> {
 
   ngOnDestroy(): void {
     this.stepSub?.unsubscribe();
+    this.cartService.cartTimerIsActive.set(true);
     this.elementRef.nativeElement.remove();
   }
 
@@ -532,11 +547,6 @@ async onStepCompleted(completed: boolean): Promise<void> {
 
   backToCart() {
     this.router.navigate(['/cart'])
-  }
-
-  removeItem(itemId: string): void {
-    this.cartService.removeFromCart(itemId);
-    this.router.navigate(['/cart']);
   }
 
   // Resolve against <base href> so full-page navigations work both at the

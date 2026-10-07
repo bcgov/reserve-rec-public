@@ -2,9 +2,9 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideToastr } from 'ngx-toastr';
-import { throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
-import { BookingService } from './booking.service';
+import { BookingService, parseHoldRetryAt } from './booking.service';
 import { ApiService } from './api.service';
 import { ConfigService } from './config.service';
 import { ToastService } from './toast.service';
@@ -28,6 +28,15 @@ describe('BookingService', () => {
     expect(service).toBeTruthy();
   });
 
+  it('shows the removed toast on a successful cancel', async () => {
+    spyOn(TestBed.inject(ApiService), 'post').and.returnValue(of({ data: {} }));
+    const toastSpy = spyOn(TestBed.inject(ToastService), 'addMessage');
+
+    await service.cancelBooking('booking-1', { cartRemoval: true });
+
+    expect(toastSpy).toHaveBeenCalledOnceWith('Item removed from cart', 'Success', 0);
+  });
+
   it('treats a 409 for an already timed-out hold as a successful removal', async () => {
     spyOn(TestBed.inject(ApiService), 'post').and.callFake(() => throwError(() => ({
       status: 409,
@@ -38,7 +47,7 @@ describe('BookingService', () => {
     const result = await service.cancelBooking('booking-1');
 
     expect(result).toBeNull();
-    expect(toastSpy).toHaveBeenCalledOnceWith('Successfully removed from cart', '', 0);
+    expect(toastSpy).toHaveBeenCalledOnceWith('Item removed from cart', 'Success', 0);
   });
 
   it('treats a 409 for an already-cancelled hold as a successful removal', async () => {
@@ -51,7 +60,47 @@ describe('BookingService', () => {
     const result = await service.cancelBooking('booking-1');
 
     expect(result).toBeNull();
-    expect(toastSpy).toHaveBeenCalledOnceWith('Successfully removed from cart', '', 0);
+    expect(toastSpy).toHaveBeenCalledOnceWith('Item removed from cart', 'Success', 0);
+  });
+
+  it('treats an "already cancelled" reply, including a lost race, as a successful removal', async () => {
+    const post = spyOn(TestBed.inject(ApiService), 'post');
+    const toastSpy = spyOn(TestBed.inject(ToastService), 'addMessage');
+
+    post.and.callFake(() => throwError(() => ({ status: 409, error: { msg: 'Booking booking-1 is already cancelled' } })));
+    expect(await service.cancelBooking('booking-1')).toBeNull();
+    post.and.callFake(() => throwError(() => ({ status: 400, error: { msg: 'Booking is already cancelled' } })));
+    expect(await service.cancelBooking('booking-1')).toBeNull();
+
+    expect(toastSpy.calls.allArgs()).toEqual([
+      ['Item removed from cart', 'Success', 0],
+      ['Item removed from cart', 'Success', 0],
+    ]);
+  });
+
+  it('treats a booking that no longer exists as removed', async () => {
+    spyOn(TestBed.inject(ApiService), 'post').and.callFake(() => throwError(() => ({
+      status: 400,
+      error: { msg: 'Booking not found (BookingID: booking-1)', data: { refusal: 'not_found' } }
+    })));
+    const toastSpy = spyOn(TestBed.inject(ToastService), 'addMessage');
+
+    expect(await service.cancelBooking('booking-1', { cartRemoval: true })).toBeNull();
+    expect(toastSpy).toHaveBeenCalledOnceWith('Item removed from cart', 'Success', 0);
+  });
+
+  it('skips the removed toast when asked to stay quiet, but still reports a failure', async () => {
+    const post = spyOn(TestBed.inject(ApiService), 'post').and.returnValue(of({ data: {} }));
+    const toastSpy = spyOn(TestBed.inject(ToastService), 'addMessage');
+
+    await service.cancelBooking('booking-1', { cartRemoval: true, quiet: true });
+    post.and.callFake(() => throwError(() => ({ status: 409, error: { msg: 'Booking has status "expired" and cannot be removed from the cart' } })));
+    await service.cancelBooking('booking-1', { cartRemoval: true, quiet: true });
+    expect(toastSpy).not.toHaveBeenCalled();
+
+    post.and.callFake(() => throwError(() => ({ status: 500, error: { msg: 'boom' } })));
+    await service.cancelBooking('booking-1', { cartRemoval: true, quiet: true });
+    expect(toastSpy).toHaveBeenCalledOnceWith('', 'Error removing item from cart', 3);
   });
 
   it('shows the error toast for any other cancel failure', async () => {
@@ -65,5 +114,85 @@ describe('BookingService', () => {
 
     expect(result).toBeNull();
     expect(toastSpy).toHaveBeenCalledOnceWith('', 'Error removing item from cart', 3);
+  });
+
+  it('sends the cart-removal intent only when asked', async () => {
+    const postSpy = spyOn(TestBed.inject(ApiService), 'post').and.returnValue(of({ data: {} }));
+    spyOn(TestBed.inject(ToastService), 'addMessage');
+
+    await service.cancelBooking('booking-1', { cartRemoval: true });
+    await service.cancelBooking('booking-2');
+
+    expect(postSpy.calls.argsFor(0)).toEqual(['bookings/booking-1/cancel', { cartRemoval: true }, {}]);
+    expect(postSpy.calls.argsFor(1)).toEqual(['bookings/booking-2/cancel', {}, {}]);
+  });
+
+  it('tells the user a refused cart removal is already confirmed', async () => {
+    spyOn(TestBed.inject(ApiService), 'post').and.callFake(() => throwError(() => ({
+      status: 409,
+      error: { msg: 'This booking is already confirmed. Manage it from My bookings.', data: { status: 'confirmed', refusal: 'state' } }
+    })));
+    const toastSpy = spyOn(TestBed.inject(ToastService), 'addMessage');
+
+    const result = await service.cancelBooking('booking-1', { cartRemoval: true });
+
+    expect(result).toBeNull();
+    expect(toastSpy).toHaveBeenCalledOnceWith(
+      'This booking is already confirmed. You can manage it from My bookings.',
+      'Removed from cart',
+      2
+    );
+  });
+
+  it('returns the booking from fetchBooking, or null when the lookup fails', async () => {
+    const getSpy = spyOn(TestBed.inject(ApiService), 'get').and.returnValue(of({ data: { status: 'confirmed' } }));
+    expect(await service.fetchBooking('booking-1')).toEqual({ status: 'confirmed' });
+    expect(getSpy).toHaveBeenCalledWith('bookings/booking-1');
+
+    getSpy.and.callFake(() => throwError(() => ({ status: 500 })));
+    expect(await service.fetchBooking('booking-1')).toBeNull();
+  });
+
+  describe('hold limits on create', () => {
+    const create = (body: any) => {
+      spyOn(TestBed.inject(ApiService), 'post').and.returnValue(of(body));
+      return service.createBooking({ productId: 'p1', quantity: 1 }, 'c1', 'dayuse', 'a1', '2026-10-03');
+    };
+
+    it('keeps holdLimits returned in data', async () => {
+      const res = await create({ data: { bookingId: 'b1', holdLimits: { freeRemovalsLeft: 2 } } });
+      expect(res.holdLimits).toEqual({ freeRemovalsLeft: 2 });
+    });
+
+    it('reads holdLimits from the body root', async () => {
+      const res = await create({ data: { bookingId: 'b1' }, holdLimits: { freeRemovalsLeft: 0 } });
+      expect(res.holdLimits).toEqual({ freeRemovalsLeft: 0 });
+    });
+
+    it('leaves holdLimits unset when absent or malformed', async () => {
+      const res = await create({ data: { bookingId: 'b1', holdLimits: { freeRemovalsLeft: 'x' } } });
+      expect(res.holdLimits).toBeUndefined();
+    });
+  });
+});
+
+describe('parseHoldRetryAt', () => {
+  const retryAt = '2026-10-02T14:15:00.000Z';
+
+  it('reads code and retryAt from the body root', () => {
+    const parsed = parseHoldRetryAt({ status: 429, error: { msg: 'x', code: 'HOLD_COOLDOWN', retryAt } });
+    expect(parsed?.toMillis()).toBe(Date.parse(retryAt));
+  });
+
+  it('reads code and retryAt from data', () => {
+    const parsed = parseHoldRetryAt({ status: 429, error: { code: 429, data: { code: 'HOLD_CAP', retryAt } } });
+    expect(parsed?.toMillis()).toBe(Date.parse(retryAt));
+  });
+
+  it('ignores other statuses, other codes and a bad retryAt', () => {
+    expect(parseHoldRetryAt({ status: 409, error: { code: 'HOLD_COOLDOWN', retryAt } })).toBeNull();
+    expect(parseHoldRetryAt({ status: 429, error: { code: 'THROTTLED', retryAt } })).toBeNull();
+    expect(parseHoldRetryAt({ status: 429, error: { code: 'HOLD_COOLDOWN', retryAt: 'soon' } })).toBeNull();
+    expect(parseHoldRetryAt({ status: 429, error: { message: 'Too Many Requests' } })).toBeNull();
   });
 });

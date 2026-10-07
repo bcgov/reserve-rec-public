@@ -137,11 +137,6 @@ export class AuthValidationService {
     if (!province?.trim()) {
       return 'Province is required';
     }
-    // Only letters and spaces allowed
-    const provinceRegex = /^[a-zA-Z\s-]+$/;
-    if (!provinceRegex.test(province)) {
-      return 'Province can only contain letters, spaces, and hyphens';
-    }
     return '';
   }
 
@@ -160,11 +155,6 @@ export class AuthValidationService {
   validateCountry(country: string): string {
     if (!country?.trim()) {
       return 'Country is required';
-    }
-    // Only letters and spaces allowed
-    const countryRegex = /^[a-zA-Z\s-]+$/;
-    if (!countryRegex.test(country)) {
-      return 'Country can only contain letters, spaces, and hyphens';
     }
     return '';
   }

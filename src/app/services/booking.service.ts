@@ -1,11 +1,32 @@
 import { Injectable } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
+import { DateTime } from 'luxon';
 import { Constants } from '../constants';
 import { ApiService } from './api.service';
 import { DataService } from './data.service';
 import { LoadingService } from './loading.service';
 import { LoggerService } from './logger.service';
 import { ToastService, ToastTypes } from './toast.service';
+
+export interface HoldLimits {
+  freeRemovalsLeft: number;
+}
+
+const HOLD_RETRY_CODES = ['HOLD_COOLDOWN', 'HOLD_CAP'];
+
+// A 429 from hold creation carries code and retryAt at the body root or under `data`.
+export function parseHoldRetryAt(error: any): DateTime | null {
+  if (error?.status !== 429) return null;
+  const body = error?.error;
+  const code = HOLD_RETRY_CODES.find(c => c === body?.code || c === body?.data?.code);
+  const retryAt = DateTime.fromISO(String(body?.retryAt ?? body?.data?.retryAt ?? ''), { zone: 'utc' });
+  return code && retryAt.isValid ? retryAt : null;
+}
+
+function parseHoldLimits(value: any): HoldLimits | undefined {
+  const left = value?.freeRemovalsLeft;
+  return Number.isInteger(left) ? { freeRemovalsLeft: left } : undefined;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -48,7 +69,11 @@ export class BookingService {
     try {
       this.dataService.clearItemValue(Constants.dataIds.CREATE_BOOKING_RESULT);
       this.loadingService.addToFetchList(Constants.dataIds.CREATE_BOOKING_RESULT);
-      const res = (await lastValueFrom(this.apiService.post(`bookings`, bookingData, queryParams)))['data'];
+      const body = await lastValueFrom(this.apiService.post(`bookings`, bookingData, queryParams));
+      const res = body?.['data'];
+      if (res && typeof res === 'object') {
+        res.holdLimits = parseHoldLimits(res.holdLimits ?? body?.['holdLimits']);
+      }
       this.dataService.setItemValue(Constants.dataIds.CREATE_BOOKING_RESULT, res);
       this.loadingService.removeFromFetchList(Constants.dataIds.CREATE_BOOKING_RESULT);
       return res;
@@ -93,14 +118,34 @@ export class BookingService {
     }
   }
 
-  async cancelBooking(bookingId: string) {
+  async fetchBooking(bookingId: string) {
     try {
-      const res = (await lastValueFrom(this.apiService.post(`bookings/${bookingId}/cancel`, {}, {})))['data'];
-      this.toastService.addMessage(
-        `Successfully removed from cart`,
-        '',
-        ToastTypes.SUCCESS
-      );
+      return (await lastValueFrom(this.apiService.get(`bookings/${bookingId}`)))['data'];
+    } catch (error) {
+      this.loggerService.error(error);
+      return null;
+    }
+  }
+
+  notifyAlreadyConfirmed() {
+    this.toastService.addMessage(
+      'This booking is already confirmed. You can manage it from My bookings.',
+      'Removed from cart',
+      ToastTypes.INFO
+    );
+  }
+
+  // quiet: skip the "removed" toast, for a replace that shows "added" instead.
+  async cancelBooking(bookingId: string, options: { cartRemoval?: boolean; quiet?: boolean } = {}) {
+    const body = options.cartRemoval ? { cartRemoval: true } : {};
+    const notifyRemoved = () => {
+      if (!options.quiet) {
+        this.toastService.addMessage('Item removed from cart', 'Success', ToastTypes.SUCCESS);
+      }
+    };
+    try {
+      const res = (await lastValueFrom(this.apiService.post(`bookings/${bookingId}/cancel`, body, {})))['data'];
+      notifyRemoved();
       return res;
     } catch (error) {
       this.loadingService.removeFromFetchList(Constants.dataIds.PRODUCT_RESULT);
@@ -111,14 +156,18 @@ export class BookingService {
         (error as any)?.error?.Message ||
         (error as any)?.message ||
         'Unknown error';
-      // A 409 for a hold that already timed out/was cancelled means the item is
-      // already gone from the cart - that's the outcome the caller wanted.
-      if ((error as any)?.status === 409 && /status "(TIMED_OUT|cancelled)"/i.test(errorMessage)) {
-        this.toastService.addMessage(
-          `Successfully removed from cart`,
-          '',
-          ToastTypes.SUCCESS
-        );
+      if ((error as any)?.status === 409 && (error as any)?.error?.data?.status === 'confirmed') {
+        this.notifyAlreadyConfirmed();
+        return null;
+      }
+      // A hold that already timed out, was cancelled (409, or 400 on a lost
+      // race) or no longer exists is already gone from the cart - that's the
+      // outcome the caller wanted.
+      const alreadyGone =
+        (error as any)?.error?.data?.refusal === 'not_found' ||
+        /status "(TIMED_OUT|cancelled|expired)"|already cancelled/i.test(errorMessage);
+      if ([400, 409].includes((error as any)?.status) && alreadyGone) {
+        notifyRemoved();
         return null;
       }
       // log error to console

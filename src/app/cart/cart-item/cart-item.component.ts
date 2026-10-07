@@ -1,9 +1,8 @@
 import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CartItem } from '../../services/cart.service';
+import { CartItem, CartService, holdReleaseNotes } from '../../services/cart.service';
 import { Constants } from '../../constants';
 import { FeatureFlagService } from '../../services/feature-flag.service';
-import { BookingService } from '../../services/booking.service';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 import { BookingUtils } from '../../utils/booking-utils';
@@ -25,7 +24,7 @@ export class CartItemComponent implements OnInit {
   public paymentsEnabled;
   public hideBookingCostsBool = false;
 
-  constructor(private featureFlagService: FeatureFlagService, private bookingService: BookingService) { }
+  constructor(private featureFlagService: FeatureFlagService, private cartService: CartService) { }
 
   async ngOnInit() {
     try {
@@ -64,26 +63,14 @@ export class CartItemComponent implements OnInit {
       weekday: 'long',
       month: 'long',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
+      timeZone: Constants.timeZoneIANA
     });
   }
 
   getDisplayTime(timestamp) {
     const date = this.getDateFromTimestamp(timestamp);
-    if (!date) {
-      return 'N/A';
-    }
-
-    const hour = date.getHours();
-    const minute = date.getMinutes();
-    const isPm = hour >= 12;
-    const normalizedHour = hour % 12 || 12;
-
-    if (minute === 0) {
-      return `${normalizedHour} ${isPm ? 'pm' : 'am'}`;
-    }
-
-    return `${normalizedHour}:${String(minute).padStart(2, '0')} ${isPm ? 'pm' : 'am'}`;
+    return BookingUtils.formatParkTime(date?.getTime()) ?? 'N/A';
   }
 
   getDateFromTimestamp(timestamp) {
@@ -151,6 +138,7 @@ export class CartItemComponent implements OnInit {
         initialState: {
           title: 'Remove booking',
           body: `Confirm remove this booking from your cart?`,
+          notes: holdReleaseNotes(this.item),
           confirmText: 'Remove',
           cancelText: 'Cancel',
           confirmClass: 'btn btn-danger',
@@ -168,7 +156,7 @@ export class CartItemComponent implements OnInit {
       modalRef.content?.confirmButton.subscribe(() => {
         settle(true);
         this.removeItem.emit(this.item.id);
-        this.bookingService.cancelBooking(this.item.bookingId)
+        this.cartService.releaseCartItem(this.item);
         modalRef.hide();
       });
       modalRef.content?.cancelButton.subscribe(() => {

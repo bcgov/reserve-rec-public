@@ -3,7 +3,6 @@ import { Component, OnInit, OnDestroy, signal, inject, Output, EventEmitter } fr
 import { CartService } from '../../services/cart.service';
 import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 import { BsModalService } from 'ngx-bootstrap/modal';
-import { BookingService } from '../../services/booking.service';
 
 @Component({
   selector: 'app-cart-timer',
@@ -25,7 +24,7 @@ export class CartTimerComponent implements OnInit, OnDestroy {
   private tickInterval: any;
   private modalService = inject(BsModalService)
 
-  constructor(private cartService: CartService, private bookingService: BookingService) {}
+  constructor(private cartService: CartService) {}
 
   async ngOnInit() {
     // Give the user a couple seconds on 0:00 to submit (also works nicely with async tick())
@@ -106,10 +105,7 @@ export class CartTimerComponent implements OnInit, OnDestroy {
     // Remove it from the cart
     this.removeItem.emit(cartItem.id);
 
-    // "Cancel" the booking
-    if (cartItem.bookingId) {
-      await this.bookingService.cancelBooking(cartItem.bookingId);
-    }
+    await this.cartService.releaseCartItem(cartItem);
   }
 
   ngOnDestroy(): void {

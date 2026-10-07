@@ -5,7 +5,8 @@ import { ConfigService } from '../services/config.service';
 import { provideToastr } from 'ngx-toastr';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -25,6 +26,43 @@ describe('LoginComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  // #796: a session started in another tab after this page loaded.
+  describe('opening the email form while signed in elsewhere', () => {
+    let navigations: any[];
+    let refreshes: number;
+
+    function signedInElsewhere(signedIn: boolean) {
+      const authService = TestBed.inject(AuthService);
+      authService.checkIfSignedIn = async () => authService.user.set(signedIn ? { sub: 'sub-1' } : null);
+      refreshes = 0;
+      authService.setRefresh = async () => { refreshes++; };
+      navigations = [];
+      TestBed.inject(Router).navigate = async (commands: any[]) => { navigations.push(commands); return true; };
+    }
+
+    (['showBCParksLogin', 'showBCParksSignUp'] as const).forEach(open => {
+      it(`${open} goes to the landing page instead of the form`, async () => {
+        signedInElsewhere(true);
+
+        await component[open]();
+
+        expect(navigations).toEqual([['/']]);
+        expect(component.showAmplifyAuth).toBe(false);
+        expect(refreshes).toBe(1);
+      });
+
+      it(`${open} shows the form when there is no session`, async () => {
+        signedInElsewhere(false);
+
+        await component[open]();
+
+        expect(navigations).toEqual([]);
+        expect(component.showAmplifyAuth).toBe(true);
+        expect(refreshes).toBe(0);
+      });
+    });
   });
 
   describe('BC Services Card retry notice', () => {

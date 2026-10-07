@@ -5,6 +5,9 @@
   @if (body) {
     <p class="mb-3">{{ body }}</p>
   }
+  @for (note of notes; track note) {
+    <p class="mb-3">{{ note }}</p>
+  }
   @for (row of details; track row) {
     <div>
       <strong>{{ row.label }}:</strong><br>

@@ -9,7 +9,7 @@ import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 import { PartyDetailsComponent } from '../party-details/party-details.component';
 import { DateTime } from 'luxon';
-import { CartService, CartItem } from '../services/cart.service';
+import { CartService, CartItem, holdReleaseNotes } from '../services/cart.service';
 import { ToastService, ToastTypes } from '../services/toast.service';
 import { WaitingRoomService } from '../services/waiting-room.service';
 import { Subscription } from 'rxjs';
@@ -154,7 +154,7 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
       }
       // Release the old hold so the API doesn't keep the discarded booking
       // in progress and block re-booking. (Ref #650.)
-      await this.cartService.releaseCartItem(existing);
+      await this.cartService.releaseCartItem(existing, { quiet: true });
     }
 
     this.cartService.addToCart(cartItem);
@@ -203,6 +203,7 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
         initialState: {
           title: 'Replace pending booking?',
           body: `Your cart already has ${description}. Adding this booking will replace it.`,
+          notes: holdReleaseNotes(existing),
           confirmText: 'Replace',
           cancelText: 'Cancel',
           confirmClass: 'btn btn-primary',

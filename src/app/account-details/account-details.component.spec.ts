@@ -138,6 +138,43 @@ describe('AccountDetailsComponent', () => {
       expect(component.filteredProvinces).toEqual(component.usStates);
     });
 
+    it('sets and saves Other as the province/state when changing to another country', async () => {
+      component.startEdit('contact');
+      fixture.detectChanges();
+
+      const countrySelect = (fixture.nativeElement as HTMLElement)
+        .querySelector('#country-select') as HTMLSelectElement;
+      countrySelect.value = 'Algeria';
+      countrySelect.dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+
+      expect(component.contactForm.controls.province.value).toBe('Other');
+      const provinceSelect = (fixture.nativeElement as HTMLElement)
+        .querySelector('#province-select') as HTMLSelectElement;
+      expect(provinceSelect.value).toBe('Other');
+
+      await component.saveContact();
+
+      expect(authService.updateUserProfile).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          'custom:country': 'Algeria',
+          'custom:province': 'Other',
+        })
+      );
+    });
+
+    it('clears a province/state that is not valid for the newly selected supported country', () => {
+      component.startEdit('contact');
+      fixture.detectChanges();
+
+      const countrySelect = (fixture.nativeElement as HTMLElement)
+        .querySelector('#country-select') as HTMLSelectElement;
+      countrySelect.value = 'United States of America';
+      countrySelect.dispatchEvent(new Event('change'));
+
+      expect(component.contactForm.controls.province.value).toBe('');
+    });
+
     it('hides the read-only vehicle details while editing vehicle', () => {
       component.startEdit('vehicle');
       fixture.detectChanges();

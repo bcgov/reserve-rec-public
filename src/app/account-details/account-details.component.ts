@@ -66,11 +66,19 @@ export class AccountDetailsComponent implements OnInit, OnDestroy {
   canadianProvinces: string[] = CA_PROVINCES
   usStates: string[] = US_STATES
 
+  allProvincesStates: string[] = ['Other', '', ...CA_PROVINCES, '', ...US_STATES];
   filteredProvinces: string[] = [];
   
   onCountryChange(event: Event): void {
     const selected = (event.target as HTMLSelectElement).value;
     this.updateProvinceOptions(selected);
+
+    const province = this.contactForm.controls.province;
+    if (selected && selected !== 'Canada' && selected !== 'United States of America') {
+      province.setValue('Other');
+    } else if (!this.filteredProvinces.includes(province.value ?? '')) {
+      province.setValue('');
+    }
   }
 
   private updateProvinceOptions(country: string | null): void {

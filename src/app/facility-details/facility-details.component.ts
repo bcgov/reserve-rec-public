@@ -11,7 +11,7 @@ import { ProductService } from '../services/product.service';
 import { ProductDateService } from '../services/product-date.service';
 import { InventoryPoolService } from '../services/inventory-pool.service';
 import { Constants } from '../constants';
-import { CartService, CartItem } from '../services/cart.service';
+import { CartService, CartItem, holdReleaseNotes } from '../services/cart.service';
 import { ToastService, ToastTypes } from '../services/toast.service';
 import { AuthService } from '../services/auth.service';
 import { ServerTimeService } from '../services/server-time.service';
@@ -20,14 +20,16 @@ import { ApiService } from '../services/api.service';
 import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { ConfirmationModalComponent } from '../shared/components/confirmation-modal/confirmation-modal.component';
-import { BookingService } from '../services/booking.service';
+import { BookingService, parseHoldRetryAt } from '../services/booking.service';
 import { AccountVerificationComponent } from '../shared/components/account-verification/account-verification.component';
+import { HoldRetryNoticeComponent } from '../shared/components/hold-retry-notice/hold-retry-notice.component';
 import { pageTitle } from '../page-title.strategy';
+import { BookingUtils } from '../utils/booking-utils';
 
 @Component({
   selector: 'app-facility-details',
   host: { class: 'h-100' },
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, NgdsFormsModule, BreadcrumbComponent, RouterLink, AccountVerificationComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, NgdsFormsModule, BreadcrumbComponent, RouterLink, AccountVerificationComponent, HoldRetryNoticeComponent],
   templateUrl: './facility-details.component.html',
   styleUrls: ['./facility-details.component.scss']
 })
@@ -79,8 +81,11 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   public selectedActivitySubType: string | null = null;
   private selectedActivityName: string;
   public selectedProductName: string;
+  public passValidity: string | null = null;
   private selectedDateStr: string;
   private waitingRoomActive = false;
+  // Set from a hold-create 429; applies only to the product and date it was returned for.
+  private holdRetry: { key: string; retryAt: DateTime } | null = null;
 
   private destroyRef = inject(DestroyRef);
   private cartService = inject(CartService);
@@ -244,6 +249,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
 
     this.loadingProducts = true;
     this.availableProducts = [];
+    this.passValidity = null;
 
     // The related product pk/sk is made up from the selected activity's pk/sk
     const relatedProducts = (await this.productService.getProductsByActivity(collectionId, activityType, activityId))?.items || [];
@@ -277,6 +283,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
     const productId = selectedProductId || null;
 
     this.loadingDates = true;
+    this.passValidity = null;
     this.passStatus = 'available'; // Reset these when product changges and clear the other fields. 
     this.form.get('selectedDate').setValue(null, { emitEvent: false });
     this.form.get('selectedVisitors').setValue(null, { emitEvent: false });
@@ -317,6 +324,15 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
     }
 
     this.availableDates = availableDatesMap;
+    this.updatePassValidity(this.form.get('selectedDate').value);
+  }
+
+  private updatePassValidity(date?: string | null) {
+    const productDate = (date && this.availableDates[date]) || Object.values(this.availableDates)[0];
+    const context = productDate?.reservationContext;
+    const start = BookingUtils.formatParkTime(context?.checkInAnchor ?? context?.temporalAnchors?.checkInTime);
+    const end = BookingUtils.formatParkTime(context?.checkOutAnchor ?? context?.temporalAnchors?.checkOutTime);
+    this.passValidity = start && end ? `Valid ${start} – ${end}` : null;
   }
 
   setFormPassesAvailable() {
@@ -334,6 +350,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
       this.availableVisitorsAllowed = [];
       this.selectedDateStr = typeof date === 'string' ? date : (date?.['toISODate'] ? date['toISODate']() : String(date));
       this.waitingRoomActive = false;
+      this.updatePassValidity(this.selectedDateStr);
 
       // Check Mode 1 waiting room status for the selected date
       if (this.selectedCollectionId && this.selectedActivityType && this.selectedActivityId) {
@@ -491,7 +508,22 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
     return new URL(query ? `${basePath}?${query}` : basePath, document.baseURI).toString();
   }
 
+  get holdRetryAt(): DateTime | null {
+    return this.holdRetry?.key === this.holdSelectionKey() ? this.holdRetry.retryAt : null;
+  }
+
+  onHoldRetryElapsed(): void {
+    this.holdRetry = null;
+    this.cdr.detectChanges();
+  }
+
+  private holdSelectionKey(): string {
+    return `${this.getProductIdFromForm()}#${this.selectedDateStr || this.form?.get('selectedDate')?.value}`;
+  }
+
   async submit(): Promise<void> {
+    if (this.holdRetryAt) return;
+
     // Gate the booking action when Mode 2 is active and user lacks admission
     if (this.waitingRoomService.mode2Active() &&
         !this.waitingRoomService.hasValidAdmission('MODE2#global#1', '')) {
@@ -541,7 +573,9 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
       if (!proceed) return;
       // Release the old hold before creating the new booking — otherwise the
       // API rejects a re-book of the same pass/date. (Ref #650.)
-      await this.cartService.releaseCartItem(existingCartItem);
+      await this.cartService.releaseCartItem(existingCartItem, { quiet: true });
+      // Drop the released item now; a failed new hold must leave the cart empty.
+      this.cartService.removeFromCart(existingCartItem.id);
     }
     
 
@@ -608,6 +642,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
         sessionId: sessionId,
         sessionInitTime: booking?.sessionInitTime,
         sessionExpiry: booking?.sessionExpiry,
+        holdLimits: booking?.holdLimits,
         vehicleInformation: [
           {
             licensePlate: '',
@@ -624,6 +659,12 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
       await this.router.navigate(['/cart']);
     } catch (error: any) {
       console.error('Error creating booking:', error);
+      const retryAt = parseHoldRetryAt(error);
+      if (retryAt && retryAt > this.serverTime.now()) {
+        this.holdRetry = { key: this.holdSelectionKey(), retryAt };
+        this.cdr.detectChanges();
+        return;
+      }
       // API returns error text under `msg`; walk the usual shapes before
       // falling back to a generic message.
       const errorMessage =
@@ -649,6 +690,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
         initialState: {
           title: 'Replace pending booking?',
           body: `Your cart already has ${description}. Adding this booking will replace it.`,
+          notes: holdReleaseNotes(existing),
           confirmText: 'Replace',
           cancelText: 'Cancel',
           confirmClass: 'btn btn-primary',

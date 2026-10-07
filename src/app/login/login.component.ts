@@ -393,20 +393,33 @@ export class LoginComponent implements OnInit, AfterViewInit, AfterViewChecked {
     this.authService.loginWithProvider(provider);
   }
   
-  showBCParksLogin() {
+  async showBCParksLogin() {
+    if (await this.leaveIfSignedIn()) return;
     this.submitAttempted = false;
     this.initialState = 'signIn';
     this.showAmplifyAuth = true;
     this.authenticator.toSignIn();
   }
 
-  showBCParksSignUp() {
+  async showBCParksSignUp() {
+    if (await this.leaveIfSignedIn()) return;
     this.submitAttempted = false;
     this.initialState = 'signUp';
     this.showAmplifyAuth = true;
     this.authenticator.toSignUp();
   }
   
+  // A sign-in from another tab after this page loaded leaves the authenticator
+  // with nothing to show but a Sign Out button. Go to the landing page (#796).
+  private async leaveIfSignedIn(): Promise<boolean> {
+    await this.authService.checkIfSignedIn();
+    if (!this.authService.user()) return false;
+    // Same follow-up as app start: swap in the access token the API expects.
+    await this.authService.setRefresh();
+    this.router.navigate(['/']);
+    return true;
+  }
+
   goBack() {
     this.submitAttempted = false;
     this.showAmplifyAuth = false;

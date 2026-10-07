@@ -75,13 +75,7 @@ export class BookingUtils {
   }
 
   static isAMPass(booking: any): boolean {
-    const PRODUCT_IDS = {
-      AM: "1",
-      PM: "2",
-      DAY: "3",
-    }
-
-    return booking?.productId === PRODUCT_IDS.AM;
+    return booking?.productDisplayName?.includes('AM') ?? false;
   }
 
   /**

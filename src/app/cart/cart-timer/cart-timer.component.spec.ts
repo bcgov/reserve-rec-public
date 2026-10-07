@@ -1,23 +1,19 @@
-import { TestBed } from '@angular/core/testing';
-import { BsModalService } from 'ngx-bootstrap/modal';
-
 import { CartTimerComponent } from './cart-timer.component';
 import { CartService } from '../../services/cart.service';
 
 describe('CartTimerComponent', () => {
-  it('releases the expired item through the cart service', async () => {
-    const item = { id: 'item-1', bookingId: 'booking-1' };
-    const cartService = jasmine.createSpyObj('CartService', ['items', 'releaseCartItem']);
-    cartService.items.and.returnValue([item]);
-    cartService.releaseCartItem.and.resolveTo();
-    TestBed.configureTestingModule({ providers: [{ provide: BsModalService, useValue: {} }] });
-    const component = TestBed.runInInjectionContext(() => new CartTimerComponent(cartService as CartService));
-    const removed: string[] = [];
-    component.removeItem.subscribe(id => removed.push(id));
+  it('displays the remaining time without owning expiry handling', () => {
+    const now = 1_800_000_000_000;
+    spyOn(Date, 'now').and.returnValue(now);
+    const cartService = {
+      items: () => [{ sessionExpiry: now + 90_000 }], // 1m30s in the future
+      getCartTimerIsActive: () => true,
+    };
+    const component = new CartTimerComponent(cartService as CartService);
 
-    await component.onRemoveClick();
+    component.ngOnInit();
 
-    expect(removed).toEqual(['item-1']);
-    expect(cartService.releaseCartItem).toHaveBeenCalledOnceWith(item);
+    expect(component.displayTimer()).toBe('1:30'); //
+    component.ngOnDestroy();
   });
 });

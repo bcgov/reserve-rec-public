@@ -534,11 +534,6 @@ async onStepCompleted(completed: boolean): Promise<void> {
     this.router.navigate(['/cart'])
   }
 
-  removeItem(itemId: string): void {
-    this.cartService.removeFromCart(itemId);
-    this.router.navigate(['/cart']);
-  }
-
   // Resolve against <base href> so full-page navigations work both at the
   // domain root and path-mounted behind the front door (/dayuse/), where the
   // deploy rewrites <base href> to the prefix. A leading-slash path would

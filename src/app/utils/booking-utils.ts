@@ -75,7 +75,11 @@ export class BookingUtils {
   }
 
   static isAMPass(booking: any): boolean {
-    return booking?.productDisplayName?.includes('AM') ?? false;
+    if (booking?.productName) return booking.productName.includes('AM');
+    
+    if (booking?.productDisplayName) return booking.productDisplayName.includes('AM');
+
+    return false;
   }
 
   /**

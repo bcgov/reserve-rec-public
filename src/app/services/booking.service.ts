@@ -12,7 +12,7 @@ export interface HoldLimits {
   freeRemovalsLeft: number;
 }
 
-const HOLD_RETRY_CODES = ['HOLD_COOLDOWN', 'HOLD_CAP'];
+const HOLD_RETRY_CODES = ['HOLD_COOLDOWN', 'HOLD_CAP', 'HOLD_REBOOK_WAIT'];
 
 // A 429 from hold creation carries code and retryAt at the body root or under `data`.
 export function parseHoldRetryAt(error: any): DateTime | null {

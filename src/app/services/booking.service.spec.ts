@@ -189,6 +189,11 @@ describe('parseHoldRetryAt', () => {
     expect(parsed?.toMillis()).toBe(Date.parse(retryAt));
   });
 
+  it('reads the rebook wait code', () => {
+    const parsed = parseHoldRetryAt({ status: 429, error: { code: 'HOLD_REBOOK_WAIT', retryAt } });
+    expect(parsed?.toMillis()).toBe(Date.parse(retryAt));
+  });
+
   it('ignores other statuses, other codes and a bad retryAt', () => {
     expect(parseHoldRetryAt({ status: 409, error: { code: 'HOLD_COOLDOWN', retryAt } })).toBeNull();
     expect(parseHoldRetryAt({ status: 429, error: { code: 'THROTTLED', retryAt } })).toBeNull();

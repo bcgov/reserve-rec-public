@@ -28,54 +28,27 @@ describe('BookingService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('shows the removed toast on a successful cancel', async () => {
-    spyOn(TestBed.inject(ApiService), 'post').and.returnValue(of({ data: {} }));
+  it('shows the removed toast on a successful remove', async () => {
+    const postSpy = spyOn(TestBed.inject(ApiService), 'post').and.returnValue(of({ data: {} }));
     const toastSpy = spyOn(TestBed.inject(ToastService), 'addMessage');
 
-    await service.cancelBooking('booking-1', { cartRemoval: true });
+    await service.removeBooking('booking-1');
 
+    expect(postSpy).toHaveBeenCalledWith('bookings/booking-1/remove', {});
     expect(toastSpy).toHaveBeenCalledOnceWith('Item removed from cart', 'Success', 0);
   });
 
-  it('treats a 409 for an already timed-out hold as a successful removal', async () => {
+  it('treats a 409 for an already timed-out booking as a successful removal', async () => {
     spyOn(TestBed.inject(ApiService), 'post').and.callFake(() => throwError(() => ({
       status: 409,
-      error: { msg: 'Booking has status "TIMED_OUT" and cannot be cancelled' }
+      error: { msg: 'Booking has status "TIMED_OUT" and cannot be removed' }
     })));
     const toastSpy = spyOn(TestBed.inject(ToastService), 'addMessage');
 
-    const result = await service.cancelBooking('booking-1');
+    const result = await service.removeBooking('booking-1');
 
     expect(result).toBeNull();
     expect(toastSpy).toHaveBeenCalledOnceWith('Item removed from cart', 'Success', 0);
-  });
-
-  it('treats a 409 for an already-cancelled hold as a successful removal', async () => {
-    spyOn(TestBed.inject(ApiService), 'post').and.callFake(() => throwError(() => ({
-      status: 409,
-      error: { msg: 'Booking has status "cancelled" and cannot be cancelled' }
-    })));
-    const toastSpy = spyOn(TestBed.inject(ToastService), 'addMessage');
-
-    const result = await service.cancelBooking('booking-1');
-
-    expect(result).toBeNull();
-    expect(toastSpy).toHaveBeenCalledOnceWith('Item removed from cart', 'Success', 0);
-  });
-
-  it('treats an "already cancelled" reply, including a lost race, as a successful removal', async () => {
-    const post = spyOn(TestBed.inject(ApiService), 'post');
-    const toastSpy = spyOn(TestBed.inject(ToastService), 'addMessage');
-
-    post.and.callFake(() => throwError(() => ({ status: 409, error: { msg: 'Booking booking-1 is already cancelled' } })));
-    expect(await service.cancelBooking('booking-1')).toBeNull();
-    post.and.callFake(() => throwError(() => ({ status: 400, error: { msg: 'Booking is already cancelled' } })));
-    expect(await service.cancelBooking('booking-1')).toBeNull();
-
-    expect(toastSpy.calls.allArgs()).toEqual([
-      ['Item removed from cart', 'Success', 0],
-      ['Item removed from cart', 'Success', 0],
-    ]);
   });
 
   it('treats a booking that no longer exists as removed', async () => {
@@ -85,22 +58,33 @@ describe('BookingService', () => {
     })));
     const toastSpy = spyOn(TestBed.inject(ToastService), 'addMessage');
 
-    expect(await service.cancelBooking('booking-1', { cartRemoval: true })).toBeNull();
+    expect(await service.removeBooking('booking-1')).toBeNull();
     expect(toastSpy).toHaveBeenCalledOnceWith('Item removed from cart', 'Success', 0);
   });
 
-  it('skips the removed toast when asked to stay quiet, but still reports a failure', async () => {
-    const post = spyOn(TestBed.inject(ApiService), 'post').and.returnValue(of({ data: {} }));
+  it('tells the user a refused remove is already confirmed', async () => {
+    spyOn(TestBed.inject(ApiService), 'post').and.callFake(() => throwError(() => ({
+      status: 409,
+      error: { msg: 'This booking is already confirmed. Manage it from My bookings.', data: { status: 'confirmed', refusal: 'state' } }
+    })));
     const toastSpy = spyOn(TestBed.inject(ToastService), 'addMessage');
 
-    await service.cancelBooking('booking-1', { cartRemoval: true, quiet: true });
-    post.and.callFake(() => throwError(() => ({ status: 409, error: { msg: 'Booking has status "expired" and cannot be removed from the cart' } })));
-    await service.cancelBooking('booking-1', { cartRemoval: true, quiet: true });
-    expect(toastSpy).not.toHaveBeenCalled();
+    const result = await service.removeBooking('booking-1');
 
-    post.and.callFake(() => throwError(() => ({ status: 500, error: { msg: 'boom' } })));
-    await service.cancelBooking('booking-1', { cartRemoval: true, quiet: true });
-    expect(toastSpy).toHaveBeenCalledOnceWith('', 'Error removing item from cart', 3);
+    expect(result).toBeNull();
+    expect(toastSpy).toHaveBeenCalledOnceWith(
+      'This booking is already confirmed. You can manage it from My bookings.',
+      'Already confirmed',
+      2
+    );
+  });
+
+  it('sends a cancellation reason when provided', async () => {
+    const postSpy = spyOn(TestBed.inject(ApiService), 'post').and.returnValue(of({ data: {} }));
+
+    await service.cancelBooking('booking-1', { reason: 'Cancelled by user' });
+
+    expect(postSpy).toHaveBeenCalledWith('bookings/booking-1/cancel', { reason: 'Cancelled by user' }, {});
   });
 
   it('shows the error toast for any other cancel failure', async () => {
@@ -110,38 +94,10 @@ describe('BookingService', () => {
     })));
     const toastSpy = spyOn(TestBed.inject(ToastService), 'addMessage');
 
-    const result = await service.cancelBooking('booking-1');
+    const result = await service.cancelBooking('booking-1', { reason: 'Cancelled by user' });
 
     expect(result).toBeNull();
-    expect(toastSpy).toHaveBeenCalledOnceWith('', 'Error removing item from cart', 3);
-  });
-
-  it('sends the cart-removal intent only when asked', async () => {
-    const postSpy = spyOn(TestBed.inject(ApiService), 'post').and.returnValue(of({ data: {} }));
-    spyOn(TestBed.inject(ToastService), 'addMessage');
-
-    await service.cancelBooking('booking-1', { cartRemoval: true });
-    await service.cancelBooking('booking-2');
-
-    expect(postSpy.calls.argsFor(0)).toEqual(['bookings/booking-1/cancel', { cartRemoval: true }, {}]);
-    expect(postSpy.calls.argsFor(1)).toEqual(['bookings/booking-2/cancel', {}, {}]);
-  });
-
-  it('tells the user a refused cart removal is already confirmed', async () => {
-    spyOn(TestBed.inject(ApiService), 'post').and.callFake(() => throwError(() => ({
-      status: 409,
-      error: { msg: 'This booking is already confirmed. Manage it from My bookings.', data: { status: 'confirmed', refusal: 'state' } }
-    })));
-    const toastSpy = spyOn(TestBed.inject(ToastService), 'addMessage');
-
-    const result = await service.cancelBooking('booking-1', { cartRemoval: true });
-
-    expect(result).toBeNull();
-    expect(toastSpy).toHaveBeenCalledOnceWith(
-      'This booking is already confirmed. You can manage it from My bookings.',
-      'Removed from cart',
-      2
-    );
+    expect(toastSpy).toHaveBeenCalledOnceWith('Error', 'Error cancelling booking', 3);
   });
 
   it('returns the booking from fetchBooking, or null when the lookup fails', async () => {

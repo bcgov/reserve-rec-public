@@ -36,8 +36,8 @@ describe('CartService booking release', () => {
 
   beforeEach(() => {
     localStorage.clear();
-    bookingServiceSpy = jasmine.createSpyObj('BookingService', ['cancelBooking', 'fetchBooking', 'notifyAlreadyConfirmed']);
-    bookingServiceSpy.cancelBooking.and.resolveTo({});
+    bookingServiceSpy = jasmine.createSpyObj('BookingService', ['removeBooking', 'fetchBooking', 'notifyAlreadyConfirmed']);
+    bookingServiceSpy.removeBooking.and.resolveTo({});
     bookingServiceSpy.fetchBooking.and.resolveTo({ status: 'in progress' });
 
     TestBed.configureTestingModule({
@@ -50,43 +50,38 @@ describe('CartService booking release', () => {
     service = TestBed.inject(CartService);
   });
 
-  it('cancels the booking of a released item as a cart removal', async () => {
+  it('removes the booking held by a released item from cart', async () => {
     await service.releaseCartItem(makeItem('booking-1'));
-    expect(bookingServiceSpy.cancelBooking).toHaveBeenCalledWith('booking-1', { cartRemoval: true, quiet: false });
+    expect(bookingServiceSpy.removeBooking).toHaveBeenCalledWith('booking-1', { quiet: true });
   });
 
-  it('passes quiet through so a replaced item only shows the added toast', async () => {
-    await service.releaseCartItem(makeItem('booking-1'), { quiet: true });
-    expect(bookingServiceSpy.cancelBooking).toHaveBeenCalledWith('booking-1', { cartRemoval: true, quiet: true });
+  it('still removes the item when the status check fails', async () => {
+    bookingServiceSpy.fetchBooking.and.resolveTo(null);
+    await service.releaseCartItem(makeItem('booking-1'));
+    expect(bookingServiceSpy.removeBooking).toHaveBeenCalledWith('booking-1', { quiet: true });
   });
 
-  it('drops a confirmed item without cancelling it and tells the user', async () => {
+  it('drops a confirmed item without removing it and tells the user', async () => {
     bookingServiceSpy.fetchBooking.and.resolveTo({ status: 'confirmed' });
     await service.releaseCartItem(makeItem('booking-1'));
-    expect(bookingServiceSpy.cancelBooking).not.toHaveBeenCalled();
+    expect(bookingServiceSpy.removeBooking).not.toHaveBeenCalled();
     expect(bookingServiceSpy.notifyAlreadyConfirmed).toHaveBeenCalled();
   });
 
-  it('drops an already-cancelled item without cancelling it', async () => {
+  it('drops an already-cancelled item without removing it', async () => {
     bookingServiceSpy.fetchBooking.and.resolveTo({ status: 'cancelled' });
     await service.releaseCartItem(makeItem('booking-1'));
-    expect(bookingServiceSpy.cancelBooking).not.toHaveBeenCalled();
+    expect(bookingServiceSpy.removeBooking).not.toHaveBeenCalled();
     expect(bookingServiceSpy.notifyAlreadyConfirmed).not.toHaveBeenCalled();
-  });
-
-  it('still sends the cart removal when the status check fails', async () => {
-    bookingServiceSpy.fetchBooking.and.resolveTo(null);
-    await service.releaseCartItem(makeItem('booking-1'));
-    expect(bookingServiceSpy.cancelBooking).toHaveBeenCalledWith('booking-1', { cartRemoval: true, quiet: false });
   });
 
   it('does not call the API for an item with no booking', async () => {
     await service.releaseCartItem(makeItem(undefined));
-    expect(bookingServiceSpy.cancelBooking).not.toHaveBeenCalled();
+    expect(bookingServiceSpy.removeBooking).not.toHaveBeenCalled();
   });
 
-  it('swallows a failed cancel so the replacement booking still proceeds', async () => {
-    bookingServiceSpy.cancelBooking.and.returnValue(Promise.reject(new Error('boom')));
+  it('swallows a failed remove so the replacement booking still proceeds', async () => {
+    bookingServiceSpy.removeBooking.and.returnValue(Promise.reject(new Error('boom')));
     await expectAsync(service.releaseCartItem(makeItem('booking-1'))).toBeResolved();
   });
 });

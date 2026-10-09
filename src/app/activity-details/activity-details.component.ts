@@ -154,7 +154,7 @@ export class ActivityDetailsComponent implements OnInit, AfterContentChecked, On
       }
       // Release the old hold so the API doesn't keep the discarded booking
       // in progress and block re-booking. (Ref #650.)
-      await this.cartService.releaseCartItem(existing, { quiet: true });
+      await this.cartService.releaseCartItem(existing);
     }
 
     this.cartService.addToCart(cartItem);

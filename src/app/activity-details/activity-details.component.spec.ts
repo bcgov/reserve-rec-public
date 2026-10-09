@@ -55,7 +55,7 @@ describe('ActivityDetailsComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('releases a replaced cart item quietly so only the added toast shows', async () => {
+  it('releases a replaced cart item', async () => {
     const cartService = TestBed.inject(CartService);
     cartService.addToCart({ bookingId: 'old-booking', startDate: '2026-10-05' } as CartItem);
     spyOn(TestBed.inject(BsModalService), 'show').and.returnValue({
@@ -68,6 +68,6 @@ describe('ActivityDetailsComponent', () => {
 
     await component.submit();
 
-    expect(release).toHaveBeenCalledWith(jasmine.objectContaining({ bookingId: 'old-booking' }), { quiet: true });
+    expect(release).toHaveBeenCalledWith(jasmine.objectContaining({ bookingId: 'old-booking' }));
   });
 });

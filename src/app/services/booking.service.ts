@@ -130,22 +130,25 @@ export class BookingService {
   notifyAlreadyConfirmed() {
     this.toastService.addMessage(
       'This booking is already confirmed. You can manage it from My bookings.',
-      'Removed from cart',
+      'Already confirmed',
       ToastTypes.INFO
     );
   }
 
-  // quiet: skip the "removed" toast, for a replace that shows "added" instead.
-  async cancelBooking(bookingId: string, options: { cartRemoval?: boolean; quiet?: boolean } = {}) {
-    const body = options.cartRemoval ? { cartRemoval: true } : {};
-    const notifyRemoved = () => {
-      if (!options.quiet) {
-        this.toastService.addMessage('Item removed from cart', 'Success', ToastTypes.SUCCESS);
-      }
-    };
+  notifyRemoved() {
+    this.toastService.addMessage(
+      'Item removed from cart',
+      'Success',
+      ToastTypes.SUCCESS
+    );
+  }
+
+  // Remove a booking item from the cart
+  async removeBooking(bookingId: string, options = { quiet: false}) {
     try {
-      const res = (await lastValueFrom(this.apiService.post(`bookings/${bookingId}/cancel`, body, {})))['data'];
-      notifyRemoved();
+      const res = (await lastValueFrom(this.apiService.post(`bookings/${bookingId}/remove`, {})))['data'];
+      // Swapping bookings in cart, hide the "remove item" from showing - avoid confusion
+      if (!options.quiet) this.notifyRemoved();
       return res;
     } catch (error) {
       this.loadingService.removeFromFetchList(Constants.dataIds.PRODUCT_RESULT);
@@ -167,16 +170,36 @@ export class BookingService {
         (error as any)?.error?.data?.refusal === 'not_found' ||
         /status "(TIMED_OUT|cancelled|expired)"|already cancelled/i.test(errorMessage);
       if ([400, 409].includes((error as any)?.status) && alreadyGone) {
-        notifyRemoved();
+        this.notifyRemoved();
         return null;
       }
       // log error to console
       console.error('Error removing item from cart: ', errorMessage);
+      return null;
+    }
+  }
+
+  async cancelBooking(bookingId: string, body: object) {
+    try {
+      const res = (await lastValueFrom(this.apiService.post(`bookings/${bookingId}/cancel`, body, {})))['data'];
+      return res;
+    } catch (error) {
+      this.loadingService.removeFromFetchList(Constants.dataIds.PRODUCT_RESULT);
+      this.loggerService.error(error);
+      const errorMessage =
+        (error as any)?.error?.msg ||
+        (error as any)?.error?.error ||
+        (error as any)?.error?.Message ||
+        (error as any)?.message ||
+        'Unknown error';
+      // log error to console
+      console.error('Error cancelling booking: ', errorMessage);
       this.toastService.addMessage(
-        '', // Hide the error from the frontend
-        `Error removing item from cart`,
+        'Error', 
+        `Error cancelling booking`,
         ToastTypes.ERROR
       );
+      
       return null;
     }
   }

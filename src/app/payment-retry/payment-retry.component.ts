@@ -124,7 +124,7 @@ export class PaymentRetryComponent implements OnInit {
     this.isProcessing.set(true);
     
     try {
-      await this.bookingService.cancelBooking(this.bookingId())
+      await this.bookingService.cancelBooking(this.bookingId(), { reason: "Cancelled by user"})
       alert('Booking cancelled successfully.');
       this.router.navigate(['/']);
     } catch (error) {

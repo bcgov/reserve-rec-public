@@ -79,6 +79,13 @@ describe('FacilityDetailsComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('renders On this page as one level 2 heading in the named navigation', () => {
+    const navigation: HTMLElement = fixture.nativeElement.querySelector('nav[aria-label="On this page"]');
+
+    expect(navigation.querySelectorAll('h2')).toHaveSize(1);
+    expect(navigation.querySelector('h2')?.textContent?.trim()).toBe('On this page');
+  });
+
   // Scrolled to the bottom, the trailing sections can never reach the 15% line,
   // so the "On this page" list used to stay stuck on an earlier section.
   it('highlights the last section once the page is scrolled to the bottom', () => {

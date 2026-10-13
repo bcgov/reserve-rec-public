@@ -28,7 +28,7 @@ USAGE:
 
   # Datacenter/reputation/anon rules ship in COUNT mode by default so they can
   # soak against real traffic. Promote to Block explicitly, per rule group:
-  python3 provision_waf.py --env dev --apply --block dc,reputation,autoblock,anon
+  python3 provision_waf.py --env dev --apply --block dc,reputation,autoblock,anon,auth
 
 Requires: boto3; creds for the target env's account
   (dev/test 623829546818, prod 628373393242) in the environment.

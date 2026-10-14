@@ -73,6 +73,20 @@ def load_providers(env, session=None):
         sys.exit(f"{path} lists no providers")
     return provs
 
+
+JA4_SSM_PATH = "/reserveRecPublic/{env}/frontDoorWaf/ja4"
+
+
+def load_ja4(env, session=None):
+    """JA4 fingerprints for edge-ja4 from SSM; [] when unset."""
+    import boto3
+    ssm = (session or boto3).client("ssm", region_name=PROVIDERS_REGION)
+    try:
+        raw = ssm.get_parameter(Name=JA4_SSM_PATH.format(env=env))["Parameter"]["Value"]
+    except ssm.exceptions.ParameterNotFound:
+        return []
+    return json.loads(raw).get("ja4") or []
+
 # ── standalone IPSets (populated out of band by ops tooling / investigations) ─
 # The v4 names are unsuffixed because they predate the v6 sets and hold live
 # entries; renaming them would empty a rule that is currently blocking.
@@ -91,6 +105,7 @@ PRI_CAPTURE_JA = 0
 DC_BAND_START, DC_BAND_END = 10, 49
 PRI_REPUTATION, PRI_AUTOBLOCK, PRI_ANON = 50, 51, 52
 PRI_AUTH = 55
+PRI_JA4 = 56
 PRI_RATE = 60
 
 # Top-level WebACL settings that UpdateWebACL drops unless they are passed back.
@@ -118,7 +133,7 @@ def vis(metric):
     return {"SampledRequestsEnabled": True, "CloudWatchMetricsEnabled": True, "MetricName": metric}
 
 
-def build_rules(ipset_arns, block, provider_names, dc_blocked=frozenset()):
+def build_rules(ipset_arns, block, provider_names, dc_blocked=frozenset(), ja4=()):
     """Return the ordered WebACL rule list from declarative config.
 
     ipset_arns: {name: arn} for every IPSet this ACL references.
@@ -126,6 +141,7 @@ def build_rules(ipset_arns, block, provider_names, dc_blocked=frozenset()):
     dc_blocked: provider names to Block individually, when the whole dc group
       is not being promoted. Evidence usually justifies one provider at a time.
     provider_names: ordered dc-* provider names, from SSM.
+    ja4: JA4 fingerprints for edge-ja4, from SSM; no rule when empty.
     """
     room = DC_BAND_END - DC_BAND_START + 1
     if len(provider_names) > room:
@@ -237,6 +253,29 @@ def build_rules(ipset_arns, block, provider_names, dc_blocked=frozenset()):
         "VisibilityConfig": vis("requireAuthAvailability"),
     })
 
+    if ja4:
+        matches = [{"ByteMatchStatement": {
+            "SearchString": fp.encode(),
+            "FieldToMatch": {"JA4Fingerprint": {"FallbackBehavior": "NO_MATCH"}},
+            "TextTransformations": [{"Priority": 0, "Type": "NONE"}],
+            "PositionalConstraint": "EXACTLY",
+        }} for fp in ja4]
+        rules.append({
+            "Name": "edge-ja4",
+            "Priority": PRI_JA4,
+            "Action": action("ja4"),
+            "Statement": {"AndStatement": {"Statements": [
+                matches[0] if len(matches) == 1 else {"OrStatement": {"Statements": matches}},
+                {"ByteMatchStatement": {
+                    "SearchString": _API_PREFIX,
+                    "FieldToMatch": {"UriPath": {}},
+                    "TextTransformations": [{"Priority": 0, "Type": "NONE"}],
+                    "PositionalConstraint": "STARTS_WITH",
+                }},
+            ]}},
+            "VisibilityConfig": vis("edgeJa4"),
+        })
+
     # Per-IP rate limit on the tenant API. DUP had none; start in
     # Count and tune the threshold before promoting. Uses forwarded viewer IP so
     # it sees the real client, not the CloudFront edge.
@@ -266,7 +305,7 @@ def main():
     ap.add_argument("--apply", action="store_true", help="write changes (default: dry run)")
     ap.add_argument("--block", default="",
                     help="comma-separated rule groups to ship in Block instead of "
-                         "Count: dc,reputation,autoblock,anon,auth,rate. A single "
+                         "Count: dc,reputation,autoblock,anon,auth,ja4,rate. A single "
                          "provider can be promoted on its own as dc:<name>, "
                          "e.g. --block dc:ace")
     args = ap.parse_args()
@@ -274,7 +313,7 @@ def main():
     requested = {g.strip() for g in args.block.split(",") if g.strip()}
     dc_blocked = {g.split(":", 1)[1] for g in requested if g.startswith("dc:")}
     block = {g for g in requested if ":" not in g}
-    valid = {"dc", "reputation", "autoblock", "anon", "auth", "rate"}
+    valid = {"dc", "reputation", "autoblock", "anon", "auth", "ja4", "rate"}
     bad = block - valid
     if bad:
         ap.error(f"unknown --block groups: {bad} (valid: {sorted(valid)}, "
@@ -289,7 +328,7 @@ def main():
 
     name = acl_name(args.env)
     modes = ", ".join(f"{g}={'BLOCK' if g in block else 'COUNT'}"
-                      for g in ("dc", "reputation", "autoblock", "anon", "auth", "rate"))
+                      for g in ("dc", "reputation", "autoblock", "anon", "auth", "ja4", "rate"))
     if dc_blocked:
         modes += f"  (+dc blocked individually: {', '.join(sorted(dc_blocked))})"
     print(f"env={args.env} account={acct} region={REGION}")
@@ -326,7 +365,9 @@ def main():
         sys.exit(f"--block names provider(s) not in SSM: {sorted(unknown)}. "
                  f"Known: {', '.join(provider_names)}")
 
-    rules = build_rules(ipset_arns, block, provider_names, dc_blocked)
+    ja4 = load_ja4(args.env)
+    print(f"  ja4 from SSM: {len(ja4)}" + ("" if ja4 else " (edge-ja4 skipped)"))
+    rules = build_rules(ipset_arns, block, provider_names, dc_blocked, ja4)
     print(f"\n  rules ({len(rules)}): " + ", ".join(f"{r['Name']}@{r['Priority']}" for r in rules))
 
     acls = {a["Name"]: a for a in waf.list_web_acls(Scope="CLOUDFRONT")["WebACLs"]}

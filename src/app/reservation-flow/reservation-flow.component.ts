@@ -335,9 +335,16 @@ async onStepCompleted(completed: boolean): Promise<void> {
         return;
       }
       
+      // Busy, not failed: the hold is kept, so an immediate retry is the right advice.
+      if (error?.status === 503) {
+        alert(error?.error?.msg || 'The service is busy. Please try again in a moment.');
+        return;
+      }
+
       // Handle validation errors
       if (error?.status === 400) {
-        const errorMessage = error?.error?.message || 'Your booking request could not be completed. Please check the booking details and try again.';
+        // The API puts its reason in `msg`; `message` is kept for older responses.
+        const errorMessage = error?.error?.msg || error?.error?.message || 'Your booking request could not be completed. Please check the booking details and try again.';
         alert(`Booking Error: ${errorMessage}`);
         return;
       }

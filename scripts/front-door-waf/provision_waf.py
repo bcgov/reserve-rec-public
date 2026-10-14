@@ -28,7 +28,7 @@ USAGE:
 
   # Datacenter/reputation/anon rules ship in COUNT mode by default so they can
   # soak against real traffic. Promote to Block explicitly, per rule group:
-  python3 provision_waf.py --env dev --apply --block dc,reputation,autoblock,anon
+  python3 provision_waf.py --env dev --apply --block dc,reputation,autoblock,anon,auth
 
 Requires: boto3; creds for the target env's account
   (dev/test 623829546818, prod 628373393242) in the environment.
@@ -90,6 +90,7 @@ STANDALONE_IPSETS = [
 PRI_CAPTURE_JA = 0
 DC_BAND_START, DC_BAND_END = 10, 49
 PRI_REPUTATION, PRI_AUTOBLOCK, PRI_ANON = 50, 51, 52
+PRI_AUTH = 55
 PRI_RATE = 60
 
 # Top-level WebACL settings that UpdateWebACL drops unless they are passed back.
@@ -100,6 +101,9 @@ CARRY_FORWARD = ("Description", "CustomResponseBodies", "CaptchaConfig",
 # SearchString is a blob: botocore base64-encodes it in transit, so it takes raw
 # bytes. Pre-encoding here double-encodes and the rule silently matches nothing.
 _API_PREFIX = TENANT_API_PREFIX.encode()
+# Availability reads that need a signed-in caller. Matched after URL_DECODE +
+# LOWERCASE, so these must be lowercase.
+_AUTH_PATHS = (b"/dayuse/api/inventorypools/", b"/dayuse/api/product-dates/")
 
 
 def acl_name(env):
@@ -207,6 +211,32 @@ def build_rules(ipset_arns, block, provider_names, dc_blocked=frozenset()):
         "VisibilityConfig": vis("anonymousIpList"),
     })
 
+    # Availability reads without a bearer token. The site only shows
+    # availability after sign-in.
+    rules.append({
+        "Name": "require-auth-availability",
+        "Priority": PRI_AUTH,
+        "Action": action("auth"),
+        "Statement": {"AndStatement": {"Statements": [
+            {"OrStatement": {"Statements": [
+                {"ByteMatchStatement": {
+                    "SearchString": path,
+                    "FieldToMatch": {"UriPath": {}},
+                    "TextTransformations": [{"Priority": 0, "Type": "URL_DECODE"},
+                                            {"Priority": 1, "Type": "LOWERCASE"}],
+                    "PositionalConstraint": "STARTS_WITH",
+                }} for path in _AUTH_PATHS
+            ]}},
+            {"NotStatement": {"Statement": {"ByteMatchStatement": {
+                "SearchString": b"Bearer ",
+                "FieldToMatch": {"SingleHeader": {"Name": "authorization"}},
+                "TextTransformations": [{"Priority": 0, "Type": "NONE"}],
+                "PositionalConstraint": "STARTS_WITH",
+            }}}},
+        ]}},
+        "VisibilityConfig": vis("requireAuthAvailability"),
+    })
+
     # Per-IP rate limit on the tenant API. DUP had none; start in
     # Count and tune the threshold before promoting. Uses forwarded viewer IP so
     # it sees the real client, not the CloudFront edge.
@@ -236,7 +266,7 @@ def main():
     ap.add_argument("--apply", action="store_true", help="write changes (default: dry run)")
     ap.add_argument("--block", default="",
                     help="comma-separated rule groups to ship in Block instead of "
-                         "Count: dc,reputation,autoblock,anon,rate. A single "
+                         "Count: dc,reputation,autoblock,anon,auth,rate. A single "
                          "provider can be promoted on its own as dc:<name>, "
                          "e.g. --block dc:ace")
     args = ap.parse_args()
@@ -244,7 +274,7 @@ def main():
     requested = {g.strip() for g in args.block.split(",") if g.strip()}
     dc_blocked = {g.split(":", 1)[1] for g in requested if g.startswith("dc:")}
     block = {g for g in requested if ":" not in g}
-    valid = {"dc", "reputation", "autoblock", "anon", "rate"}
+    valid = {"dc", "reputation", "autoblock", "anon", "auth", "rate"}
     bad = block - valid
     if bad:
         ap.error(f"unknown --block groups: {bad} (valid: {sorted(valid)}, "
@@ -259,7 +289,7 @@ def main():
 
     name = acl_name(args.env)
     modes = ", ".join(f"{g}={'BLOCK' if g in block else 'COUNT'}"
-                      for g in ("dc", "reputation", "autoblock", "anon", "rate"))
+                      for g in ("dc", "reputation", "autoblock", "anon", "auth", "rate"))
     if dc_blocked:
         modes += f"  (+dc blocked individually: {', '.join(sorted(dc_blocked))})"
     print(f"env={args.env} account={acct} region={REGION}")

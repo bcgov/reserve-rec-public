@@ -30,6 +30,7 @@ stack attaches it via its `webAclArnSSMPath` config. See bcgov/reserve-rec-api#2
 | 50 | `edge-reputation` | Count → Block |
 | 51 | `edge-autoblock` (watchlist) | Count → Block |
 | 52 | `AnonymousIpList` (AWS managed) | Count → Block |
+| 55 | `require-auth-availability` — availability reads without a bearer token | Count → Block |
 | 60 | `rate-dayuse-api` — per-IP rate limit | Count → Block (tune threshold first) |
 
 Providers are read from SSM at run time, by both scripts; the feed fails loudly
@@ -59,7 +60,7 @@ python3 datacenter_feed.py --env dev --apply
 python3 soak_report.py --env dev --days 28
 
 # 6. once the soak shows no false positives, promote to Block:
-python3 provision_waf.py --env dev --apply --block dc,reputation,autoblock,anon
+python3 provision_waf.py --env dev --apply --block dc,reputation,autoblock,anon,auth
 #    and tune + promote the rate rule separately once its threshold is validated
 
 # Providers can also be promoted one at a time, which is usually what the

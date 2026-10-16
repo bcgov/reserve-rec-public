@@ -32,10 +32,15 @@ stack attaches it via its `webAclArnSSMPath` config. See bcgov/reserve-rec-api#2
 | 52 | `AnonymousIpList` (AWS managed) | Count → Block |
 | 55 | `require-auth-availability` — availability reads without a bearer token | Count → Block |
 | 56 | `edge-ja4` — listed JA4 fingerprints on `/dayuse/api/` (omitted when the list is empty) | Count → Block |
+| 57 | `edge-worker-header` — listed header values | Count → Block |
+| 58 | `edge-ua-availability` — listed user agents on `/dayuse/api/` reads | Count → Block |
+| 59 | `edge-retired-paths` — listed path prefixes | Count → Block |
 | 60 | `rate-dayuse-api` — per-IP rate limit | Count → Block (tune threshold first) |
 
-Providers and the `edge-ja4` fingerprints are read from SSM at run time. Providers are read by both scripts; the feed fails loudly
-if a provider there has no fetcher. The list is deliberately not in this repo.
+Providers, the `edge-ja4` fingerprints and the `edge-*` lists
+(`/reserveRecPublic/<env>/frontDoorWaf/edgeMatch`) are read from SSM at run time;
+a rule is omitted while its list is empty. Providers are read by both scripts; the
+feed fails loudly if a provider there has no fetcher. None of these lists is in this repo.
 
 `edge-reputation` and `edge-autoblock` each span a v4 and a v6 IPSet. The v4
 names are unsuffixed because they predate the v6 ones and hold live entries.
@@ -61,7 +66,7 @@ python3 datacenter_feed.py --env dev --apply
 python3 soak_report.py --env dev --days 28
 
 # 6. once the soak shows no false positives, promote to Block:
-python3 provision_waf.py --env dev --apply --block dc,reputation,autoblock,anon,auth,ja4
+python3 provision_waf.py --env dev --apply --block dc,reputation,autoblock,anon,auth,ja4,edge
 #    and tune + promote the rate rule separately once its threshold is validated
 
 # Providers can also be promoted one at a time, which is usually what the

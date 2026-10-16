@@ -28,7 +28,7 @@ USAGE:
 
   # Datacenter/reputation/anon rules ship in COUNT mode by default so they can
   # soak against real traffic. Promote to Block explicitly, per rule group:
-  python3 provision_waf.py --env dev --apply --block dc,reputation,autoblock,anon,auth
+  python3 provision_waf.py --env dev --apply --block dc,reputation,autoblock,anon,auth,ja4,edge
 
 Requires: boto3; creds for the target env's account
   (dev/test 623829546818, prod 628373393242) in the environment.
@@ -58,17 +58,26 @@ PROVIDERS_SSM_PATH = "/reserveRecPublic/{env}/frontDoorWaf/providers"
 PROVIDERS_REGION = "ca-central-1"
 
 
+def _read_param(path, session=None):
+    """Parsed JSON value of an SSM parameter, or None when it does not exist."""
+    if session is None:
+        import boto3
+        session = boto3
+    ssm = session.client("ssm", region_name=PROVIDERS_REGION)
+    try:
+        return json.loads(ssm.get_parameter(Name=path)["Parameter"]["Value"])
+    except ssm.exceptions.ParameterNotFound:
+        return None
+
+
 def load_providers(env, session=None):
     """[{name, source, asns?}, ...] from SSM. Never hardcode this list here."""
-    import boto3
-    ssm = (session or boto3).client("ssm", region_name=PROVIDERS_REGION)
     path = PROVIDERS_SSM_PATH.format(env=env)
-    try:
-        raw = ssm.get_parameter(Name=path)["Parameter"]["Value"]
-    except ssm.exceptions.ParameterNotFound:
+    value = _read_param(path, session)
+    if value is None:
         sys.exit(f"missing {path} in {PROVIDERS_REGION} — the provider list lives "
                  f"in SSM, not in this repo. Seed it before provisioning.")
-    provs = json.loads(raw)["providers"]
+    provs = value["providers"]
     if not provs:
         sys.exit(f"{path} lists no providers")
     return provs
@@ -79,13 +88,17 @@ JA4_SSM_PATH = "/reserveRecPublic/{env}/frontDoorWaf/ja4"
 
 def load_ja4(env, session=None):
     """JA4 fingerprints for edge-ja4 from SSM; [] when unset."""
-    import boto3
-    ssm = (session or boto3).client("ssm", region_name=PROVIDERS_REGION)
-    try:
-        raw = ssm.get_parameter(Name=JA4_SSM_PATH.format(env=env))["Parameter"]["Value"]
-    except ssm.exceptions.ParameterNotFound:
-        return []
-    return json.loads(raw).get("ja4") or []
+    return (_read_param(JA4_SSM_PATH.format(env=env), session) or {}).get("ja4") or []
+
+
+EDGE_MATCH_SSM_PATH = "/reserveRecPublic/{env}/frontDoorWaf/edgeMatch"
+EDGE_MATCH_KEYS = ("workerSuffixes", "uaBlock", "retiredPaths", "uaExempt")
+
+
+def load_edge_match(env, session=None):
+    """edge-* match lists from SSM, lowercased; empty when unset."""
+    value = _read_param(EDGE_MATCH_SSM_PATH.format(env=env), session) or {}
+    return {k: [v.lower() for v in value.get(k) or [] if v] for k in EDGE_MATCH_KEYS}
 
 # ── standalone IPSets (populated out of band by ops tooling / investigations) ─
 # The v4 names are unsuffixed because they predate the v6 sets and hold live
@@ -106,7 +119,11 @@ DC_BAND_START, DC_BAND_END = 10, 49
 PRI_REPUTATION, PRI_AUTOBLOCK, PRI_ANON = 50, 51, 52
 PRI_AUTH = 55
 PRI_JA4 = 56
+PRI_EDGE_WORKER, PRI_EDGE_UA, PRI_EDGE_RETIRED = 57, 58, 59
 PRI_RATE = 60
+
+# --block group names, in the order the dry run reports them.
+BLOCK_GROUPS = ("dc", "reputation", "autoblock", "anon", "auth", "ja4", "edge", "rate")
 
 # Top-level WebACL settings that UpdateWebACL drops unless they are passed back.
 # Re-running the script used to silently reset whatever was set outside it.
@@ -119,6 +136,25 @@ _API_PREFIX = TENANT_API_PREFIX.encode()
 # Availability reads that need a signed-in caller. Matched after URL_DECODE +
 # LOWERCASE, so these must be lowercase.
 _AUTH_PATHS = (b"/dayuse/api/inventorypools/", b"/dayuse/api/product-dates/")
+_AVAILABILITY_PATHS = _AUTH_PATHS + (b"/dayuse/api/products/",)
+_LOWER = [{"Priority": 0, "Type": "LOWERCASE"}]
+_DECODE_LOWER = [{"Priority": 0, "Type": "URL_DECODE"}, {"Priority": 1, "Type": "LOWERCASE"}]
+_UA = {"SingleHeader": {"Name": "user-agent"}}
+
+
+def _any_match(values, field, constraint, transforms):
+    """ByteMatch of field against each value, OR'd."""
+    matches = [{"ByteMatchStatement": {
+        "SearchString": v if isinstance(v, bytes) else v.encode(),
+        "FieldToMatch": field,
+        "TextTransformations": transforms,
+        "PositionalConstraint": constraint,
+    }} for v in values]
+    return matches[0] if len(matches) == 1 else {"OrStatement": {"Statements": matches}}
+
+
+def _all_of(statements):
+    return statements[0] if len(statements) == 1 else {"AndStatement": {"Statements": statements}}
 
 
 def acl_name(env):
@@ -133,7 +169,8 @@ def vis(metric):
     return {"SampledRequestsEnabled": True, "CloudWatchMetricsEnabled": True, "MetricName": metric}
 
 
-def build_rules(ipset_arns, block, provider_names, dc_blocked=frozenset(), ja4=()):
+def build_rules(ipset_arns, block, provider_names, dc_blocked=frozenset(), ja4=(),
+                edge_match=None):
     """Return the ordered WebACL rule list from declarative config.
 
     ipset_arns: {name: arn} for every IPSet this ACL references.
@@ -142,6 +179,7 @@ def build_rules(ipset_arns, block, provider_names, dc_blocked=frozenset(), ja4=(
       is not being promoted. Evidence usually justifies one provider at a time.
     provider_names: ordered dc-* provider names, from SSM.
     ja4: JA4 fingerprints for edge-ja4, from SSM; no rule when empty.
+    edge_match: load_edge_match() output; no rule for an empty list.
     """
     room = DC_BAND_END - DC_BAND_START + 1
     if len(provider_names) > room:
@@ -234,15 +272,7 @@ def build_rules(ipset_arns, block, provider_names, dc_blocked=frozenset(), ja4=(
         "Priority": PRI_AUTH,
         "Action": action("auth"),
         "Statement": {"AndStatement": {"Statements": [
-            {"OrStatement": {"Statements": [
-                {"ByteMatchStatement": {
-                    "SearchString": path,
-                    "FieldToMatch": {"UriPath": {}},
-                    "TextTransformations": [{"Priority": 0, "Type": "URL_DECODE"},
-                                            {"Priority": 1, "Type": "LOWERCASE"}],
-                    "PositionalConstraint": "STARTS_WITH",
-                }} for path in _AUTH_PATHS
-            ]}},
+            _any_match(_AUTH_PATHS, {"UriPath": {}}, "STARTS_WITH", _DECODE_LOWER),
             {"NotStatement": {"Statement": {"ByteMatchStatement": {
                 "SearchString": b"Bearer ",
                 "FieldToMatch": {"SingleHeader": {"Name": "authorization"}},
@@ -276,6 +306,30 @@ def build_rules(ipset_arns, block, provider_names, dc_blocked=frozenset(), ja4=(
             "VisibilityConfig": vis("edgeJa4"),
         })
 
+    em = edge_match or {}
+    exempt = ([{"NotStatement": {"Statement": _any_match(
+        em["uaExempt"], _UA, "CONTAINS", _LOWER)}}] if em.get("uaExempt") else [])
+    edge_rules = []
+    if em.get("workerSuffixes"):
+        edge_rules.append(("edge-worker-header", PRI_EDGE_WORKER, "edgeWorkerHeader", [
+            _any_match(em["workerSuffixes"], {"SingleHeader": {"Name": "cf-worker"}},
+                       "ENDS_WITH", _LOWER)]))
+    if em.get("uaBlock"):
+        edge_rules.append(("edge-ua-availability", PRI_EDGE_UA, "edgeUaAvailability", [
+            _any_match(em["uaBlock"], _UA, "CONTAINS", _LOWER),
+            _any_match(_AVAILABILITY_PATHS, {"UriPath": {}}, "STARTS_WITH", _DECODE_LOWER)]))
+    if em.get("retiredPaths"):
+        edge_rules.append(("edge-retired-paths", PRI_EDGE_RETIRED, "edgeRetiredPaths", [
+            _any_match(em["retiredPaths"], {"UriPath": {}}, "STARTS_WITH", _LOWER)]))
+    for name, priority, metric, match in edge_rules:
+        rules.append({
+            "Name": name,
+            "Priority": priority,
+            "Action": action("edge"),
+            "Statement": _all_of(match + exempt),
+            "VisibilityConfig": vis(metric),
+        })
+
     # Per-IP rate limit on the tenant API. DUP had none; start in
     # Count and tune the threshold before promoting. Uses forwarded viewer IP so
     # it sees the real client, not the CloudFront edge.
@@ -305,7 +359,7 @@ def main():
     ap.add_argument("--apply", action="store_true", help="write changes (default: dry run)")
     ap.add_argument("--block", default="",
                     help="comma-separated rule groups to ship in Block instead of "
-                         "Count: dc,reputation,autoblock,anon,auth,ja4,rate. A single "
+                         f"Count: {','.join(BLOCK_GROUPS)}. A single "
                          "provider can be promoted on its own as dc:<name>, "
                          "e.g. --block dc:ace")
     args = ap.parse_args()
@@ -313,7 +367,7 @@ def main():
     requested = {g.strip() for g in args.block.split(",") if g.strip()}
     dc_blocked = {g.split(":", 1)[1] for g in requested if g.startswith("dc:")}
     block = {g for g in requested if ":" not in g}
-    valid = {"dc", "reputation", "autoblock", "anon", "auth", "ja4", "rate"}
+    valid = set(BLOCK_GROUPS)
     bad = block - valid
     if bad:
         ap.error(f"unknown --block groups: {bad} (valid: {sorted(valid)}, "
@@ -328,7 +382,7 @@ def main():
 
     name = acl_name(args.env)
     modes = ", ".join(f"{g}={'BLOCK' if g in block else 'COUNT'}"
-                      for g in ("dc", "reputation", "autoblock", "anon", "auth", "ja4", "rate"))
+                      for g in BLOCK_GROUPS)
     if dc_blocked:
         modes += f"  (+dc blocked individually: {', '.join(sorted(dc_blocked))})"
     print(f"env={args.env} account={acct} region={REGION}")
@@ -367,7 +421,9 @@ def main():
 
     ja4 = load_ja4(args.env)
     print(f"  ja4 from SSM: {len(ja4)}" + ("" if ja4 else " (edge-ja4 skipped)"))
-    rules = build_rules(ipset_arns, block, provider_names, dc_blocked, ja4)
+    edge_match = load_edge_match(args.env)
+    print("  edge match from SSM: " + ", ".join(f"{k}={len(v)}" for k, v in edge_match.items()))
+    rules = build_rules(ipset_arns, block, provider_names, dc_blocked, ja4, edge_match)
     print(f"\n  rules ({len(rules)}): " + ", ".join(f"{r['Name']}@{r['Priority']}" for r in rules))
 
     acls = {a["Name"]: a for a in waf.list_web_acls(Scope="CLOUDFRONT")["WebACLs"]}

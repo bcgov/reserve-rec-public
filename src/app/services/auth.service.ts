@@ -177,27 +177,18 @@ export class AuthService {
   async setRefresh(forceRefresh = false) {
     try {
       this.session.set(await fetchAuthSession({ forceRefresh: forceRefresh }));
-      if (this.session()?.tokens?.accessToken) {
-        this.jwtToken = this.session().tokens.accessToken.toString();
-        const refreshInterval = ((this.session().tokens.accessToken.payload.exp * 1000) - Date.now()) / 2;
-        if (refreshInterval > 0) {
-          setTimeout(async () => {
-            try {
-              await this.setRefresh(true);
-              this.loggerService.info('Token refreshed successfully.');
-            } catch (error) {
-              console.error('Error refreshing token:', error);
-              const currentTime = Date.now() / 1000;
-              const refreshTokenExp = this.session().tokens.refreshToken.payload.exp;
-              //This is just kicking user out to login page. TODO: Add a modal to confirm logout or stay logged in?
-              if (currentTime >= refreshTokenExp) {
-                this.loggerService.info('Refresh token expired. Logging out...');
-                await this.logout();
-                this.router.navigate(['/login']);
-              }
-            }
-          }, refreshInterval);
-        }
+      const accessToken = this.session()?.tokens?.accessToken;
+      // Amplify returns no tokens rather than throwing once the refresh token expires
+      if (!accessToken) {
+        this.loggerService.info('Session expired. Logging out...');
+        await this.logout();
+        this.router.navigate(['/login']);
+        return;
+      }
+      this.jwtToken = accessToken.toString();
+      const refreshInterval = ((accessToken.payload.exp * 1000) - Date.now()) / 2;
+      if (refreshInterval > 0) {
+        setTimeout(() => this.setRefresh(true), refreshInterval);
       }
     } catch (error) {
       console.error('Error setting refresh token:', error);

@@ -7,6 +7,7 @@ import { ToastService, ToastTypes } from './toast.service';
 import { HttpClient, HttpHandler } from '@angular/common/http';
 import { provideToastr } from 'ngx-toastr';
 import { Hub } from 'aws-amplify/utils';
+import { Router } from '@angular/router';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -45,5 +46,15 @@ describe('AuthService', () => {
       ToastTypes.ERROR
     );
     expect(logError).toHaveBeenCalledWith(jasmine.stringContaining('access_denied'));
+  });
+
+  it('should log out when the session has no tokens left', async () => {
+    const logout = spyOn(service, 'logout').and.resolveTo();
+    const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+
+    await service.setRefresh(true);
+
+    expect(logout).toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith(['/login']);
   });
 });

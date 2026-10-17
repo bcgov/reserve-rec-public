@@ -314,6 +314,27 @@ describe('FacilityDetailsComponent', () => {
     });
   });
 
+  describe('email verified', () => {
+    const product = 'product::c1::dayuse::a1#p1';
+    let loadProductDates: jasmine.Spy;
+
+    beforeEach(() => {
+      loadProductDates = spyOn(component as any, 'loadProductDates').and.resolveTo();
+    });
+
+    it('reloads the dates of the selected product', () => {
+      component.form.get('selectedProduct').setValue(product, { emitEvent: false });
+      component.onEmailVerified();
+      expect(component.emailVerified).toBe(true);
+      expect(loadProductDates).toHaveBeenCalledWith(product);
+    });
+
+    it('loads nothing when no product is selected', () => {
+      component.onEmailVerified();
+      expect(loadProductDates).not.toHaveBeenCalled();
+    });
+  });
+
   describe('hold retry', () => {
     const date = '2026-10-03';
     let bookingService: BookingService;

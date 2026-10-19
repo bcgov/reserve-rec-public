@@ -721,6 +721,8 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   onEmailVerified() {
     this.emailVerified = true;
     this.cdr.detectChanges();
+    const product = this.form.get('selectedProduct').value;
+    if (product) this.loadProductDates(product);
   }
 
   ngAfterViewInit(): void {

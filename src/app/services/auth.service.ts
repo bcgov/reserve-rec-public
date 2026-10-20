@@ -17,6 +17,8 @@ export class AuthService {
   public session = signal(null);
   public redirectValues;
   jwtToken: any;
+  private static readonly TOKEN_MIN_LIFE_MS = 60_000;
+  private pendingRefresh: Promise<void> | null = null;
 
   constructor(
     private configService: ConfigService, 
@@ -195,6 +197,25 @@ export class AuthService {
       await this.logout(); // Log out on error
       this.router.navigate(['/login']); // Redirect to login
     }
+  }
+
+  /**
+   * Returns an access token with at least TOKEN_MIN_LIFE_MS left, refreshing first
+   * when it is stale (background tabs throttle the scheduled refresh).
+   * Returns null when signed out or when the refresh logged the user out.
+   */
+  async getFreshToken(): Promise<string | null> {
+    if (!this.jwtToken) {
+      return null;
+    }
+    const exp = this.session()?.tokens?.accessToken?.payload?.exp;
+    if (exp && exp * 1000 - Date.now() > AuthService.TOKEN_MIN_LIFE_MS) {
+      return this.jwtToken;
+    }
+    // Share one refresh between concurrent requests
+    this.pendingRefresh ??= this.setRefresh(true).finally(() => (this.pendingRefresh = null));
+    await this.pendingRefresh;
+    return this.jwtToken || null;
   }
 
   //Use this to ensure signal gets cleared

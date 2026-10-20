@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable, OnDestroy } from '@angular/core';
-import { Subscription, merge, of, fromEvent, map, throwError, catchError } from 'rxjs';
+import { Subscription, merge, of, fromEvent, map, throwError, catchError, from, switchMap } from 'rxjs';
 import { ConfigService } from './config.service';
 import { AuthService } from './auth.service';
 import { ServerTimeService } from './server-time.service';
@@ -66,8 +66,8 @@ export class ApiService implements OnDestroy {
     this.checkNetworkStatus();
   }
 
-  updateHeaders() {
-    this.token = this.authService.jwtToken;
+  private async updateHeaders() {
+    this.token = await this.authService.getFreshToken();
     if (this.token) {
       this.headers = this.headers.set('Authorization', `Bearer ${this.token}`);
       console.log('Using JWT token auth');
@@ -105,9 +105,8 @@ export class ApiService implements OnDestroy {
     if (this.networkStatus) {
       const queryString = this.generateQueryString(queryParamsObject);
       // If logged in, add the JWT token to the headers.
-      this.updateHeaders();
-      return this.http.get(`${this.apiPath}/${pk}?${queryString}`, { headers: this.headers, observe: 'response' })
-        .pipe(
+      return from(this.updateHeaders()).pipe(
+        switchMap(() => this.http.get(`${this.apiPath}/${pk}?${queryString}`, { headers: this.headers, observe: 'response' })),
           map(response => this.readBody(response)),
           catchError(this.errorHandler)
         );
@@ -120,9 +119,8 @@ export class ApiService implements OnDestroy {
     if (this.networkStatus) {
       const queryString = this.generateQueryString(queryParamsObject);
       // If logged in, append the JWT token to the headers.
-      this.updateHeaders();
-      return this.http.put<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: this.headers, observe: 'response' })
-        .pipe(
+      return from(this.updateHeaders()).pipe(
+        switchMap(() => this.http.put<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: this.headers, observe: 'response' })),
           map(response => this.readBody(response)),
           catchError(this.errorHandler));
     } else {
@@ -134,10 +132,8 @@ export class ApiService implements OnDestroy {
     if (this.networkStatus) {
       const queryString = this.generateQueryString(queryParamsObject);
       // If logged in, append the JWT token to the headers.
-      this.updateHeaders();
-      return this.http
-        .post<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: this.headers, observe: 'response' })
-        .pipe(
+      return from(this.updateHeaders()).pipe(
+        switchMap(() => this.http.post<any>(`${this.apiPath}/${pk}?${queryString}`, obj, { headers: this.headers, observe: 'response' })),
           map(response => this.readBody(response)),
           catchError(this.errorHandler)
         );
@@ -149,10 +145,9 @@ export class ApiService implements OnDestroy {
   delete(pk, queryParamsObject = null as any) {
     if (this.networkStatus) {
       const queryString = this.generateQueryString(queryParamsObject);
-      this.updateHeaders();
-      return this.http
-        .delete<any>(`${this.apiPath}/${pk}?${queryString}`, { headers: this.headers })
-        .pipe(catchError(this.errorHandler));
+      return from(this.updateHeaders()).pipe(
+        switchMap(() => this.http.delete<any>(`${this.apiPath}/${pk}?${queryString}`, { headers: this.headers })),
+        catchError(this.errorHandler));
     } else {
       throw 'Network Offline';
     }

@@ -57,4 +57,59 @@ describe('AuthService', () => {
     expect(logout).toHaveBeenCalled();
     expect(navigate).toHaveBeenCalledWith(['/login']);
   });
+
+  describe('getFreshToken', () => {
+    const sessionWithExp = (secondsLeft: number) => ({
+      tokens: { accessToken: { payload: { exp: Date.now() / 1000 + secondsLeft } } }
+    });
+
+    it('should return null without refreshing when signed out', async () => {
+      const refresh = spyOn(service, 'setRefresh').and.resolveTo();
+
+      expect(await service.getFreshToken()).toBeNull();
+      expect(refresh).not.toHaveBeenCalled();
+    });
+
+    it('should return the stored token when it has plenty of life left', async () => {
+      service.jwtToken = 'current';
+      service.session.set(sessionWithExp(600) as any);
+      const refresh = spyOn(service, 'setRefresh').and.resolveTo();
+
+      expect(await service.getFreshToken()).toBe('current');
+      expect(refresh).not.toHaveBeenCalled();
+    });
+
+    it('should force a refresh and return the new token when the token is near expiry', async () => {
+      service.jwtToken = 'stale';
+      service.session.set(sessionWithExp(30) as any);
+      const refresh = spyOn(service, 'setRefresh').and.callFake(async () => {
+        service.jwtToken = 'renewed';
+      });
+
+      expect(await service.getFreshToken()).toBe('renewed');
+      expect(refresh).toHaveBeenCalledOnceWith(true);
+    });
+
+    it('should return null when the refresh logs the user out', async () => {
+      service.jwtToken = 'stale';
+      service.session.set(sessionWithExp(-5) as any);
+      spyOn(service, 'setRefresh').and.callFake(async () => {
+        service.jwtToken = null;
+      });
+
+      expect(await service.getFreshToken()).toBeNull();
+    });
+
+    it('should share one refresh between concurrent callers', async () => {
+      service.jwtToken = 'stale';
+      service.session.set(sessionWithExp(0) as any);
+      const refresh = spyOn(service, 'setRefresh').and.callFake(async () => {
+        service.jwtToken = 'renewed';
+      });
+
+      await Promise.all([service.getFreshToken(), service.getFreshToken()]);
+
+      expect(refresh).toHaveBeenCalledTimes(1);
+    });
+  });
 });

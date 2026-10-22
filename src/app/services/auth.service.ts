@@ -54,12 +54,8 @@ export class AuthService {
       }
     });
 
-    // This app only ever verifies sign-up via email (autoVerify: email only in
-    // the Cognito pool). Amplify UI's confirm-sign-up screen falls back to SMS
-    // wording whenever Cognito's codeDeliveryDetails doesn't resolve to a known
-    // medium (e.g. the verification email failed to send), which wrongly tells
-    // users "We Texted You". Force it to the email wording so it never lies
-    // about how the code was (or should have been) delivered.
+    // Sign-up is verified by email only, but Amplify UI falls back to SMS wording when
+    // Cognito's delivery medium is unknown; force the email wording.
     I18n.putVocabularies({
       en: {
         'We Texted You': 'We Emailed You',
@@ -67,8 +63,18 @@ export class AuthService {
       },
     });
 
+    // When a redirect sign-in fails (e.g. the user cancels BCSC), Amplify can leave the
+    // first token read waiting forever, which blocks app start. Read again once it fails.
+    const redirectFailed = new Promise<void>((resolve) => {
+      const stop = Hub.listen('auth', ({ payload }) => {
+        if (payload.event === 'signInWithRedirect_failure') {
+          stop();
+          resolve();
+        }
+      });
+    });
     await this.listenToAuthEvents();
-    await this.checkIfSignedIn();
+    await Promise.race([this.checkIfSignedIn(), redirectFailed.then(() => this.checkIfSignedIn())]);
     if (this.user()) {
       await this.setRefresh();
     }
@@ -102,19 +108,6 @@ export class AuthService {
     }
   }
 
-  /**
-   * Listens to authentication events and handles them accordingly.
-   *
-   * This method sets up a listener for various authentication events such as
-   * user sign-in, sign-out, token refresh, and sign-in with redirect. Depending
-   * on the event type, it logs the event and performs necessary actions like
-   * checking if the user is signed in, setting a refresh token, or clearing the
-   * user data.
-   *
-   * @private
-   * @async
-   * @returns {Promise<void>} A promise that resolves when the event handling is complete.
-   */
   private async listenToAuthEvents() {
     Hub.listen('auth', async ({ payload }) => {
       switch (payload.event) {
@@ -168,14 +161,7 @@ export class AuthService {
   }
 
 
-  /**
-   * Sets the refresh token and schedules the next refresh based on the token's expiration time.
-   *
-   * @param {boolean} [forceRefresh=false] - Whether to force a refresh of the authentication session.
-   * @returns {Promise<void>} - A promise that resolves when the refresh operation is complete.
-   *
-   * @throws {Error} - Throws an error if the token refresh fails.
-   */
+  /** Refreshes the session and schedules the next refresh at half the token's remaining life. */
   async setRefresh(forceRefresh = false) {
     try {
       this.session.set(await fetchAuthSession({ forceRefresh: forceRefresh }));
@@ -199,11 +185,8 @@ export class AuthService {
     }
   }
 
-  /**
-   * Returns an access token with at least TOKEN_MIN_LIFE_MS left, refreshing first
-   * when it is stale (background tabs throttle the scheduled refresh).
-   * Returns null when signed out or when the refresh logged the user out.
-   */
+  /** Access token with at least TOKEN_MIN_LIFE_MS left (background tabs throttle the scheduled
+   *  refresh); null when signed out or the refresh logged the user out. */
   async getFreshToken(): Promise<string | null> {
     if (!this.jwtToken) {
       return null;
@@ -277,11 +260,8 @@ export class AuthService {
     }
   }
 
-  /**
-   * Whether the current user authenticated via BC Services Card (federated),
-   * as opposed to a regular email/password account. BCSC-sourced identity
-   * fields (name, address) must not be edited in our system.
-   */
+  /** Whether the user signed in with BC Services Card; BCSC-sourced name and address
+   *  must not be edited here. */
   isBcscUser(): boolean {
     try {
       const payload: any = this.session()?.tokens?.idToken?.payload;
@@ -297,11 +277,7 @@ export class AuthService {
     }
   }
 
-  /**
-   * Persist profile attribute changes to Cognito, then refresh the local user
-   * signal so the UI reflects the saved values.
-   * @param attributes map of Cognito attribute keys to values
-   */
+  /** Saves attribute changes to Cognito, then refreshes the user signal. */
   async updateUserProfile(attributes: Record<string, string>): Promise<void> {
     try {
       this.loadingService.addToFetchList(Constants.dataIds.USER_UPDATE);

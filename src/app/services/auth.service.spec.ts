@@ -7,6 +7,7 @@ import { ToastService, ToastTypes } from './toast.service';
 import { HttpClient, HttpHandler } from '@angular/common/http';
 import { provideToastr } from 'ngx-toastr';
 import { Hub } from 'aws-amplify/utils';
+import { Amplify } from 'aws-amplify';
 import { Router } from '@angular/router';
 
 describe('AuthService', () => {
@@ -46,6 +47,23 @@ describe('AuthService', () => {
       ToastTypes.ERROR
     );
     expect(logError).toHaveBeenCalledWith(jasmine.stringContaining('access_denied'));
+  });
+
+  it('should finish init when a redirect sign-in fails while the first sign-in check hangs', async () => {
+    const listeners: ((capsule: any) => void)[] = [];
+    spyOn(Hub, 'listen').and.callFake(((_channel: string, listener: any) => {
+      listeners.push(listener);
+      return () => undefined;
+    }) as any);
+    spyOn(Amplify, 'configure');
+    spyOn(toastService, 'addMessage');
+    const check = spyOn(service, 'checkIfSignedIn').and.returnValues(new Promise<void>(() => undefined), Promise.resolve());
+
+    const init = service.init();
+    listeners.forEach((listener) => listener({ payload: { event: 'signInWithRedirect_failure', data: {} } }));
+    await init;
+
+    expect(check).toHaveBeenCalledTimes(2);
   });
 
   it('should log out when the session has no tokens left', async () => {

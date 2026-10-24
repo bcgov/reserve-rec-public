@@ -225,12 +225,9 @@
             </div>
             <div class="card-body">
               @if (editing !== 'vehicle') {
-                @if (user['custom:licensePlate']) {
-                  <span>{{ user['custom:licensePlate'] }}@if (user['custom:vehicleRegLocale']) {
-                    <span>, {{ user['custom:vehicleRegLocale'] }}</span>
-                  }</span>
-                }
-                @if (!user['custom:licensePlate']) {
+                @if (user['custom:licensePlate'] || user['custom:vehicleRegLocale']) {
+                  <span>{{ user['custom:licensePlate'] }}@if (user['custom:licensePlate'] && user['custom:vehicleRegLocale']) {, }{{ user['custom:vehicleRegLocale'] }}</span>
+                } @else {
                   <span class="text-muted">No vehicle information added.</span>
                 }
               }

@@ -100,6 +100,39 @@ describe('AccountDetailsComponent', () => {
     });
   });
 
+  // #944: a province with no plate was saved but the read-only card said
+  // "No vehicle information added."
+  describe('read-only vehicle information', () => {
+    function vehicleText(plate: string, locale: string): string {
+      authService.getCurrentUser.and.returnValue({
+        ...MOCK_USER, 'custom:licensePlate': plate, 'custom:vehicleRegLocale': locale,
+      });
+      fixture.detectChanges();
+      return text();
+    }
+
+    it('shows plate and province together', () => {
+      expect(vehicleText('ABC123', 'Yukon')).toContain('ABC123, Yukon');
+    });
+
+    it('shows the province when no plate is set', () => {
+      const t = vehicleText('', 'Yukon');
+      expect(t).toContain('Yukon');
+      expect(t).not.toContain(', Yukon');
+      expect(t).not.toContain('No vehicle information added.');
+    });
+
+    it('shows the plate alone with no trailing comma', () => {
+      const t = vehicleText('ABC123', '');
+      expect(t).toContain('ABC123');
+      expect(t).not.toContain('ABC123,');
+    });
+
+    it('shows the empty message when neither is set', () => {
+      expect(vehicleText('', '')).toContain('No vehicle information added.');
+    });
+  });
+
   describe('edit sections are mutually exclusive', () => {
     it('shows read-only details and no form when not editing', () => {
       expect(component.editing).toBeNull();

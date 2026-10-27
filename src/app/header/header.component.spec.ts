@@ -45,4 +45,36 @@ describe('HeaderComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  describe('cart link', () => {
+    const cartLinks = () => fixture.nativeElement.querySelectorAll('a[href="/cart"]') as NodeListOf<HTMLAnchorElement>;
+    let count: number;
+
+    beforeEach(() => {
+      spyOnProperty(component, 'user').and.returnValue({ given_name: 'A', family_name: 'B' });
+      spyOnProperty(component, 'cartItemCount').and.callFake(() => count);
+    });
+
+    it('is labelled "Cart" when the cart is empty', () => {
+      count = 0;
+      fixture.detectChanges();
+      expect(cartLinks().length).toBe(2);
+      cartLinks().forEach(a => expect(a.getAttribute('aria-label')).toBe('Cart'));
+    });
+
+    it('includes the item count in the label', () => {
+      count = 1;
+      fixture.detectChanges();
+      cartLinks().forEach(a => expect(a.getAttribute('aria-label')).toBe('Cart, 1 item'));
+      count = 3;
+      fixture.detectChanges();
+      cartLinks().forEach(a => expect(a.getAttribute('aria-label')).toBe('Cart, 3 items'));
+    });
+
+    it('hides the decorative icon from screen readers', () => {
+      count = 0;
+      fixture.detectChanges();
+      cartLinks().forEach(a => expect(a.querySelector('i')?.getAttribute('aria-hidden')).toBe('true'));
+    });
+  });
 });

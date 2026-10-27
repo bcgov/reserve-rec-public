@@ -25,4 +25,13 @@ describe('FooterComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('starts its headings at h2 and does not skip levels', () => {
+    const headings = [...fixture.nativeElement.querySelectorAll('h1, h2, h3, h4, h5, h6')] as HTMLElement[];
+    expect(headings.map(h => `${h.tagName} ${h.textContent?.trim()}`)).toEqual([
+      'H2 Land acknowledgement',
+      'H3 Day-use pass',
+      'H3 Stay connected'
+    ]);
+  });
 });

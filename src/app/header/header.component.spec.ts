@@ -7,6 +7,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ActivatedRoute } from '@angular/router';
 import { provideToastr } from 'ngx-toastr';
+import { AuthService } from '../services/auth.service';
 
 describe('HeaderComponent', () => {
   let component: HeaderComponent;
@@ -44,5 +45,13 @@ describe('HeaderComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should label the account button with the user name for screen readers', () => {
+    spyOn(TestBed.inject(AuthService), 'getCurrentUser').and.returnValue({ given_name: 'Jane', family_name: 'Doe' });
+    fixture.detectChanges();
+    const button: HTMLElement = fixture.nativeElement.querySelector('#accountDropdown');
+    expect(button.getAttribute('aria-label')).toBe('Account menu for Jane Doe');
+    expect(button.querySelector('.account-avatar')?.getAttribute('aria-hidden')).toBe('true');
   });
 });

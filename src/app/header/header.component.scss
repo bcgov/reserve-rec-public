@@ -77,6 +77,11 @@
 }
 
 .btn-header-cart {
+    // Bare .btn has no focus ring: outline is 0 and its box-shadow colour var is unset
+    &:focus-visible {
+        outline: 2px solid white;
+    }
+
     .badge {
         display: flex;
         height: 20px;

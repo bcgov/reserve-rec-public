@@ -47,6 +47,11 @@ export class HeaderComponent {
     return this.cartService.itemCount();
   }
 
+  get cartLabel() {
+    const n = this.cartItemCount;
+    return n > 0 ? `Cart, ${n} item${n === 1 ? '' : 's'}` : 'Cart';
+  }
+
   navigateToCart() {
     this.router.navigate(['/cart']);
     this.closeMenu();

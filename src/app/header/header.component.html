@@ -9,8 +9,8 @@
     <div class="d-sm-none d-flex gap-2 ms-auto">
       <!-- Cart icon visible only on smallest screens -->
        @if (user) {
-      <a class="btn btn-header-cart text-light d-flex align-items-center gap-1 px-1" routerLink="/cart" title="Cart">
-        <i class="fa-regular fa-cart-shopping fa-lg"></i>
+      <a class="btn btn-header-cart text-light d-flex align-items-center gap-1 px-1" routerLink="/cart" title="Cart" [attr.aria-label]="cartLabel">
+        <i class="fa-regular fa-cart-shopping fa-lg" aria-hidden="true"></i>
         @if (cartItemCount > 0) {
           <span class="badge rounded-circle bg-white text-dark">{{ cartItemCount }}</span>
         }
@@ -35,8 +35,8 @@
       <ul class="navbar-nav ms-auto align-items-center">
         <li class="nav-item">
           @if (user){
-          <a class="btn btn-header-cart text-light fw-bold d-flex align-items-center gap-1" routerLink="/cart">
-            <i class="fa-regular fa-cart-shopping"></i>
+          <a class="btn btn-header-cart text-light fw-bold d-flex align-items-center gap-1" routerLink="/cart" [attr.aria-label]="cartLabel">
+            <i class="fa-regular fa-cart-shopping" aria-hidden="true"></i>
             @if (cartItemCount > 0) {
               <span class="badge rounded-circle bg-white text-dark">{{ cartItemCount }}</span>
             }

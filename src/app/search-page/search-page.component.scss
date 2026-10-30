@@ -95,6 +95,11 @@ input::placeholder {
   border-bottom: none !important;
   box-shadow: none;
 
+  &:focus-visible {
+    outline: 2px solid var(--rr-light-blue);
+    outline-offset: 2px;
+  }
+
   &.collapsed {
     background-color: transparent !important;
   }

@@ -51,8 +51,9 @@
               id="accountDropdown"
               data-bs-toggle="dropdown"
               [attr.aria-expanded]="!hamburgerIcon"
+              attr.aria-label="Account menu for {{ user.given_name }} {{ user.family_name }}"
               >
-              <span class="account-avatar bg-info text-dark rounded-circle d-flex align-items-center justify-content-center">{{ userInitials }}</span>
+              <span aria-hidden="true" class="account-avatar bg-info text-dark rounded-circle d-flex align-items-center justify-content-center">{{ userInitials }}</span>
             </button>
             <div class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="accountDropdown">
               <li class="nav-item d-flex align-items-center gap-2 p-3">

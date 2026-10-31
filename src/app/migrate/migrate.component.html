@@ -1,0 +1,65 @@
+<main class="container py-5">
+  <div class="row justify-content-center">
+    <section class="col-12 col-lg-8 col-xl-7" aria-labelledby="migration-title">
+      <div class="card border shadow-sm">
+        <div class="card-body p-4 p-md-5">
+          <h1 class="h3 text-primary mb-4" id="migration-title">
+            Transfer your account to BC Services Card
+          </h1>
+
+          <div class="row align-items-center justify-content-center g-2 g-sm-3 mt-3 mb-5" role="group"
+            aria-label="BC Parks account will move to BC Services Card account">
+            <div class="col-5">
+              <div class="h-100 d-flex flex-column justify-content-center align-items-center gap-2 rounded border bg-light p-3 text-center">
+                <span class="rounded-circle bg-success-subtle p-3 text-success" aria-hidden="true" style="width: 30%">
+                  <i class="bi bi-tree-fill fs-4"></i>
+                </span>
+                <span class="fw-bold">BC Parks account</span>
+              </div>
+            </div>
+
+            <div class="col-auto">
+              <i class="fa-solid fa-arrow-right fa-2x"></i>
+            </div>
+
+            <div class="col-5">
+              <div class="h-100 d-flex flex-column justify-content-center align-items-center gap-2 rounded border bg-light p-3 text-center">
+                <span class="rounded-circle bg-primary-subtle p-3 text-primary" aria-hidden="true" style="width: 30%">
+                  <i class="bi bi-person-vcard-fill fs-4"></i>
+                </span>
+                <span class="fw-bold">BC Services Card account</span>
+              </div>
+            </div>
+          </div>
+
+          <p class="mb-4 fw-bold">
+            We found an existing BC Parks account with this email address.
+          </p>
+          <p class="mb-3">
+            To use your BC Services Card (BCSC), we need to transfer your 
+            active bookings from your old BC Parks account to your new BCSC account.
+          </p>
+          <p class="mb-3">
+            <span class="fw-bold">If you confirm:</span> The next time you sign in with BCSC, 
+            your bookings will be transferred, and your old BC Parks account will be permanently closed.
+          </p>
+          <p class="mb-5">
+            <span class="fw-bold">If you cancel:</span> Nothing will change. You can continue 
+            using your BC Parks account as before, though you will see this prompt again if you 
+            try signing in with BCSC in the future.
+          </p>
+
+          <div class="d-flex flex-column-reverse flex-sm-row justify-content-sm-end gap-3 mt-4">
+            <button class="btn btn-outline-primary flex-fill flex-sm-grow-0" type="button" (click)="onCancel()">Cancel</button>
+            <button
+              class="btn btn-primary login-choice-button"
+              [disabled]="!migrateId || isConfirming"
+              (click)="onConfirmMigrate()">
+              Confirm and Login <i class="fas fa-arrow-up-right-from-square ms-2"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>

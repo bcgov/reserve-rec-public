@@ -44,4 +44,8 @@ export class CartComponent implements OnInit {
   proceedToCheckout(): void {
     this.router.navigate(['/reservation-flow']);
   }
+
+  cartHasItems() {
+    return this.cartService.items().length > 0;
+  }
 }

@@ -26,8 +26,15 @@ export class AuthService {
     private router: Router, 
     private loadingService: LoadingService,
     private toastService: ToastService)
-  {}
-
+    {}
+    
+  
+  // Cognito appends its own full stop to a message that already ends in one.
+  refusalMessage(error: string): string {
+    const text = /^OAuthSignInException: PreSignUp failed with error (.+)$/s.exec(error)?.[1].trim().replace(/\.+$/, '');
+    return text ? `${text}.` : '';
+  }
+    
   async init() {
     console.log('this.configService.config:', this.configService.config);
     if (this.configService.config.ENVIRONMENT === 'local' || !this.configService.config['COGNITO_REDIRECT_URI']) {
@@ -108,7 +115,7 @@ export class AuthService {
     }
   }
 
-  private async listenToAuthEvents() {
+  private listenToAuthEvents() {
     Hub.listen('auth', async ({ payload }) => {
       switch (payload.event) {
         case 'signedIn': {
@@ -148,13 +155,36 @@ export class AuthService {
           break;
         }
         case 'signInWithRedirect_failure': {
-          this.loggerService.error(`Failure while trying to resolve signInWithRedirect API: ${payload.data?.error}`);
+          this.loggerService.error('Failure while trying to resolve signInWithRedirect API.');
+          const errorMessage = payload.data?.error ? `${payload.data?.error}` : Constants.bcscLoginIncompleteMessage;
+          const migrationId = /\$BCPARKS_MIGRATION_REQUIRED:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})[.\s]*$/i.exec(errorMessage)?.[1]
+            || (errorMessage.includes('A BC Parks account with this email address already exists')
+              ? /\$([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})[.\s]*$/i.exec(errorMessage)?.[1]
+              : undefined);
+          if (migrationId) {
+            this.toastService.addMessage(
+              this.refusalMessage(errorMessage.split("$")[0]),
+              'Login failed',
+              ToastTypes.WARNING
+            );
+
+            this.router.navigate(['/migrate'], {
+              state: { migrateId: migrationId },
+            });
+            break;
+          }
+
           this.toastService.addMessage(
-            Constants.bcscLoginIncompleteMessage,
+            errorMessage.includes('PostConfirmation')
+              ? 'We could not complete your account migration. Please try signing in again.'
+              : this.refusalMessage(errorMessage.split('$')[0]) || Constants.bcscLoginIncompleteMessage,
             'Login failed',
-            ToastTypes.ERROR
+            errorMessage.includes('A BC Parks account with this email address already exists')
+              ? ToastTypes.WARNING
+              : ToastTypes.ERROR
           );
-          break;
+
+          this.router.navigate(['/login']);
         }
       }
     });
@@ -238,13 +268,13 @@ export class AuthService {
     }
   }
 
-  //Setup to match logic for admin. Gives opprotunity to add BCEID in future.
+  //Setup to match logic for admin. Gives opportunity to add BCeID in future.
   loginWithProvider(provider: string) {
     let idpName = '';
     if (provider === 'bcsc') idpName = 'BCSC';
     //else if (provider === 'bceid') idpName = 'BCEID';
     else return;
-    // Use Amplify's signInWithRedirect method to initiate the OAuth flow instead of custome method
+    // Use Amplify's signInWithRedirect method to initiate the OAuth flow instead of custom method
     signInWithRedirect({ provider: { custom: idpName } });
   }
 

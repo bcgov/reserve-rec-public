@@ -6,6 +6,7 @@ import { CheckoutGuard } from './guards/checkout.guard';
 import { WaitingRoomGuard } from './guards/waiting-room.guard';
 import { FacilityResolver } from './resolvers/facility.resolver';
 import { DEFAULT_PAGE_TITLE } from './page-title.strategy';
+import { migrateGuard } from './guards/migrate.guard';
 
 export const routes: Routes = [
   {
@@ -108,6 +109,13 @@ export const routes: Routes = [
     canActivate: [LoginGuard],
     loadComponent: () => import('./login/login.component')
       .then(mod => mod.LoginComponent)
+  },
+  {
+    path: 'migrate',
+    title: 'Migrate',
+    canActivate: [LoginGuard, migrateGuard],
+    loadComponent: () => import('./migrate/migrate.component')
+      .then(mod => mod.MigrateComponent)
   },
   {
     path: 'my-bookings',

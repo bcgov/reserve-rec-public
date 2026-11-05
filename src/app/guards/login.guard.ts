@@ -24,6 +24,14 @@ import { AuthService } from "../services/auth.service";
             return this.router.parseUrl('/');
         }
 
+        // Plain Log in links save nothing, so sign-in landed on home (#989).
+        // router.url is still the page the user left. A protected route's
+        // guard saves its own returnUrl first; keep that one.
+        const from = this.router.url;
+        if (!sessionStorage.getItem('returnUrl') && from !== '/' && !from.startsWith('/login')) {
+            sessionStorage.setItem('returnUrl', from);
+        }
+
         return true;
     }
 

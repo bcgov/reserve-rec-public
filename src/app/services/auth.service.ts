@@ -131,6 +131,12 @@ export class AuthService {
             } else {
               await this.router.navigate(['/']);
             }
+          } catch (error) {
+            // The login page shows nothing once signed in, so don't leave the
+            // user there half signed in: sign out and say so (#989).
+            this.loggerService.error(`Finishing sign-in failed: ${error}`);
+            this.toastService.addMessage(Constants.loginIncompleteMessage, 'Login failed', ToastTypes.ERROR);
+            await this.logout();
           } finally {
             this.loadingService.removeFromFetchList(Constants.dataIds.SIGN_IN);
           }

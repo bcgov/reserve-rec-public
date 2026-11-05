@@ -22,6 +22,8 @@ export class Constants {
 
   public static readonly bcscLoginIncompleteMessage =
     'Your BC Services Card login did not finish. Please try again.';
+  public static readonly loginIncompleteMessage =
+    'Your login did not finish. Please try again.';
 
   public static readonly timeZoneIANA = 'America/Vancouver';
 

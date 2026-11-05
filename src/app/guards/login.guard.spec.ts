@@ -69,14 +69,26 @@ describe('LoginGuard', () => {
       const { guard, router } = setup(false);
       sessionStorage.setItem('returnUrl', '/checkout');
       spyOnProperty(router, 'url').and.returnValue('/facility/bcparks_7/structure/1');
+      spyOn(router, 'getCurrentNavigation').and.returnValue({ extras: { state: { keepReturnUrl: true } } } as any);
 
       await guard.canActivate();
 
       expect(sessionStorage.getItem('returnUrl')).toBe('/checkout');
     });
 
-    it('saves nothing when login is opened directly', async () => {
+    it('replaces the page an abandoned Log in click saved', async () => {
+      const { guard, router } = setup(false);
+      sessionStorage.setItem('returnUrl', '/facility/bcparks_7/structure/1');
+      spyOnProperty(router, 'url').and.returnValue('/facility/bcparks_8/structure/2');
+
+      await guard.canActivate();
+
+      expect(sessionStorage.getItem('returnUrl')).toBe('/facility/bcparks_8/structure/2');
+    });
+
+    it('clears an old page when Log in is clicked from home', async () => {
       const { guard } = setup(false);
+      sessionStorage.setItem('returnUrl', '/facility/bcparks_7/structure/1');
 
       await guard.canActivate();
 

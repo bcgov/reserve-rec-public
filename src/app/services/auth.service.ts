@@ -112,20 +112,27 @@ export class AuthService {
     Hub.listen('auth', async ({ payload }) => {
       switch (payload.event) {
         case 'signedIn': {
-          const userAttributes = await fetchUserAttributes(); // Await the user attributes
-          this.updateUser(userAttributes); // Set the resolved user attributes
-          this.loggerService.info('User has signed in successfully.');
-          const session = await fetchAuthSession();
-          this.jwtToken = session.credentials.sessionToken;
-          await this.setRefresh();
-          
-          // Check for returnUrl in sessionStorage (set by guard)
-          const returnUrl = sessionStorage.getItem('returnUrl');
-          if (returnUrl) {
-            sessionStorage.removeItem('returnUrl');
-            this.router.navigateByUrl(returnUrl);
-          } else {
-            this.router.navigate(['/']);
+          // Show the app's loading overlay until the next page is ready, so the
+          // login page doesn't sit there half-done in the meantime (#989).
+          this.loadingService.addToFetchList(Constants.dataIds.SIGN_IN);
+          try {
+            const userAttributes = await fetchUserAttributes(); // Await the user attributes
+            this.updateUser(userAttributes); // Set the resolved user attributes
+            this.loggerService.info('User has signed in successfully.');
+            const session = await fetchAuthSession();
+            this.jwtToken = session.credentials.sessionToken;
+            await this.setRefresh();
+
+            // Check for returnUrl in sessionStorage (set by guard)
+            const returnUrl = sessionStorage.getItem('returnUrl');
+            if (returnUrl) {
+              sessionStorage.removeItem('returnUrl');
+              await this.router.navigateByUrl(returnUrl);
+            } else {
+              await this.router.navigate(['/']);
+            }
+          } finally {
+            this.loadingService.removeFromFetchList(Constants.dataIds.SIGN_IN);
           }
           break;
         }

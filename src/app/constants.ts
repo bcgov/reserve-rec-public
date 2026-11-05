@@ -16,7 +16,8 @@ export class Constants {
     PRODUCT_LIST: 'productList',
     PRODUCT_DATE_RESULT: 'productResult',
     PRODUCT_DATE_LIST: 'productList',
-    USER_UPDATE: 'userUpdate'
+    USER_UPDATE: 'userUpdate',
+    SIGN_IN: 'signIn'
   };
 
   public static readonly bcscLoginIncompleteMessage =

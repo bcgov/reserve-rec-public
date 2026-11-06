@@ -16,11 +16,14 @@ export class Constants {
     PRODUCT_LIST: 'productList',
     PRODUCT_DATE_RESULT: 'productResult',
     PRODUCT_DATE_LIST: 'productList',
-    USER_UPDATE: 'userUpdate'
+    USER_UPDATE: 'userUpdate',
+    SIGN_IN: 'signIn'
   };
 
   public static readonly bcscLoginIncompleteMessage =
     'Your BC Services Card login did not finish. Please try again.';
+  public static readonly loginIncompleteMessage =
+    'Your login did not finish. Please try again.';
 
   public static readonly timeZoneIANA = 'America/Vancouver';
 

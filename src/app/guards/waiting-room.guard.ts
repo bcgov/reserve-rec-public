@@ -86,7 +86,7 @@ export class WaitingRoomGuard implements CanActivate {
       return true;
     }
     sessionStorage.setItem('returnUrl', state.url);
-    this.router.navigate(['/login'], { queryParams: { reason: 'waiting-room' } });
+    this.router.navigate(['/login'], { queryParams: { reason: 'waiting-room' }, state: { keepReturnUrl: true } });
     return false;
   }
 }

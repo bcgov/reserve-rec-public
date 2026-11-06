@@ -50,4 +50,58 @@ describe('LoginGuard', () => {
     expect(router.serializeUrl(result as UrlTree)).toBe('/');
     expect(checks()).toBe(0);
   });
+
+  // A plain Log in link saves nothing, so sign-in landed on home (#989).
+  describe('return to the page the user left', () => {
+    beforeEach(() => sessionStorage.removeItem('returnUrl'));
+    afterEach(() => sessionStorage.removeItem('returnUrl'));
+
+    it('remembers the page the Log in link was clicked on', async () => {
+      const { guard, router } = setup(false);
+      spyOnProperty(router, 'url').and.returnValue('/facility/bcparks_7/structure/1');
+
+      await guard.canActivate();
+
+      expect(sessionStorage.getItem('returnUrl')).toBe('/facility/bcparks_7/structure/1');
+    });
+
+    it('keeps the page a protected route already saved', async () => {
+      const { guard, router } = setup(false);
+      sessionStorage.setItem('returnUrl', '/checkout');
+      spyOnProperty(router, 'url').and.returnValue('/facility/bcparks_7/structure/1');
+      spyOn(router, 'getCurrentNavigation').and.returnValue({ extras: { state: { keepReturnUrl: true } } } as any);
+
+      await guard.canActivate();
+
+      expect(sessionStorage.getItem('returnUrl')).toBe('/checkout');
+    });
+
+    it('replaces the page an abandoned Log in click saved', async () => {
+      const { guard, router } = setup(false);
+      sessionStorage.setItem('returnUrl', '/facility/bcparks_7/structure/1');
+      spyOnProperty(router, 'url').and.returnValue('/facility/bcparks_8/structure/2');
+
+      await guard.canActivate();
+
+      expect(sessionStorage.getItem('returnUrl')).toBe('/facility/bcparks_8/structure/2');
+    });
+
+    it('clears an old page when Log in is clicked from home', async () => {
+      const { guard } = setup(false);
+      sessionStorage.setItem('returnUrl', '/facility/bcparks_7/structure/1');
+
+      await guard.canActivate();
+
+      expect(sessionStorage.getItem('returnUrl')).toBeNull();
+    });
+
+    it('saves nothing when the user is already signed in', async () => {
+      const { guard, router } = setup(true);
+      spyOnProperty(router, 'url').and.returnValue('/facility/bcparks_7/structure/1');
+
+      await guard.canActivate();
+
+      expect(sessionStorage.getItem('returnUrl')).toBeNull();
+    });
+  });
 });

@@ -61,7 +61,7 @@ describe('WaitingRoomGuard', () => {
 
     expect(result).toBeFalse();
     expect(sessionStorage.getItem('returnUrl')).toBe('/checkout');
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/login'], { queryParams: { reason: 'waiting-room' } });
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/login'], { queryParams: { reason: 'waiting-room' }, state: { keepReturnUrl: true } });
     expect(redirectSpy).not.toHaveBeenCalled();
   });
 

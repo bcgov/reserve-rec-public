@@ -15,7 +15,7 @@ export class UserGuard implements CanActivate {
       } else {
         // Store the return URL in sessionStorage for post-login redirect
         sessionStorage.setItem('returnUrl', state.url);
-        this.router.navigate(['/login']);
+        this.router.navigate(['/login'], { state: { keepReturnUrl: true } });
         return false;
       }
     }

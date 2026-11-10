@@ -15,9 +15,9 @@ import { PageTitleStrategy } from './page-title.strategy';
 export function initConfig(configService: ConfigService, apiService: ApiService, authService: AuthService, featureFlagService: FeatureFlagService, waitingRoomService: WaitingRoomService) {
   return async () => {
     await configService.init();
-    await authService.init();
     apiService.init();
     await featureFlagService.init();
+    await authService.init();
     await waitingRoomService.loadMode2Status();
   };
 }

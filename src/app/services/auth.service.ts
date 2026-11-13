@@ -268,6 +268,16 @@ export class AuthService {
     this.router.navigate(['/']);
   }
 
+  // Use this to ensure signal gets cleared after a migration confirmation
+  async migrateLogout() {
+    await signOut();
+    this.updateUser(null);
+    this.session.set(null);
+    this.jwtToken = null;
+    console.log('User logged out', this.user);
+  }
+
+
   updateUser(user: any) {
     this.user.set(user); // update the signal anytime user changes
   }

@@ -36,26 +36,26 @@
             We found an existing BC Parks account with this email address.
           </p>
           <p class="mb-3">
-            To use your BC Services Card (BCSC), we need to transfer your 
-            active bookings from your old BC Parks account to your new BCSC account.
+            To continue, sign in to your existing BC Parks account. We will email you a link to confirm
+            the transfer of your active bookings to your BC Services Card (BCSC) account.
           </p>
           <p class="mb-3">
-            <span class="fw-bold">If you confirm:</span> The next time you sign in with BCSC, 
-            your bookings will be transferred, and your old BC Parks account will be permanently closed.
+            <span class="fw-bold">After you confirm by email:</span> You will be signed out of BC Parks.
+            Sign in with BCSC to transfer your bookings and close your old BC Parks account.
           </p>
           <p class="mb-5">
             <span class="fw-bold">If you cancel:</span> Nothing will change. You can continue 
-            using your BC Parks account as before, though you will see this prompt again if you 
-            try signing in with BCSC in the future.
+            using your BC Parks account as before. You will see this prompt again if you try signing in
+            with BCSC in the future.
           </p>
 
           <div class="d-flex flex-column-reverse flex-sm-row justify-content-sm-end gap-3 mt-4">
             <button class="btn btn-outline-primary flex-fill flex-sm-grow-0" type="button" (click)="onCancel()">Cancel</button>
             <button
               class="btn btn-primary login-choice-button"
-              [disabled]="!migrateId || isConfirming"
-              (click)="onConfirmMigrate()">
-              Confirm and Login <i class="fas fa-arrow-up-right-from-square ms-2"></i>
+              [disabled]="!migrateId"
+              (click)="onLoginToBcparks()">
+              Sign in to BC Parks <i class="fas fa-arrow-up-right-from-square ms-2"></i>
             </button>
           </div>
         </div>

@@ -118,6 +118,12 @@ export const routes: Routes = [
       .then(mod => mod.MigrateComponent)
   },
   {
+    path: 'migration-confirm',
+    title: 'Confirm account migration',
+    loadComponent: () => import('./migrate/migration-confirm.component')
+      .then(mod => mod.MigrationConfirmComponent)
+  },
+  {
     path: 'my-bookings',
     title: 'My bookings',
     loadComponent: () => import('./my-bookings/my-bookings.component')

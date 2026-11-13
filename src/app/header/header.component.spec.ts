@@ -8,10 +8,13 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ActivatedRoute } from '@angular/router';
 import { provideToastr } from 'ngx-toastr';
 import { AuthService } from '../services/auth.service';
+import { ApiService } from '../services/api.service';
+import { of, throwError } from 'rxjs';
 
 describe('HeaderComponent', () => {
   let component: HeaderComponent;
   let fixture: ComponentFixture<HeaderComponent>;
+  const apiService = jasmine.createSpyObj<ApiService>('ApiService', ['post']);
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -25,6 +28,7 @@ describe('HeaderComponent', () => {
         provideHttpClient(),
         provideToastr(),
         provideHttpClientTesting(),
+        { provide: ApiService, useValue: apiService },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -40,6 +44,8 @@ describe('HeaderComponent', () => {
 
     fixture = TestBed.createComponent(HeaderComponent);
     component = fixture.componentInstance;
+    apiService.post.calls.reset();
+    apiService.post.and.returnValue(of({}));
     fixture.detectChanges();
   });
 
@@ -53,6 +59,55 @@ describe('HeaderComponent', () => {
     const button: HTMLElement = fixture.nativeElement.querySelector('#accountDropdown');
     expect(button.getAttribute('aria-label')).toBe('Account menu for Jane Doe');
     expect(button.querySelector('.account-avatar')?.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('sends a confirmation email for a pending migration', async () => {
+    spyOn(TestBed.inject(AuthService), 'getCurrentUser').and.returnValue({
+      'custom:migrationPending': 'true',
+      'custom:migrationId': '4e707c5a-68f1-4728-b09e-2b5b691b86e6',
+      email: 'parks@example.test',
+    });
+
+    await component.requestMigrationConfirmation();
+
+    expect(apiService.post).toHaveBeenCalledWith(
+      'migrate/4e707c5a-68f1-4728-b09e-2b5b691b86e6/email',
+      {},
+    );
+    expect(component.migrationEmailSent).toBe(true);
+  });
+
+  it('shows a request error and allows the user to retry', async () => {
+    spyOn(TestBed.inject(AuthService), 'getCurrentUser').and.returnValue({
+      'custom:migrationPending': 'true',
+      'custom:migrationId': '4e707c5a-68f1-4728-b09e-2b5b691b86e6',
+      email: 'parks@example.test',
+    });
+    apiService.post.and.returnValue(throwError(() => ({ error: { msg: 'Email delivery failed.' } })));
+
+    await component.requestMigrationConfirmation();
+
+    expect(component.migrationEmailError).toBe('Email delivery failed.');
+    expect(component.migrationEmailSending).toBe(false);
+    expect(component.migrationEmailSent).toBe(false);
+
+    apiService.post.and.returnValue(of({}));
+    await component.requestMigrationConfirmation();
+
+    expect(component.migrationEmailError).toBe('');
+    expect(component.migrationEmailSent).toBe(true);
+  });
+
+  it('rejects an invalid migration ID without calling the API', async () => {
+    spyOn(TestBed.inject(AuthService), 'getCurrentUser').and.returnValue({
+      'custom:migrationPending': 'true',
+      'custom:migrationId': 'invalid',
+    });
+
+    await component.requestMigrationConfirmation();
+
+    expect(apiService.post).not.toHaveBeenCalled();
+    expect(component.migrationEmailError).toContain('valid migration request');
   });
 
   describe('cart link', () => {

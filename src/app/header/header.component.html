@@ -113,9 +113,31 @@
     </ul>
   </div>
 </nav>
-@if (showBanner) {
+@if (user && migrationPending) {
+  <section class="container my-3" aria-labelledby="migration-banner-title">
+    <div class="alert alert-warning mb-0" role="status">
+      <h2 class="h5" id="migration-banner-title">Confirm your BC Parks account migration</h2>
+      @if (migrationEmailSent) {
+        <p>Check your email at <strong>{{ user.email }}</strong> and follow the latest link to confirm.</p>
+        <button class="btn btn-outline-primary" type="button" [disabled]="migrationEmailSending" (click)="requestMigrationConfirmation()">
+          {{ migrationEmailSending ? 'Sending email...' : 'Resend confirmation link' }}
+        </button>
+      } @else {
+        <p>Confirm the transfer of your bookings to your BCSC account. We will email a one-time confirmation link to
+          <strong>{{ user.email }}</strong>.</p>
+        <button class="btn btn-primary" type="button" [disabled]="migrationEmailSending" (click)="requestMigrationConfirmation()">
+          {{ migrationEmailSending ? 'Sending email...' : 'Email me a confirmation link' }}
+        </button>
+        @if (migrationEmailError) {
+          <p class="text-danger mt-2 mb-0" role="alert">{{ migrationEmailError }}</p>
+        }
+      }
+    </div>
+  </section>
+}
+<!-- @if (showBanner) {
   <div class="env-banner text-center bg-danger text-white py-2">
     This is the <strong>{{ envName }}</strong> environment. The content you are viewing is not final and subject to
     change.
   </div>
-}
+} -->

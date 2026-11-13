@@ -70,11 +70,20 @@ describe('LoginComponent', () => {
     const render = (params: Record<string, string>) => {
       Object.defineProperty(TestBed.inject(ActivatedRoute).snapshot, 'queryParamMap', {
         value: convertToParamMap(params),
+        configurable: true,
       });
       fixture = TestBed.createComponent(LoginComponent);
       fixture.detectChanges();
       return fixture.nativeElement as HTMLElement;
     };
+
+    it('opens the email sign-in form directly for the migration prompt', () => {
+      const content = render({ reason: 'migration' });
+
+      expect(component.showAmplifyAuth).toBe(true);
+      expect(content.textContent).toContain('Sign in to your BC Parks account');
+      expect(content.textContent).toContain('BC Parks account you want to migrate');
+    });
 
     it('is shown as an alert with ?bcsc=retry', () => {
       const alert = render({ bcsc: 'retry' }).querySelector('[role="alert"]');

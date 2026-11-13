@@ -10,7 +10,14 @@
               Please sign in to join the waiting room. You'll continue automatically once you're logged in.
             </div>
           }
-          <h1 class="mb-4 text-start">Log in to BC Parks</h1>
+          <h1 class="mb-4 text-start">
+            {{ loginReason === 'migration' ? 'Sign in to your BC Parks account' : 'Log in to BC Parks' }}
+          </h1>
+          @if (loginReason === 'migration') {
+            <div class="alert alert-info text-start" role="status">
+              Sign in with the email and password for the BC Parks account you want to migrate.
+            </div>
+          }
           @if (bcscRetry) {
             <div class="alert alert-danger text-start" role="alert">{{ bcscRetryMessage }}</div>
           }
@@ -37,6 +44,12 @@
     <!-- Amplify Authenticator for Sign In -->
     @if (showAmplifyAuth) {
       <div>
+        @if (loginReason === 'migration') {
+          <h1 class="mb-4 text-start">Sign in to your BC Parks account</h1>
+          <div class="alert alert-info text-start" role="status">
+            Sign in with the email and password for the BC Parks account you want to migrate.
+          </div>
+        }
         <button
           class="btn btn-link mb-3"
           (click)="goBack()">
@@ -48,6 +61,7 @@
               [loginMechanisms]="['email']"
               [services]="services"
               [formFields]="formFields"
+              [hideSignUp]="loginReason === 'migration'"
               [initialState]="initialState">
             <ng-template amplifySlot="sign-up-form-fields">
               <!-- Email, password and confirm password errors are reported through
@@ -289,5 +303,3 @@
 
   </div>
 </div>
-
-

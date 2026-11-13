@@ -371,6 +371,10 @@ export class LoginComponent implements OnInit, AfterViewInit, AfterViewChecked {
     this.authKey = Date.now();
     this.loginReason = this.route.snapshot.queryParamMap.get('reason');
     this.bcscRetry = this.route.snapshot.queryParamMap.get('bcsc') === 'retry';
+    if (this.loginReason === 'migration') {
+      this.showAmplifyAuth = true;
+      this.initialState = 'signIn';
+    }
 
     const now = new Date();
     const options: Intl.DateTimeFormatOptions = { month: 'short', day: '2-digit', year: 'numeric' };
@@ -422,6 +426,7 @@ export class LoginComponent implements OnInit, AfterViewInit, AfterViewChecked {
 
   goBack() {
     this.submitAttempted = false;
+    this.loginReason = null;
     this.showAmplifyAuth = false;
   }
 

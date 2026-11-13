@@ -73,6 +73,7 @@ describe('LoginComponent', () => {
         configurable: true,
       });
       fixture = TestBed.createComponent(LoginComponent);
+      component = fixture.componentInstance;
       fixture.detectChanges();
       return fixture.nativeElement as HTMLElement;
     };

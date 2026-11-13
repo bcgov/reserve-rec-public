@@ -8,8 +8,13 @@ import { provideToastr } from 'ngx-toastr';
 import { Hub } from 'aws-amplify/utils';
 import { Amplify } from 'aws-amplify';
 import { Router } from '@angular/router';
+<<<<<<< Updated upstream
 import { LoadingService } from './loading.service';
 import { Constants } from '../constants';
+=======
+import { FeatureFlagService } from './feature-flag.service';
+import { ToastService, ToastTypes } from './toast.service';
+>>>>>>> Stashed changes
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -26,6 +31,13 @@ describe('AuthService', () => {
     expect(service).toBeTruthy();
   });
 
+  it('formats Cognito PreSignUp refusal messages and normalizes trailing periods', () => {
+    expect(service.refusalMessage(
+      'OAuthSignInException: PreSignUp failed with error Duplicate account...'
+    )).toBe('Duplicate account.');
+    expect(service.refusalMessage('A different error')).toBe('');
+  });
+
   it('routes migration prompts using navigation state without exposing the ID in the URL or logs', async () => {
     let authListener: (capsule: any) => Promise<void>;
     spyOn(Hub, 'listen').and.callFake(((_channel: string, listener: any) => {
@@ -34,6 +46,8 @@ describe('AuthService', () => {
     }) as any);
     const logError = spyOn(loggerService, 'error');
     const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    const addToast = spyOn(TestBed.inject(ToastService), 'addMessage');
+    spyOn(TestBed.inject(FeatureFlagService), 'isEnabled').and.returnValue(true);
 
     await (service as any).listenToAuthEvents();
     const migrateId = '4e707c5a-68f1-4728-b09e-2b5b691b86e6';
@@ -49,6 +63,11 @@ describe('AuthService', () => {
     });
 
     expect(navigate).toHaveBeenCalledWith(['/migrate'], { state: { migrateId } });
+    expect(addToast).toHaveBeenCalledWith(
+      'A BC Parks account with this email address already exists.',
+      'Login failed',
+      ToastTypes.WARNING,
+    );
     expect(logError).toHaveBeenCalledWith(jasmine.any(String));
     expect(JSON.stringify(logError.calls.allArgs())).not.toContain(migrateId);
   });
@@ -60,6 +79,8 @@ describe('AuthService', () => {
       return () => undefined;
     }) as any);
     const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    const addToast = spyOn(TestBed.inject(ToastService), 'addMessage');
+    spyOn(TestBed.inject(FeatureFlagService), 'isEnabled').and.returnValue(true);
 
     await (service as any).listenToAuthEvents();
     const migrateId = '4e707c5a-68f1-4728-b09e-2b5b691b86e6';
@@ -73,6 +94,61 @@ describe('AuthService', () => {
     });
 
     expect(navigate).toHaveBeenCalledWith(['/migrate'], { state: { migrateId } });
+    expect(addToast).toHaveBeenCalledWith('', 'Login failed', ToastTypes.WARNING);
+  });
+
+  it('shows a warning toast for a duplicate account without a migration ID', async () => {
+    let authListener: (capsule: any) => Promise<void>;
+    spyOn(Hub, 'listen').and.callFake(((_channel: string, listener: any) => {
+      authListener = listener;
+      return () => undefined;
+    }) as any);
+    const addToast = spyOn(TestBed.inject(ToastService), 'addMessage');
+    spyOn(TestBed.inject(FeatureFlagService), 'isEnabled').and.returnValue(true);
+
+    await (service as any).listenToAuthEvents();
+    await authListener({
+      payload: {
+        event: 'signInWithRedirect_failure',
+        data: {
+          error: Object.assign(new Error(
+            'PreSignUp failed with error A BC Parks account with this email address already exists.'
+          ), { name: 'OAuthSignInException' }),
+        },
+      },
+    });
+
+    expect(addToast).toHaveBeenCalledWith(
+      'A BC Parks account with this email address already exists.',
+      'Login failed',
+      ToastTypes.WARNING,
+    );
+  });
+
+  it('shows an error toast when the migration fails after signup', async () => {
+    let authListener: (capsule: any) => Promise<void>;
+    spyOn(Hub, 'listen').and.callFake(((_channel: string, listener: any) => {
+      authListener = listener;
+      return () => undefined;
+    }) as any);
+    const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    const addToast = spyOn(TestBed.inject(ToastService), 'addMessage');
+    spyOn(TestBed.inject(FeatureFlagService), 'isEnabled').and.returnValue(true);
+
+    await (service as any).listenToAuthEvents();
+    await authListener({
+      payload: {
+        event: 'signInWithRedirect_failure',
+        data: { error: 'OAuthSignInException: PostConfirmation failed with error migration failed' },
+      },
+    });
+
+    expect(addToast).toHaveBeenCalledWith(
+      'We could not complete your account migration. Please try signing in again.',
+      'Login failed',
+      ToastTypes.ERROR,
+    );
+    expect(navigate).toHaveBeenCalledWith(['/login']);
   });
 
   // Without this the login page sat empty with no way forward (#989).

@@ -19,6 +19,7 @@ export class BookingDetailsComponent implements OnInit {
   loading = true;
   error: string | null = null;
   qrCodeDataUrl: string | null = null;
+  payment: any = null;
 
   constructor(
     private apiService: ApiService,
@@ -46,11 +47,39 @@ export class BookingDetailsComponent implements OnInit {
 
       this.user = this.authService.getCurrentUser();
       this.loading = false;
+
+      if (this.booking?.clientTransactionId) {
+        this.loadPayment(this.booking.clientTransactionId);
+      }
     } catch (error) {
       console.error('Failed to fetch booking details:', error);
       this.error = 'Failed to load booking details';
       this.loading = false;
     }
+  }
+
+  // Payment card is optional: if the lookup fails, the rest of the page still shows.
+  async loadPayment(clientTransactionId: string) {
+    try {
+      const res: any = await lastValueFrom(this.apiService.get('transactions', { clientTransactionId }));
+      this.payment = res?.data || null;
+    } catch (error) {
+      console.error('Failed to fetch payment details:', error);
+    }
+  }
+
+  // The transaction doesn't store the payer's name; the signed-in user is the payer.
+  getPayerName(): string {
+    return [this.user?.given_name, this.user?.family_name].filter(Boolean).join(' ');
+  }
+
+  getCardLabel(): string {
+    const cardTypes: Record<string, string> = { MC: 'Mastercard', VI: 'Visa', AM: 'American Express' };
+    return cardTypes[this.payment?.cardType] || this.payment?.cardType || 'Card';
+  }
+
+  isBackcountry(): boolean {
+    return this.booking?.activityType === 'backcountryCamp';
   }
 
   isAMPass(): boolean {

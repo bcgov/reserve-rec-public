@@ -50,7 +50,10 @@ export class MigrationConfirmComponent implements OnInit {
       this.message = confirmation.msg;
       this.status = confirmation.data?.status || '';
       this.confirmed = true;
-      await this.authService.migrateLogout();
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      if (this.status === 'confirmed') {
+        await this.authService.migrateLogout();
+      }
     } catch (error) {
       this.errorMessage = this.readError(error);
     } finally {

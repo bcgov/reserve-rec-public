@@ -8,6 +8,8 @@ import { provideToastr } from 'ngx-toastr';
 import { Hub } from 'aws-amplify/utils';
 import { Amplify } from 'aws-amplify';
 import { Router } from '@angular/router';
+import { LoadingService } from './loading.service';
+import { Constants } from '../constants';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -71,6 +73,28 @@ describe('AuthService', () => {
     });
 
     expect(navigate).toHaveBeenCalledWith(['/migrate'], { state: { migrateId } });
+  });
+
+  // Without this the login page sat empty with no way forward (#989).
+  it('should log out, explain, and drop the overlay when finishing sign-in fails', async () => {
+    let authListener: (capsule: any) => Promise<void>;
+    spyOn(Hub, 'listen').and.callFake(((_channel: string, listener: any) => {
+      authListener = listener;
+      return () => undefined;
+    }) as any);
+    const addMessage = spyOn(toastService, 'addMessage');
+    const logError = spyOn(loggerService, 'error');
+    const logout = spyOn(service, 'logout').and.resolveTo();
+    const loading = TestBed.inject(LoadingService);
+
+    await (service as any).listenToAuthEvents();
+    // Amplify isn't configured in tests, so fetchUserAttributes rejects.
+    await authListener({ payload: { event: 'signedIn' } });
+
+    expect(logError).toHaveBeenCalled();
+    expect(addMessage).toHaveBeenCalledWith(Constants.loginIncompleteMessage, 'Login failed', ToastTypes.ERROR);
+    expect(logout).toHaveBeenCalled();
+    expect(loading.isLoading()).toBeFalse();
   });
 
   it('should finish init when a redirect sign-in fails while the first sign-in check hangs', async () => {

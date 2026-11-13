@@ -13,8 +13,10 @@
 }
 
 .on-this-page {
-  p {
-    font-size: 1.2rem;
+  // The theme sets every h2 to 2rem !important; keep this one the size the old <p> was.
+  h2 {
+    font-size: 1.2rem !important;
+    line-height: 1.5;
   }
 
   // Mobile: a plain bulleted list stacked above the content (matches Figma).

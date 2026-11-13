@@ -1,4 +1,4 @@
-@if (cartService.items().length > 0) {
+@if (cartHasItems()) {
   <app-cart-timer></app-cart-timer>
 }
 
@@ -7,17 +7,10 @@
     <app-breadcrumb></app-breadcrumb>
     <div class="col-12">
       <h1 class="text-primary fw-bold mb-4 pb-2">Cart</h1>
+      @if (cartHasItems()) {
       <div class="row">
         <div class="col-lg-8 col-12 cart-container">
           <div class="bg-light rounded h-100">
-            @if (cartService.items().length === 0) {
-            <div class="text-center py-5">
-              <h4>Your cart is empty</h4>
-              <p class="text-muted">Add some reservations to get started!</p>
-            </div>
-            }
-
-            @if (cartService.items().length > 0) {
             <div>
               @for (item of cartService.items(); track trackByItemId(i, item); let i = $index) {
               <app-cart-item [item]="item" [removeBool]="true" (removeItem)="removeItem($event)"></app-cart-item>
@@ -26,7 +19,6 @@
               }
               }
             </div>
-            }
           </div>
         </div>
 
@@ -47,7 +39,7 @@
               <span class="text-muted mb-5">Additional fees to be determined</span>
             </div>
             }
-            <button class="btn btn-primary w-100 fw-bold p-2" [disabled]="cartService.itemCount() === 0"
+            <button class="btn btn-primary w-100 fw-bold p-2"
               (click)="proceedToCheckout()">
               Checkout
               <i class="fa-solid fa-circle-chevron-right ms-2"></i>
@@ -55,6 +47,16 @@
           </div>
         </div>
       </div>
+    } @else {
+      <div class="d-flex align-items-center no-cart-items border border-primary border-1 rounded-2 fw-bold p-4" role="status" aria-live="polite">
+        <div class="align-self-start pt-1">
+          <i class="fa-regular fa-circle-info text-primary pe-2 d-flex"></i>
+        </div>
+        <div>
+          Your cart is empty. Please add a booking to your cart to continue.
+        </div>
+      </div>
+      }
     </div>
   </div>
 </div>
@@ -62,6 +64,7 @@
 <div class="checkout-mobile checkout-container shadow-top">
   <div class="container">
     <div class="row">
+      @if(cartHasItems()){
       <div class="py-4 w-100">
         @if (paymentsEnabled) {
         <div class="mb-3">
@@ -78,14 +81,16 @@
         </div>
         }
 
+        
         <div class="col-12">
-          <button class="btn btn-primary w-100 fw-bold p-2" [disabled]="cartService.itemCount() === 0"
+          <button class="btn btn-primary w-100 fw-bold p-2"
             (click)="proceedToCheckout()">
             Checkout
             <i class="fa-solid fa-circle-chevron-right ms-2"></i>
           </button>
         </div>
       </div>
+    }
     </div>
   </div>
 </div>

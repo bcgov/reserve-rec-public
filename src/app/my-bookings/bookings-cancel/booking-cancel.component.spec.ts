@@ -34,8 +34,8 @@ describe('BookingCancelComponent', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  const booking = (date: DateTime, status = 'confirmed') =>
-    of({ data: { bookingId: 'b1', status, startDate: date.toISODate(), endDate: date.toISODate() } });
+  const booking = (date: DateTime, status = 'confirmed', activityType?: string) =>
+    of({ data: { bookingId: 'b1', status, activityType, startDate: date.toISODate(), endDate: date.toISODate() } });
 
   function expectNotAvailablePage(el: HTMLElement) {
     expect(el.querySelector('h1')?.textContent).toContain('Cancellation is not available');
@@ -44,6 +44,7 @@ describe('BookingCancelComponent', () => {
     expect(links).toContain(['Return to home', '/']);
     expect(el.querySelector('.booking-card')).toBeNull();
     expect(el.querySelector('#acknowledgeCancel')).toBeNull();
+    expect(el.querySelector('.form-action-bar')).toBeNull();
     expect(el.textContent).not.toContain('Failed to load');
   }
 
@@ -53,6 +54,10 @@ describe('BookingCancelComponent', () => {
 
   it('shows "Cancellation is not available" when the booking cannot be loaded', async () => {
     expectNotAvailablePage(await render(throwError(() => ({ status: 403 }))));
+  });
+
+  it('shows "Cancellation is not available" for an upcoming backcountry booking', async () => {
+    expectNotAvailablePage(await render(booking(today.plus({ days: 1 }), 'confirmed', 'backcountryCamp')));
   });
 
   it('still offers cancellation for an upcoming booking', async () => {

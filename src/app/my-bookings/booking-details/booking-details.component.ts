@@ -78,6 +78,11 @@ export class BookingDetailsComponent implements OnInit {
     return cardTypes[this.payment?.cardType] || this.payment?.cardType || 'Card';
   }
 
+  // Older transactions store the status as transactionStatus.
+  isPaid(): boolean {
+    return (this.payment?.status ?? this.payment?.transactionStatus) === 'paid';
+  }
+
   isBackcountry(): boolean {
     return this.booking?.activityType === 'backcountryCamp';
   }

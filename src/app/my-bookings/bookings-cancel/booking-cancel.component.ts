@@ -96,15 +96,20 @@ constructor(
     return BookingUtils.isExpired(this.booking);
   }
 
+  // Backcountry bookings are final (#804).
+  isBackcountry(): boolean {
+    return this.booking?.activityType === 'backcountryCamp';
+  }
+
   // The email's cancel link can point at a past booking, or one this account
   // can't load (#871); both get the "Cancellation is not available" page.
   // Cancelled bookings keep their "Your booking is cancelled" confirmation.
   isCancellationUnavailable(): boolean {
-    return !this.loading && (!!this.error || (!!this.booking && this.isExpired() && !this.isBookingCancelled()));
+    return !this.loading && (!!this.error || (!!this.booking && (this.isExpired() || this.isBackcountry()) && !this.isBookingCancelled()));
   }
 
   showActionBar(): boolean {
-    return !this.loading && !!this.booking && !this.isBookingCancelled() && !this.isExpired();
+    return !this.loading && !!this.booking && !this.isBookingCancelled() && !this.isExpired() && !this.isBackcountry();
   }
 
   getGeozoneName(): string {
@@ -204,7 +209,7 @@ constructor(
   }
 
   async onConfirmRefund() {
-    if (!this.acknowledgeCancel || this.isBookingCancelled() || this.isExpired()) {
+    if (!this.acknowledgeCancel || this.isBookingCancelled() || this.isExpired() || this.isBackcountry()) {
       return;
     }
 

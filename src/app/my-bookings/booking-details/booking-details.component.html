@@ -40,8 +40,8 @@
   <!-- Success Content -->
   @if (!loading && !error && booking) {
     <div>
-      <!-- Actions Section (hidden for cancelled or past bookings) -->
-      @if (!isCancelled() && !isExpired()) {
+      <!-- Actions Section (hidden for cancelled or past bookings, and when there's no action to offer) -->
+      @if (!isCancelled() && !isExpired() && (qrCodeDataUrl || !isBackcountry())) {
         <div class="mb-5 p-0">
           <div class="row">
             <div class="col-lg-3 col-md-5 col-12 my-2">
@@ -61,7 +61,7 @@
                       </button>
                     </li>
                   }
-                  @if (!isCancelled() && !isExpired()) {
+                  @if (!isBackcountry() && !isCancelled() && !isExpired()) {
                     <li>
                       <button type="button" class="dropdown-item text-danger px-4 p-3" (click)="cancelBooking()">
                         Cancel entire booking
@@ -96,7 +96,7 @@
     <!-- Info Section -->
     <div class="row">
       <div class="col-lg-8 col-12">
-      @if (!isCancelled() && !isExpired()) {
+      @if (!isBackcountry() && !isCancelled() && !isExpired()) {
         <div class="info-section alert alert-info border border-primary mb-4 px-4 py-3 text-dark d-flex align-items-start">
           <div class="me-2 flex-shrink-0">
             <i class="fa-regular fa-circle-info text-primary"></i>
@@ -110,7 +110,31 @@
     </div>
     <!-- Booking Card -->
     <div class="row">
-      <div class="col-lg-8 col-12 mt-2 mb-2">
+      <!-- Payment details: above the booking card on mobile, beside it on desktop -->
+      @if (isPaid()) {
+        <div class="col-lg-4 col-12 mt-2 mb-2 order-lg-2">
+          <div class="payment-card card rounded mb-4">
+            <div class="card-header bg-primary text-white fw-bold p-3 px-sm-4">Payment details</div>
+            <div class="card-body px-3 px-sm-4 py-3">
+              @if (payment.trnCreated) {
+                <p class="small text-muted mb-3">
+                  <i class="fa-regular fa-clock me-2" aria-hidden="true"></i>{{ payment.trnCreated | date:'EEE MMM dd yyyy, h:mm a' }}
+                </p>
+              }
+              <p class="fw-bold mb-0">{{ getPayerName() }}</p>
+              @if (payment.cardLastFour) {
+                <p class="mb-0">{{ getCardLabel() }} ending in {{ payment.cardLastFour }}</p>
+              }
+              <hr class="my-2" />
+              <div class="d-flex justify-content-between fw-bold text-primary">
+                <span>Total paid (CAD)</span>
+                <span>{{ payment.trnAmount | currency:'CAD':'symbol-narrow' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+      <div class="col-lg-8 col-12 mt-2 mb-2 order-lg-1">
         <div class="booking-card card rounded mb-4">
           <div class="card-header bg-booking-header p-3 px-sm-4">
             <b class="text-body-emphasis">{{ getGeozoneName() }}</b>
@@ -125,6 +149,17 @@
                   </div>
                   <div class="flex-grow-1">
                     <strong>This booking has been cancelled.</strong>
+                  </div>
+                </div>
+              }
+              @if (isBackcountry() && !isCancelled() && !isExpired()) {
+                <div class="info-section alert alert-warning border border-warning mb-4 px-4 py-3 text-dark d-flex align-items-start">
+                  <div class="me-2 flex-shrink-0">
+                    <i class="fa-regular fa-triangle-exclamation text-warning" aria-hidden="true"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <strong>No changes, cancellations or refunds.</strong>
+                    <p class="small mb-0">Your backcountry booking is final. No changes, cancellations or refunds are allowed.</p>
                   </div>
                 </div>
               }

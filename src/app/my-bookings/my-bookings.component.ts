@@ -139,7 +139,8 @@ export class MyBookingsComponent implements OnInit {
         endDate: item.endDate,
         formattedDate: this.formatDateRange(item),
         isCancelled: isCancelled,
-        status: BookingUtils.getStatus(item)
+        status: BookingUtils.getStatus(item),
+        isCompleted: DateTime.now() > DateTime.fromMillis(item.reservationContext?.checkOutTime)
       };
 
       const timedOut = booking.status === 'timed_out'
@@ -152,7 +153,7 @@ export class MyBookingsComponent implements OnInit {
       // 5. TIMED_OUT/timed_out - hide expired bookings everywhere
       if (isCancelled && !timedOut) {
         this.cancelledBookings.push(booking);
-      } else if (hasEnded && !timedOut) {
+      } else if (booking.isCompleted && !timedOut || hasEnded && !timedOut) {
         this.pastBookings.push(booking);
       } else if (hasStarted && !timedOut) {
         this.activeBookings.push(booking);

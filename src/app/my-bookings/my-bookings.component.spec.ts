@@ -109,4 +109,62 @@ describe('MyBookingsComponent', () => {
     expect(component.upcomingBookings[0].imageUrl).toBe('https://example.com/geozone.jpg');
     expect(component.upcomingBookings[0].passType).toBe('Parking pass');
   });
+
+  it('marks a booking as past when checkout time has passed', () => {
+    const today = DateTime.now().setZone('America/Vancouver');
+    // Set checkout time to 1 hour ago
+    const checkOutTime = DateTime.now().minus({ hours: 1 }).toMillis();
+
+    const booking = {
+      schema: 'booking',
+      bookingId: 'checkout-passed',
+      status: 'confirmed',
+      activityType: 'dayuse',
+      activitySubType: 'trailUse',
+      geozoneImageUrl: 'https://example.com/park.jpg',
+      startDate: today.toISODate(),
+      endDate: today.toISODate(),
+      reservationContext: {
+        checkOutTime: checkOutTime
+      }
+    };
+
+    TestBed.inject(DataService).setItemValue(Constants.dataIds.MY_BOOKINGS_RESULT, {
+      items: [booking]
+    });
+
+    component.processBookings();
+
+    expect(component.pastBookings.map(b => b.bookingId)).toContain('checkout-passed');
+    expect(component.activeBookings.length).toBe(0);
+  });
+
+  it('marks a booking as active when checkout time has not passed', () => {
+    const today = DateTime.now().setZone('America/Vancouver');
+    // Set checkout time to 1 hour in the future
+    const checkOutTime = DateTime.now().plus({ hours: 1 }).toMillis();
+
+    const booking = {
+      schema: 'booking',
+      bookingId: 'checkout-pending',
+      status: 'confirmed',
+      activityType: 'dayuse',
+      activitySubType: 'trailUse',
+      geozoneImageUrl: 'https://example.com/park.jpg',
+      startDate: today.toISODate(),
+      endDate: today.toISODate(),
+      reservationContext: {
+        checkOutTime: checkOutTime
+      }
+    };
+
+    TestBed.inject(DataService).setItemValue(Constants.dataIds.MY_BOOKINGS_RESULT, {
+      items: [booking]
+    });
+
+    component.processBookings();
+
+    expect(component.activeBookings.map(b => b.bookingId)).toContain('checkout-pending');
+    expect(component.pastBookings.length).toBe(0);
+  });
 });

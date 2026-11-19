@@ -123,6 +123,8 @@ export class MyBookingsComponent implements OnInit {
       const isCancelled = BookingUtils.isCancelled(item);
       const hasEnded = this.today > rangeEnd;
       const hasStarted = this.today >= rangeStart;
+      const checkOut = item.reservationContext?.checkOutTime;
+      const isCompleted = typeof checkOut === 'number' && DateTime.now().toMillis() > checkOut;
 
       // Get the display name of the activity type from constants
       const activityType = Constants.activityTypes?.[item.activityType]?.display || BookingUtils.getActivityType(item);
@@ -142,7 +144,7 @@ export class MyBookingsComponent implements OnInit {
         status: BookingUtils.getStatus(item)
       };
 
-      const timedOut = booking.status === 'timed_out'
+      const timedOut = booking.status === 'timed_out';
 
       // Categorize bookings:
       // 1. Cancelled - any cancelled booking
@@ -152,7 +154,7 @@ export class MyBookingsComponent implements OnInit {
       // 5. TIMED_OUT/timed_out - hide expired bookings everywhere
       if (isCancelled && !timedOut) {
         this.cancelledBookings.push(booking);
-      } else if (hasEnded && !timedOut) {
+      } else if (isCompleted && !timedOut || hasEnded && !timedOut) {
         this.pastBookings.push(booking);
       } else if (hasStarted && !timedOut) {
         this.activeBookings.push(booking);

@@ -30,28 +30,8 @@ input#smsReminders:disabled {
   border: grey solid 1px;
 }
 
-// Get the phone container to have nice gaps between labels and values
-// Max and min-widths to ensure consistency across any phone format
-.phone-container {
-  max-width: 260px;
-}
-
-.phone-label {
-  min-width: 83px;
-}
-
-.phone-value {
-  text-align: left;
-  min-width: 150px;
-}
-
 @media (max-width: 767.98px) {
   .occupant-info {
     min-height: auto;
-  }
-
-  .info-label,
-  .info-value {
-    font-size: 1rem;
   }
 }

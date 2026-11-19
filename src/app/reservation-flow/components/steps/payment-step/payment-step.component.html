@@ -1,101 +1,256 @@
-
-
-<div class="container-fluid">
-  <div class="row justify-content-center">
-    <div class="col-lg-10 col-12">
-
-      <!-- Left-aligned Title -->
-      <h2 class="text-dark fw-bold mb-3">{{ getParkName() }}</h2>
-      <h5 class="text-muted mb-3">{{ getActivityName() }}</h5>
-
-      <!-- Horizontal Divider -->
-      <hr class="border-2 mb-4">
-
-      <div class="step-container">
-        <h3 class="step-title">Review & Payment</h3>
-        <p class="step-description">Review your booking details and proceed to payment.</p>
-
-        <!-- Booking Summary -->
-        <div class="booking-summary mb-4">
-          <h4>Booking Summary</h4>
-          <div class="summary-card">
-            <div class="summary-item">
-              <span>Number of nights:</span>
-              <span>{{ calculateTotalNights() }}</span>
-            </div>
-            <div class="summary-item">
-              <span>Total occupants:</span>
-              <span>{{ calculateTotalOccupants() }}</span>
-            </div>
-            <div class="summary-item">
-              <span>Entry point:</span>
-              <span>{{ form?.get('entryPoint')?.value?.displayName || form?.get('entryPoint')?.value || 'Not selected' }}</span>
-            </div>
-            <div class="summary-item">
-              <span>Exit point:</span>
-              <span>{{ form?.get('exitPoint')?.value?.displayName || form?.get('exitPoint')?.value || 'Not selected' }}</span>
-            </div>
-
-            <!-- Price Breakdown -->
-            <hr>
-              <div class="summary-item">
-                <span>Subtotal:</span>
-                <span>{{ getSubtotal() | currency:'CAD':'symbol':'1.2-2' }}</span>
-              </div>
-              @if (getEquipmentTotal() > 0) {
-                <div class="summary-item">
-                  <span>Equipment:</span>
-                  <span>{{ getEquipmentTotal() | currency:'CAD':'symbol':'1.2-2' }}</span>
-                </div>
-              }
-              @if (getTaxes() > 0) {
-                <div class="summary-item">
-                  <span>Taxes:</span>
-                  <span>{{ getTaxes() | currency:'CAD':'symbol':'1.2-2' }}</span>
-                </div>
-              }
-              <hr>
-                <div class="summary-item total">
-                  <span><strong>Total Amount:</strong></span>
-                  <span><strong>{{ getGrandTotal() | currency:'CAD':'symbol':'1.2-2' }}</strong></span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Navigation Buttons -->
-            <div class="d-flex justify-content-between border-top pt-3 mt-5">
-              <button
-                type="button"
-                class="btn btn-link mb-3 border-0 bg-transparent"
-                (click)="goToPrevious()"
-                [disabled]="isProcessingPayment"
-                >
-                <i class="fa fa-arrow-circle-left" aria-hidden="true"></i>
-                Previous
-              </button>
-
-              <button
-                type="button"
-                class="btn btn-primary btn-lg mb-3"
-                (click)="processPayment()"
-                [disabled]="isProcessingPayment || !isStepValid()"
-                >
-                @if (!isProcessingPayment) {
-                  <span>
-                    <i class="fa-solid fa-credit-card me-2"></i>
-                    Complete Reservation
-                  </span>
-                }
-                @if (isProcessingPayment) {
-                  <span>
-                    <i class="fa-solid fa-spinner fa-spin me-2"></i>
-                    Processing...
-                  </span>
-                }
-              </button>
-            </div>
-
-          </div>
-        </div>
+<div class="container px-0">
+  <div class="row g-4 align-items-start">
+    <div class="col-12 col-lg-8">
+    <section class="card border rounded-1 shadow-none overflow-hidden">
+      <div class="booking-card card-header p-3 px-sm-4">
+        <h2 class="payment-heading fs-6 mb-0 py-3 fw-semibold">Payment information</h2>
       </div>
+
+      <div class="card-body p-3 p-md-4">
+        <form (submit)="onSubmit($event)">
+          <section aria-labelledby="payment-method-heading">
+            <h3 class="payment-heading fs-6 mb-3">Payment method</h3>
+            <div class="row g-3 mb-4">
+              <div class="col-12">
+                <label for="cardholder-name" class="form-label small mb-1">Name on card</label>
+                <input
+                  type="text"
+                  id="cardholder-name"
+                  class="form-control"
+                  [(ngModel)]="cardholderName"
+                  (ngModelChange)="validateStep()"
+                  [ngModelOptions]="{ standalone: true }"
+                  name="cardholderName"
+                  autocomplete="cc-name"
+                  required
+                />
+              </div>
+
+              <div class="col-12 col-md-6">
+                <label for="card-number" class="form-label small mb-1">Card number</label>
+                <div
+                  id="card-number"
+                  class="form-control d-flex align-items-center p-2"
+                  aria-label="Card number"
+                ></div>
+                <div class="text-danger small mt-1" *ngIf="cardNumberError()" role="alert">{{ cardNumberError() }}</div>
+              </div>
+
+              <div class="col-6 col-md-3">
+                <label for="card-expiry" class="form-label small mb-1">Expiration date</label>
+                <div
+                  id="card-expiry"
+                  class="form-control d-flex align-items-center p-2"
+                  aria-label="Expiration date"
+                ></div>
+                <div class="text-danger small mt-1" *ngIf="cardExpiryError()" role="alert">{{ cardExpiryError() }}</div>
+              </div>
+
+              <div class="col-6 col-md-3">
+                <label for="card-cvv" class="form-label small mb-1">Security code (CVC)</label>
+                <div
+                  id="card-cvv"
+                  class="form-control d-flex align-items-center p-2"
+                  aria-label="Security code (CVC)"
+                ></div>
+                <div class="text-danger small mt-1" *ngIf="cardCVVError()" role="alert">{{ cardCVVError() }}</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="mt-4 pt-4 border-top" aria-labelledby="address-information-heading">
+            <h3 id="address-information-heading" class="payment-heading fw-semibold">Address information</h3>
+
+            <label
+              class="border rounded p-3 mb-2 d-flex align-items-center gap-2"
+              [class.bg-info-subtle]="billingAddressOption === 'account'"
+              [class.border-primary]="billingAddressOption === 'account'"
+              for="billing-from-account"
+            >
+              <input
+                type="radio"
+                id="billing-from-account"
+                name="billingAddressOption"
+                value="account"
+                [(ngModel)]="billingAddressOption"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="validateStep()"
+                class="form-check-input m-0 flex-shrink-0"
+              />
+              <span class="fw-semibold">Use the address from my account</span>
+            </label>
+
+            <label
+              class="border rounded p-3 mb-2 d-flex align-items-center gap-2"
+              [class.bg-info-subtle]="billingAddressOption === 'different'"
+              [class.border-primary]="billingAddressOption === 'different'"
+              for="billing-address-different"
+            >
+              <input
+                type="radio"
+                id="billing-address-different"
+                name="billingAddressOption"
+                value="different"
+                [(ngModel)]="billingAddressOption"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="validateStep()"
+                class="form-check-input m-0 flex-shrink-0"
+              />
+              <span class="fw-semibold">My billing address is different</span>
+            </label>
+
+            @if (billingAddressOption === 'account') {
+              <p class="text-muted fw-semibold mt-4 mb-3 billing-address-option-text">We will use the following information from your account in this booking:</p>
+              <app-account-info class="mt-2 mb-3" [info]="accountInfo"></app-account-info>
+              <p class="small text-muted mb-0">
+                Is this information outdated? Visit the <a [routerLink]="['/account-details']">account settings</a> page to update your information.
+              </p>
+            } @else {
+              <div class="row g-3 mt-3">
+                <h3 class="payment-heading fw-semibold mt-4 mb-2">Contact information</h3>
+                <div class="col-6">
+                  <label for="billing-first-name" class="form-label">First name</label>
+                  <input
+                    id="billing-first-first-name"
+                    class="form-control"
+                    type="text"
+                    autocomplete="first-name"
+                    [(ngModel)]="alternateBillingDetails.firstName"
+                    [ngModelOptions]="{ standalone: true }"
+                    (ngModelChange)="validateStep()"
+                    required
+                  />
+                </div>
+                <div class="col-6">
+                  <label for="billing-last-name" class="form-label">Last name</label>
+                  <input
+                    id="billing-last-name"
+                    class="form-control"
+                    type="text"
+                    autocomplete="last-name"
+                    [(ngModel)]="alternateBillingDetails.lastName"
+                    [ngModelOptions]="{ standalone: true }"
+                    (ngModelChange)="validateStep()"
+                    required
+                  />
+                </div>
+                <div class="col-6">
+                  <label for="billing-email" class="form-label">Email</label>
+                  <input
+                    id="billing-email"
+                    class="form-control"
+                    type="email"
+                    autocomplete="email"
+                    [(ngModel)]="alternateBillingDetails.email"
+                    [ngModelOptions]="{ standalone: true }"
+                    (ngModelChange)="validateStep()"
+                    required
+                  />
+                </div>
+                <div class="col-6">
+                  <label for="billing-mobile-phone" class="form-label">Phone number</label>
+                  <input
+                    id="billing-mobile-phone"
+                    class="form-control"
+                    type="tel"
+                    autocomplete="tel"
+                    [(ngModel)]="alternateBillingDetails.phoneNumber"
+                    [ngModelOptions]="{ standalone: true }"
+                    (ngModelChange)="validateStep()"
+                    required
+                  />
+                </div>
+                <h3 class="payment-heading fw-semibold mt-5 mb-2">Billing address</h3>
+                <div class="col-12">
+                  <label for="billing-address1" class="form-label">Street address</label>
+                  <input
+                    id="billing-address1"
+                    class="form-control"
+                    type="text"
+                    autocomplete="address-line1"
+                    [(ngModel)]="alternateBillingDetails.address1"
+                    [ngModelOptions]="{ standalone: true }"
+                    (ngModelChange)="validateStep()"
+                    required
+                  />
+                </div>
+                <div class="col-12">
+                  <label for="billing-address2" class="form-label">Suite, apartment, or unit (optional)</label>
+                  <input
+                    id="billing-address2"
+                    class="form-control"
+                    type="text"
+                    autocomplete="address-line2"
+                    [(ngModel)]="alternateBillingDetails.address2"
+                    [ngModelOptions]="{ standalone: true }"
+                  />
+                </div>
+                <div class="col-12 col-md-6">
+                  <label for="billing-city" class="form-label">City</label>
+                  <input
+                    id="billing-city"
+                    class="form-control"
+                    type="text"
+                    autocomplete="address-level2"
+                    [(ngModel)]="alternateBillingDetails.city"
+                    [ngModelOptions]="{ standalone: true }"
+                    (ngModelChange)="validateStep()"
+                    required
+                  />
+                </div>
+                <div class="col-12 col-md-6">
+                  <label for="billing-postal-code" class="form-label">Postal or ZIP code</label>
+                  <input
+                    id="billing-postal-code"
+                    class="form-control"
+                    type="text"
+                    autocomplete="postal-code"
+                    [(ngModel)]="alternateBillingDetails.postalCode"
+                    [ngModelOptions]="{ standalone: true }"
+                    (ngModelChange)="validateStep()"
+                    required
+                  />
+                </div>
+                <div class="col-12 col-md-6">
+                  <label for="billing-province" class="form-label">Province, state, or territory</label>
+                  <input
+                    id="billing-province"
+                    class="form-control"
+                    type="text"
+                    autocomplete="address-level1"
+                    [(ngModel)]="alternateBillingDetails.province"
+                    [ngModelOptions]="{ standalone: true }"
+                    (ngModelChange)="validateStep()"
+                    required
+                  />
+                </div>
+                <div class="col-12 col-md-6">
+                  <label for="billing-country" class="form-label">Country</label>
+                  <input
+                    id="billing-country"
+                    class="form-control"
+                    type="text"
+                    autocomplete="country-name"
+                    [(ngModel)]="alternateBillingDetails.country"
+                    [ngModelOptions]="{ standalone: true }"
+                    (ngModelChange)="validateStep()"
+                    required
+                  />
+                </div>
+              </div>
+            }
+          </section>
+
+          @if (paymentError()) {
+            <div class="alert alert-danger mt-4 mb-0" role="alert">{{ paymentError() }}</div>
+          }
+        </form>
+      </div>
+    </section>
     </div>
+
+    <aside class="col-12 col-lg-4">
+      <app-order-summary [cartItem]="cartItem" [orderNumber]="bookingId"></app-order-summary>
+    </aside>
+  </div>
+</div>

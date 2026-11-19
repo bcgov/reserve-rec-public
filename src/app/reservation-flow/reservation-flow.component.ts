@@ -33,7 +33,7 @@ import { CartTimerComponent } from '../cart/cart-timer/cart-timer.component';
     RouterModule,
     BreadcrumbComponent,
     CartTimerComponent
-],
+  ],
   templateUrl: './reservation-flow.component.html',
   styleUrl: './reservation-flow.component.scss'
 })
@@ -47,9 +47,11 @@ export class ReservationFlowComponent implements OnInit, OnDestroy {
   public accessPointsSelectionList: any[] = [];
   public currentBookingId: string | null = null;
   public currentSessionId: string | null = null;
+  @ViewChild(PaymentStepComponent) private paymentStepComponent?: PaymentStepComponent;
   // True while the booking is being created/completed, to disable the Finish
   // button and block double-submission (#541).
   public isSubmitting = false;
+  public isPaymentProcessing = false;
 
   get cartItem(): CartItem | null {
     return this.cartItems[0] || null;
@@ -73,6 +75,7 @@ export class ReservationFlowComponent implements OnInit, OnDestroy {
     'cart': 'cart',
     'details': 'agreements',
     'occupant details': 'camping party',
+    'equipment': 'equipment',
   };
 
   constructor(
@@ -129,16 +132,16 @@ export class ReservationFlowComponent implements OnInit, OnDestroy {
 
   private async loadAccessPointsForCurrentItem(): Promise<void> {
     if (!this.cartItem) return;
-    
+
     try {
-      
+
       // TODO: Replace with actual service call
-     
+
       // Mock data for now
       this.accessPointsSelectionList = [
         { value: { pk: 'facility::bcparks_9398', sk: 'accessPoint::1' }, text: 'Main Trailhead', displayName: 'Main Trailhead', },
         { value: { pk: 'facility::bcparks_9398', sk: 'accessPoint::2' }, text: 'North Access Point', displayName: 'North Access Point', },
-        { value: { pk: 'facility::bcparks_9398', sk: 'accessPoint::3' }, text: 'South Access Point', displayName: 'South Access Point',  }
+        { value: { pk: 'facility::bcparks_9398', sk: 'accessPoint::3' }, text: 'South Access Point', displayName: 'South Access Point', }
       ];
     } catch (error) {
       console.log(error);
@@ -155,7 +158,7 @@ export class ReservationFlowComponent implements OnInit, OnDestroy {
       exitPoint: new UntypedFormControl(null),
       acknowledgePolicies: new UntypedFormControl(false, [Validators.requiredTrue]),
       smsOptIn: new UntypedFormControl(false, { nonNullable: true }),
-      
+
       dateRange: new UntypedFormControl([cartItem.startDate, cartItem.endDate], { nonNullable: true }),
       occupants: new UntypedFormGroup({
         totalAdult: new UntypedFormControl(cartItem.occupants.totalAdult || 0, { nonNullable: true }),
@@ -163,7 +166,7 @@ export class ReservationFlowComponent implements OnInit, OnDestroy {
         totalYouth: new UntypedFormControl(cartItem.occupants.totalYouth || 0, { nonNullable: true }),
         totalChild: new UntypedFormControl(cartItem.occupants.totalChild || 0, { nonNullable: true }),
       }),
-      
+
       // User info (step 3 will add more fields as needed)
       userIsPrimaryOccupant: new UntypedFormControl(this.user && !this.user.sub.startsWith('guest') ? true : false, { nonNullable: true })
     });
@@ -175,9 +178,11 @@ export class ReservationFlowComponent implements OnInit, OnDestroy {
       const startDate = new Date(this.cartItem.startDate);
       const endDate = new Date(this.cartItem.endDate);
       const numberOfNights = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-      const totalOccupants = this.cartItem.occupants.totalAdult + this.cartItem.occupants.totalSenior + 
-                            this.cartItem.occupants.totalYouth + this.cartItem.occupants.totalChild;
-      
+      const totalOccupants = this.cartItem.occupants.totalAdult + this.cartItem.occupants.totalSenior +
+        this.cartItem.occupants.totalYouth + this.cartItem.occupants.totalChild;
+
+
+      // TODO: wil need adjusting when we create fee policy
       this.bookingSummary = {
         parkName: this.cartItem.geozoneName || 'Unknown Park',
         activityName: this.cartItem.activityName || 'Unknown Activity',
@@ -187,50 +192,41 @@ export class ReservationFlowComponent implements OnInit, OnDestroy {
         numberOfOccupants: totalOccupants,
         basePrice: this.cartItem.feeInformation?.total || 0,
         equipmentTotal: 0,
-        taxes: 0, 
+        taxes: 0,
         total: this.cartItem.feeInformation?.total || 0
       };
     }
   }
 
- private checkAllStepsCompleted(): void {
-  if (!this.cartItem) return;
+  private checkAllStepsCompleted(): void {
+    if (!this.cartItem) return;
 
-  const item = this.cartItems[0];
-  
-  // Check base steps (Details, Visitor Details, Equipment)
-  let allStepsCompleted = item.detailsStepCompleted && 
-                          item.visitorDetailsStepCompleted && 
-                          item.equipmentStepCompleted;
-  
-  // If payment is enabled, also check payment step completion
-  if (this.featureFlagService.isEnabled('enablePayments')) {
-    allStepsCompleted = allStepsCompleted && item.paymentStepCompleted;
+    const item = this.cartItems[0];
+
+    // Check base steps (Details, Visitor Details, Equipment)
+    let allStepsCompleted = item.detailsStepCompleted &&
+                            item.visitorDetailsStepCompleted &&
+                            item.equipmentStepCompleted;
+
+    // If payment is enabled, also check payment step completion
+    if (this.isPaymentRequired()) {
+      allStepsCompleted = allStepsCompleted && item.paymentStepCompleted;
+    }
+
+
+    this.cartService.updateCartItem(item.id, {
+      ...item,
+      areAllStepsCompleted: allStepsCompleted
+    });
+
+
   }
 
+  async onStepCompleted(completed: boolean): Promise<void> {
+    if (!completed) return;
+    if (!this.cartItem) return;
 
-  this.cartService.updateCartItem(item.id, {
-    ...item,
-    areAllStepsCompleted: allStepsCompleted
-  });
-
-  
-}
-
-async onStepCompleted(completed: boolean): Promise<void> {
-  // Get a queryTime immediately, for eventual submitting form - used on backed to check expiry time.
-  // Give the user about 7 seconds buffer for final submission and processing. Because we're nice.
-  const bufferWindowInMs = 7000;
-  const queryTime = new Date().getTime() - bufferWindowInMs;
-  if (!completed) return;
-  const formValue = this.form?.value || {};
-  
-  const currentStep = this.stepperService.currentStepIndex();
-  const isOnFinalStep = !this.stepperService.canGoNext();
-  const paymentsEnabled = this.featureFlagService.isEnabled('enablePayments');
-  
-  
-  if (this.cartItem) {
+    const currentStep = this.stepperService.currentStepIndex();
     switch (currentStep) {
       case 0:
         this.cartItem.detailsStepCompleted = true;
@@ -245,75 +241,101 @@ async onStepCompleted(completed: boolean): Promise<void> {
         this.cartItem.paymentStepCompleted = true;
         break;
       default:
-        break;
+        return;
+    }
+    this.checkAllStepsCompleted();
+
+    if (currentStep === 2) {
+      if (this.isPaymentRequired()) {
+        this.stepperService.goNext();
+        this.changeDetectorRef.detectChanges();
+        return;
+      }
+
+      // Call the completeBooking method (different than payment completion flow)
+      await this.finalizeBooking();
+      return;
+    }
+
+    if (currentStep === 3) {
+      const bookingId = this.currentBookingId || this.cartItem.bookingId;
+      if (!bookingId) {
+        console.error('Payment succeeded, but the booking ID is unavailable.');
+        alert('Your payment was received, but we could not open the booking confirmation. Please contact support.');
+        return;
+      }
+
+      // The token transaction API records payment and completes the booking.
+      // Do not call completeBooking here, transaction endpoint will complete the booking process
+      // within the processTokenTransaction method.
+      // Redirect after payment success.
+      this.isSubmitting = true;
+      this.cartService.cartTimerIsActive.set(false);
+      this.changeDetectorRef.detectChanges();
+      this.redirectToConfirmation(bookingId);
+      return;
+    }
+
+    if (this.stepperService.canGoNext()) {
+      this.stepperService.goNext();
     }
   }
 
-  this.checkAllStepsCompleted();
+  private isPaymentRequired(): boolean {
+    const totalDue = Number(this.cartItem?.feeInformation?.total ?? 0);
+    return this.featureFlagService.isEnabled('enablePayments') &&
+      Number.isFinite(totalDue) &&
+      totalDue > 0;
+  }
 
-  // Special handling for equipment step (step 2, 0-indexed)
-  // This is where we create the booking for both payment enabled/disabled scenarios
-  if (currentStep === 2 && this.cartItem) {
+  private async finalizeBooking(): Promise<void> {
     // Guard against double-submission: while the create/complete request is in
     // flight the Finish button is disabled, but block re-entry too (#541).
-    if (this.isSubmitting) { return; }
-    this.isSubmitting = true;
+    if (!this.cartItem || this.isSubmitting) return;
+
+    // Get a queryTime immediately, for eventual submitting form - used on backed to check expiry time.
+    // Give the user about 7 seconds buffer for final submission and processing. Because we're nice.
+    const bufferWindowInMs = 7000;
+    const queryTime = Date.now() - bufferWindowInMs;
     let submissionSucceeded = false;
+    this.isSubmitting = true;
 
     // Turn off cart timer when submitting to avoid pop up
-    this.cartService.cartTimerIsActive.set(false)
+    this.cartService.cartTimerIsActive.set(false);
     this.changeDetectorRef.detectChanges();
+
     try {
       // Create booking for the cart item
       const bookingResponse = await this.createBookingForItem(this.cartItem);
-      
+
       // Extract bookingId and sessionId from the response structure
       // Response structure: { code, data: { bookingId, sessionId, ... }, msg, error, context }
-      const bookingId = bookingResponse?.data?.bookingId || bookingResponse?.bookingId || bookingResponse?.globalId || bookingResponse?.booking?.[0]?.data?.globalId;
-      const sessionId = bookingResponse?.data?.sessionId || bookingResponse?.sessionId || bookingResponse?.booking?.[0]?.data?.sessionId;
+      const bookingId = bookingResponse?.data?.bookingId ||
+                        bookingResponse?.bookingId ||
+                        bookingResponse?.globalId ||
+                        bookingResponse?.booking?.[0]?.data?.globalId;
 
-      if (bookingId && sessionId) {
-        
-        this.currentBookingId = bookingId;
-        this.currentSessionId = sessionId;
-        
-        console.log('✅ Booking created successfully:', {
-          bookingId,
-          sessionId
-        });
-      } else {
-        throw new Error('Booking creation failed - no booking data returned');
-      }
-      
-      const totalDue = Number(this.cartItem?.feeInformation?.total ?? 0);
+      const sessionId = bookingResponse?.data?.sessionId ||
+                        bookingResponse?.sessionId ||
+                        bookingResponse?.booking?.[0]?.data?.sessionId;
 
-      // If payments are disabled (or nothing is owed), navigate directly to confirmation
-      if (!paymentsEnabled || totalDue <= 0) {
-        console.log('💰 Payments disabled - finalizing booking before confirmation');
-        if (!this.currentBookingId || !this.currentSessionId) {
-          throw new Error('Missing booking/session IDs for completion');
-        }
-        const completionPayload = this.getCompletionPayload(formValue, this.currentSessionId, queryTime);
-        await this.bookingService.completeBooking(this.currentBookingId, completionPayload);
-        if (this.currentBookingId) {
-          submissionSucceeded = true;
-          window.location.assign(this.absoluteUrl(`booking-confirmation/${this.currentBookingId}`));
-        }
-        return;
+      if (!bookingId || !sessionId) {
+        throw new Error('Booking completion failed - missing booking or session ID');
       }
-      
-      // If payments are enabled, the stepper will advance to payment step
-      // The payment step will use this.currentBookingId and this.currentSessionId
-      const movedToPayment = this.stepperService.goNext();
-      if (!movedToPayment) {
-        // Fallback to target payment step index if current validation state blocks goNext.
-        this.stepperService.goToStep(3);
-      }
+
+      this.currentBookingId = bookingId;
+      this.currentSessionId = sessionId;
+      const completionPayload = this.getCompletionPayload(
+        this.form?.value || {},
+        sessionId,
+        queryTime
+      );
+      await this.bookingService.completeBooking(bookingId, completionPayload);
+
       submissionSucceeded = true;
-      this.changeDetectorRef.detectChanges();
-      
+      this.redirectToConfirmation(bookingId);
     } catch (error: any) {
-      console.error('❌ Booking creation failed:', error);
+      console.error('Booking creation failed:', error);
       console.error('❌ Error details:', {
         status: error?.status,
         statusText: error?.statusText,
@@ -321,7 +343,6 @@ async onStepCompleted(completed: boolean): Promise<void> {
         error: error?.error,
         fullError: error
       });
-      
       // Handle waiting room redirect
       if (error?.waitingRoom && this.cartItem) {
         const params = new URLSearchParams({
@@ -334,23 +355,22 @@ async onStepCompleted(completed: boolean): Promise<void> {
         window.location.href = new URL(`waitingroom.html?${params.toString()}`, document.baseURI).toString();
         return;
       }
-      
       // Busy, not failed: the hold is kept, so an immediate retry is the right advice.
       if (error?.status === 503) {
         alert(error?.error?.msg || 'The service is busy. Please try again in a moment.');
         return;
       }
-
       // Handle validation errors
       if (error?.status === 400) {
         // The API puts its reason in `msg`; `message` is kept for older responses.
-        const errorMessage = error?.error?.msg || error?.error?.message || 'Your booking request could not be completed. Please check the booking details and try again.';
+        const errorMessage = error?.error?.msg ||
+                             error?.error?.message ||
+                             'Your booking request could not be completed. Please check the booking details and try again.';
         alert(`Booking Error: ${errorMessage}`);
         return;
       }
-      
-      alert('There was an error creating your booking. Please try again later.');
-      return;
+
+      alert('There was an error completing your booking. Please try again later.');
     } finally {
       // Re-enable the button on any exit (error/retry, or advancing to the
       // payment step). On the navigate-away success path the page unloads.
@@ -364,20 +384,17 @@ async onStepCompleted(completed: boolean): Promise<void> {
     }
   }
 
-  // If we're on the final step (payment step when payments enabled)
-  if (isOnFinalStep && paymentsEnabled) {
-    console.log('📍 On payment step (final step). Payment should redirect to gateway.');
-    // The payment step handles its own redirect to payment gateway
-    // After payment returns, transaction-status component handles navigation to confirmation
-    this.changeDetectorRef.detectChanges();
-  }
-}
-
   onStepValidated(isValid: boolean): void {
-    if(isValid) {
+    if (isValid) {
       this.changeDetectorRef.detectChanges();
     }
   }
+
+  onPaymentProcessingChange(isProcessing: boolean): void {
+    this.isPaymentProcessing = isProcessing;
+    this.changeDetectorRef.detectChanges();
+  }
+
   async createBookingForItem(item: CartItem): Promise<any> {
     // Booking already created upfront when user clicked "book" button
     // Just return the existing booking reference
@@ -503,10 +520,10 @@ async onStepCompleted(completed: boolean): Promise<void> {
       return;
     }
     if (!this.canProceed()) return;
-    if (this.isSubmitting) return;
+    if (this.isSubmitting || this.isPaymentProcessing) return;
 
     const currentStep = this.stepperService.currentStepIndex();
-    
+
     // Step 0 just advances the stepper
     if (currentStep === 0) {
       if (this.cartItem) {
@@ -515,7 +532,7 @@ async onStepCompleted(completed: boolean): Promise<void> {
       this.stepperService.goNext();
       return;
     }
-    
+
     // Step 1 (Visitor Details) - mark completed and advance
     if (currentStep === 1) {
       if (this.cartItem) {
@@ -524,20 +541,30 @@ async onStepCompleted(completed: boolean): Promise<void> {
       this.stepperService.goNext();
       return;
     }
-    
-    // Step 2 (Equipment) and beyond trigger booking creation logic
-    this.onStepCompleted(true);
+
+    if (currentStep === 2) {
+      void this.onStepCompleted(true);
+      return;
+    }
+
+    if (currentStep === 3) {
+      if (!this.paymentStepComponent) {
+        console.error('Payment step is not available to submit.');
+        alert('The payment form could not be submitted. Please refresh and try again.');
+        return;
+      }
+      this.paymentStepComponent.onSubmit();
+      return;
+    }
   }
 
   getNextButtonLabel(): string {
-    const paymentsEnabled = this.featureFlagService.isEnabled('enablePayments');
     const currentStep = this.stepperService.currentStepIndex();
-    
-    // Determine what the last step is based on payments
-    const lastStepIndex = paymentsEnabled ? 3 : 2;
-    
+
+    const lastStepIndex = this.isPaymentRequired() ? 3 : 2;
+
     if (currentStep === lastStepIndex) {
-      return 'Finish';
+      return this.isPaymentRequired() ? 'Finish and pay' : 'Finish';
     }
 
     return 'Continue';
@@ -563,5 +590,9 @@ async onStepCompleted(completed: boolean): Promise<void> {
   // (bcgov/reserve-rec-public#704). An empty path resolves to the base itself.
   private absoluteUrl(path: string): string {
     return new URL(path, document.baseURI).toString();
+  }
+
+  private redirectToConfirmation(bookingId: string): void {
+    window.location.assign(this.absoluteUrl(`booking-confirmation/${bookingId}`));
   }
 }

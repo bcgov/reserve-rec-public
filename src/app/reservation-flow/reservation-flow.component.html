@@ -74,6 +74,7 @@
                 [sessionId]="currentSessionId"
                 (stepCompleted)="onStepCompleted($event)"
                 (stepValidated)="onStepValidated($event)"
+                (processingChange)="onPaymentProcessingChange($event)"
               ></app-payment-step>
             </div>
           }
@@ -109,16 +110,16 @@
       <button
         type="button"
         class="btn btn-primary rounded-1 fw-bold"
-        [class.bg-disabled]="!canProceed() || isSubmitting"
-        [class.text-disabled]="!canProceed() || isSubmitting"
-        [class.border-disabled]="!canProceed() || isSubmitting"
-        [disabled]="!canProceed() || isSubmitting"
+        [class.bg-disabled]="!canProceed() || isSubmitting || isPaymentProcessing"
+        [class.text-disabled]="!canProceed() || isSubmitting || isPaymentProcessing"
+        [class.border-disabled]="!canProceed() || isSubmitting || isPaymentProcessing"
+        [disabled]="!canProceed() || isSubmitting || isPaymentProcessing"
         (click)="proceedToNext()"
         >
-        @if (isSubmitting) {
+        @if (isSubmitting || isPaymentProcessing) {
           <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
         }
-        {{ isSubmitting ? 'Processing…' : getNextButtonLabel() }}
+        {{ isSubmitting || isPaymentProcessing ? 'Processing…' : getNextButtonLabel() }}
       </button>
     </div>
   </div>

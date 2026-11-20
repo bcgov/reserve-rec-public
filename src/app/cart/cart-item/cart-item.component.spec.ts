@@ -7,6 +7,34 @@ import { CartItem, CartService } from '../../services/cart.service';
 import { FeatureFlagService } from '../../services/feature-flag.service';
 
 describe('CartItemComponent', () => {
+  it('renders a zero tax amount when fee information is missing', async () => {
+    await TestBed.configureTestingModule({
+      imports: [CartItemComponent],
+      providers: [
+        { provide: FeatureFlagService, useValue: { isEnabled: () => true } },
+        { provide: CartService, useValue: {} },
+        { provide: BsModalService, useValue: { show: jasmine.createSpy('show') } }
+      ]
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(CartItemComponent);
+    fixture.componentInstance.item = {
+      id: 'item-1',
+      geozoneName: 'Test Park',
+      activityName: 'Test Activity',
+      activityType: 'dayuse',
+      startDate: '2026-11-06',
+      endDate: '2026-11-06',
+      occupants: { totalAdult: 1, totalSenior: 0, totalYouth: 0, totalChild: 0 },
+      namedOccupant: { firstName: '', lastName: '' },
+      feeInformation: undefined
+    } as unknown as CartItem;
+    fixture.componentInstance.removeBool = true;
+
+    expect(() => fixture.detectChanges()).not.toThrow();
+    expect(fixture.nativeElement.textContent).toContain('$0');
+  });
+
   it('releases the removed item through the cart service', async () => {
     const confirmButton = new Subject<void>();
     const modalRef = {

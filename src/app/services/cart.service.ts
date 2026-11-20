@@ -123,7 +123,7 @@ export class CartService {
   // pending bookings. Callers that want to warn the user before clobbering an existing
   // item should call confirmReplaceIfNeeded() first.
   addToCart(item: CartItem): void {
-    const itemWithId = { ...item, id: this.generateId() };
+    const itemWithId = { ...this.normalizeCartItem(item), id: this.generateId() };
     const newItems = [itemWithId];
     this.cartItems.set(newItems);
     this.saveCartToStorage(newItems);
@@ -198,18 +198,19 @@ export class CartService {
       // from misfiring on items left over from a previous session.
       const admission = this.getStoredAdmission();
       return items.map(item => {
-        if (!item.waitingRoomActive) return item;
-        const facilityKey = `${item.collectionId}#${item.activityType}#${item.activityId}`;
+        const normalizedItem = this.normalizeCartItem(item);
+        if (!normalizedItem.waitingRoomActive) return normalizedItem;
+        const facilityKey = `${normalizedItem.collectionId}#${normalizedItem.activityType}#${normalizedItem.activityId}`;
         const now = Math.floor(Date.now() / 1000);
         if (
           admission &&
           admission.facilityKey === facilityKey &&
-          admission.dateKey === item.startDate &&
+          admission.dateKey === normalizedItem.startDate &&
           admission.tokenExpiry > now
         ) {
-          return item; // valid admission — keep the flag
+          return normalizedItem; // valid admission — keep the flag
         }
-        return { ...item, waitingRoomActive: false }; // stale — clear it
+        return { ...normalizedItem, waitingRoomActive: false }; // stale — clear it
       });
     } catch (error) {
       console.log(error);
@@ -234,10 +235,25 @@ export class CartService {
     }
   }
 
+  // Checking for feeInformation on an item in the cart, and replacing if
+  // any fee items are missing (stopgap until feePolicy is implemented fully)
+  private normalizeCartItem(item: CartItem): CartItem {
+    const feeInformation = item.feeInformation;
+    return {
+      ...item,
+      feeInformation: {
+        registrationFees: feeInformation?.registrationFees ?? 0,
+        transactionFees: feeInformation?.transactionFees ?? 0,
+        tax: feeInformation?.tax ?? 0,
+        total: feeInformation?.total ?? 0,
+      },
+    };
+  }
+
    updateCartItem(itemId: string, updatedItem: CartItem): void {
     this.cartItems.update(items => {
       const newItems = items.map(item =>
-        item.id === itemId ? { ...item, ...updatedItem } : item
+        item.id === itemId ? this.normalizeCartItem({ ...item, ...updatedItem }) : item
       );
       this.saveCartToStorage(newItems);
       return newItems;

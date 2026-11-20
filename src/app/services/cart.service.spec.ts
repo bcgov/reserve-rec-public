@@ -120,6 +120,36 @@ describe('CartService cross-tab sync', () => {
   it('picks up an item added in another tab', () => {
     storeFromOtherTab([{ id: 'item-2', bookingId: 'booking-2' }]);
     expect(service.items().map(item => item.id)).toEqual(['item-2']);
+    expect(service.items()[0].feeInformation).toEqual({
+      registrationFees: 0,
+      transactionFees: 0,
+      tax: 0,
+      total: 0,
+    });
+  });
+
+  it('fills missing fee fields when adding and updating cart items', () => {
+    service.addToCart({ feeInformation: { tax: 2 } } as CartItem);
+    const addedItem = service.items()[0];
+
+    expect(addedItem.feeInformation).toEqual({
+      registrationFees: 0,
+      transactionFees: 0,
+      tax: 2,
+      total: 0,
+    });
+
+    service.updateCartItem(addedItem.id, {
+      ...addedItem,
+      feeInformation: { total: 12 }
+    } as CartItem);
+
+    expect(service.items()[0].feeInformation).toEqual({
+      registrationFees: 0,
+      transactionFees: 0,
+      tax: 0,
+      total: 12,
+    });
   });
 
   it('reloads when another tab clears all storage', () => {

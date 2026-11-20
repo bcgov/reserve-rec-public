@@ -71,8 +71,9 @@ export class PaymentStepComponent implements OnInit, AfterViewInit, AfterViewChe
 
   isProcessing = signal(false);
   paymentError = signal<string | null>(null);
-  paymentSuccessToken = signal<string | null>(null);
+  paymentSucceeded = signal(false);
 
+  // Validate the form and card details to determine if the step is valid
   isFormValid(): boolean {
     return this.isCardDetailsValid() &&
       this.isBillingDetailsValid() &&
@@ -81,6 +82,7 @@ export class PaymentStepComponent implements OnInit, AfterViewInit, AfterViewChe
       !this.cardCVVError();
   }
 
+  // Validate card details based on the custom checkout fields
   private isCardDetailsValid(): boolean {
     return this.cardholderName.trim().length > 0 &&
       this.cardNumberComplete() &&
@@ -88,10 +90,11 @@ export class PaymentStepComponent implements OnInit, AfterViewInit, AfterViewChe
       this.cardCVVComplete();
   }
 
+  // Validate billing details based on the selected option (account or different)
   private isBillingDetailsValid(): boolean {
-    if (this.billingAddressOption === 'account') return true;
-
-    const details = this.alternateBillingDetails;
+    const details = this.billingAddressOption === 'account'
+      ? this.accountBillingDetails
+      : this.alternateBillingDetails;
     return Boolean(
       details.firstName.trim() &&
       details.lastName.trim() &&
@@ -105,10 +108,12 @@ export class PaymentStepComponent implements OnInit, AfterViewInit, AfterViewChe
     );
   }
 
+  // Extract billing details from the user object, handling both stringified and object formats for the address
   get accountBillingDetails(): BillingDetails {
     const user = this.user || {};
     let address: Record<string, string> = {};
 
+    // Handle the case where the address is a stringified JSON object
     if (typeof user.address === 'string') {
       try {
         const parsedAddress = JSON.parse(user.address);
@@ -118,10 +123,13 @@ export class PaymentStepComponent implements OnInit, AfterViewInit, AfterViewChe
       } catch {
         address = {};
       }
+
+    // Handle the case where the address is already an object
     } else if (user.address && typeof user.address === 'object' && !Array.isArray(user.address)) {
       address = user.address;
     }
 
+    // Helper function to get the first non-empty string from a list of values
     const value = (...values: unknown[]): string =>
       values.find((candidate): candidate is string =>
         typeof candidate === 'string' && candidate.trim().length > 0
@@ -142,6 +150,7 @@ export class PaymentStepComponent implements OnInit, AfterViewInit, AfterViewChe
     };
   }
 
+  // Construct an AccountInfo object for display in the account info component
   get accountInfo(): AccountInfo {
     const details = this.accountBillingDetails;
     const cityLine = [details.city, details.province].filter(Boolean)
@@ -184,6 +193,7 @@ export class PaymentStepComponent implements OnInit, AfterViewInit, AfterViewChe
   }
 
   ngAfterViewChecked(): void {
+    // Prevent stacking issues
     this.cdr.detectChanges();
   }
 
@@ -297,7 +307,7 @@ export class PaymentStepComponent implements OnInit, AfterViewInit, AfterViewChe
   onSubmit(event?: Event): void {
     event?.preventDefault();
 
-    if (this.isProcessing()) {
+    if (this.isProcessing() || this.paymentSucceeded()) {
       return;
     }
 
@@ -330,7 +340,6 @@ export class PaymentStepComponent implements OnInit, AfterViewInit, AfterViewChe
     this.isProcessing.set(true);
     this.processingChange.emit(true);
     this.paymentError.set(null);
-    this.paymentSuccessToken.set(null);
 
     try {
       this.checkoutInstance.createToken((result: any) => {
@@ -380,7 +389,7 @@ export class PaymentStepComponent implements OnInit, AfterViewInit, AfterViewChe
           next: (response: any) => {
             console.log('Transaction response:', response);
             if (response?.data?.response?.success || response?.success) {
-              this.paymentSuccessToken.set(result.token);
+              this.paymentSucceeded.set(true);
               this.isProcessing.set(false);
               this.processingChange.emit(false);
               this.stepCompleted.emit(true);

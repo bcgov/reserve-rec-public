@@ -510,7 +510,11 @@ export class ReservationFlowComponent implements OnInit, OnDestroy {
 
   canProceed(): boolean {
     // Check that the cart has items, and current step is valid too
-    return this.cartService.items().length > 0 && this.stepperService.getCurrentStep().isValid;
+    // If the current step is the payment step, also check that payment
+    // has not already been completed for this cart item.
+    return this.cartService.items().length > 0 &&
+      !(this.stepperService.currentStepIndex() === 3 && this.cartItem?.paymentStepCompleted) &&
+      this.stepperService.getCurrentStep().isValid;
   }
 
   proceedToNext(): void {

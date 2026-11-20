@@ -34,7 +34,18 @@ describe('PaymentStepComponent', () => {
     component.cartItem = { feeInformation: { total: 25.5 } } as any;
     component.bookingId = 'booking-1';
     component.sessionId = 'session-1';
-    component.user = { sub: 'user-1' };
+    component.user = {
+      sub: 'user-1',
+      given_name: 'Test',
+      family_name: 'User',
+      email: 'test@example.com',
+      'custom:streetAddress': '1 Test Street',
+      'custom:city': 'Victoria',
+      'custom:province': 'British Columbia',
+      'custom:postalCode': 'V8W 1A1',
+      'custom:country': 'Canada',
+      'custom:mobilePhone': '+12505550123',
+    };
     (component as any).checkoutInstance = checkoutInstance;
     setValidCardDetails();
   });
@@ -73,6 +84,29 @@ describe('PaymentStepComponent', () => {
     expect(completed).toEqual([true]);
     expect(processing).toEqual([true, false]);
     expect(component.isProcessing()).toBeFalse();
+    expect(component.paymentSucceeded()).toBeTrue();
+
+    component.onSubmit();
+
+    expect(checkoutInstance.createToken).toHaveBeenCalledTimes(1);
+    expect(apiService.post).toHaveBeenCalledTimes(1);
+  });
+
+  it('allows another attempt when the transaction is declined', () => {
+    apiService.post.and.returnValues(
+      of({ success: false }) as any,
+      of({ success: true }) as any
+    );
+    checkoutInstance.createToken.and.callFake((callback: (result: any) => void) => {
+      callback({ token: 'token-1' });
+    });
+
+    component.onSubmit();
+    component.onSubmit();
+
+    expect(checkoutInstance.createToken).toHaveBeenCalledTimes(2);
+    expect(apiService.post).toHaveBeenCalledTimes(2);
+    expect(component.paymentSucceeded()).toBeTrue();
   });
 
   it('uses the Cognito profile for the account billing address', () => {
@@ -107,6 +141,21 @@ describe('PaymentStepComponent', () => {
       country: 'CA',
       phoneNumber: '+12505550123',
     }));
+  });
+
+  it('requires complete account billing details before tokenizing', () => {
+    component.user = {
+      sub: 'user-1',
+      given_name: 'Ada',
+      family_name: 'Lovelace',
+      email: 'ada@example.com',
+    };
+
+    component.onSubmit();
+
+    expect(checkoutInstance.createToken).not.toHaveBeenCalled();
+    expect(apiService.post).not.toHaveBeenCalled();
+    expect(component.paymentError()).toContain('billing information');
   });
 
   it('requires valid separate billing details before tokenizing', () => {

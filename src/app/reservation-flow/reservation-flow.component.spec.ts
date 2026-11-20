@@ -102,6 +102,7 @@ describe('ReservationFlowComponent', () => {
     await component.onStepCompleted(true);
 
     expect(item.paymentStepCompleted).toBeTrue();
+    expect(component.canProceed()).toBeFalse();
     expect(bookingService.completeBooking).not.toHaveBeenCalled();
     expect(redirect).toHaveBeenCalledOnceWith('booking-1');
     expect(cartService.cartTimerIsActive()).toBeFalse();

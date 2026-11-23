@@ -10,6 +10,7 @@ import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 import { ProductService } from '../services/product.service';
 import { ProductDateService } from '../services/product-date.service';
 import { InventoryPoolService } from '../services/inventory-pool.service';
+import { LoadingService } from '../services/loading.service';
 import { Constants } from '../constants';
 import { CartService, CartItem, holdReleaseNotes } from '../services/cart.service';
 import { ToastService, ToastTypes } from '../services/toast.service';
@@ -93,6 +94,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   private waitingRoomService = inject(WaitingRoomService);
   private apiService = inject(ApiService);
   private inventoryPoolService = inject(InventoryPoolService);
+  private loadingService = inject(LoadingService);
   private modalService = inject(BsModalService);
   private bookingService = inject(BookingService);
   private zone = inject(NgZone);
@@ -355,13 +357,16 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
       // Check Mode 1 waiting room status for the selected date
       if (this.selectedCollectionId && this.selectedActivityType && this.selectedActivityId) {
         try {
+          this.loadingService.addToFetchList(Constants.dataIds.ACTIVITY_DETAILS_RESULT);
           const res = await lastValueFrom(this.apiService.get(
             `activities/${this.selectedCollectionId}`,
             { activityType: this.selectedActivityType, activityId: this.selectedActivityId, startDate: this.selectedDateStr }
           ));
+          this.loadingService.removeFromFetchList(Constants.dataIds.ACTIVITY_DETAILS_RESULT);
           this.waitingRoomActive = res?.['data']?.waitingRoomActive === true;
         } catch {
           // Fail open — booking API enforces server-side
+          this.loadingService.removeFromFetchList(Constants.dataIds.ACTIVITY_DETAILS_RESULT);
         }
       }
 

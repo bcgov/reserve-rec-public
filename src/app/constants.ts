@@ -16,6 +16,7 @@ export class Constants {
     PRODUCT_LIST: 'productList',
     PRODUCT_DATE_RESULT: 'productResult',
     PRODUCT_DATE_LIST: 'productList',
+    INVENTORY_POOL_RESULT: 'inventoryPoolResult',
     USER_UPDATE: 'userUpdate',
     MIGRATE_UPDATE: 'migrateUpdate',
     SIGN_IN: 'signIn'

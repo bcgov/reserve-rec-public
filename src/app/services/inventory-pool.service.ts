@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { ApiService } from './api.service';
 import { LoggerService } from './logger.service';
+import { LoadingService } from './loading.service';
+import { Constants } from '../constants';
 
 @Injectable({
   providedIn: 'root',
@@ -10,6 +12,7 @@ export class InventoryPoolService {
   constructor(
     private apiService: ApiService,
     private loggerService: LoggerService,
+    private loadingService: LoadingService,
   ) { }
 
   /**
@@ -18,14 +21,17 @@ export class InventoryPoolService {
    */
   async getInventoryPool(collectionId: string, activityType: string, activityId: string, productId: string, date: string) {
     try {
+      this.loadingService.addToFetchList(Constants.dataIds.INVENTORY_POOL_RESULT);
       const result = await lastValueFrom(this.apiService.get(
         `inventoryPools/${collectionId}/${activityType}/${activityId}/${productId}`,
         { date }
       ));
+      this.loadingService.removeFromFetchList(Constants.dataIds.INVENTORY_POOL_RESULT);
       return (result as any)?.data || result || {};
     } catch (error) {
       this.loggerService.error(`Failed to fetch inventory pool for date ${date}:`);
       this.loggerService.error(error);
+      this.loadingService.removeFromFetchList(Constants.dataIds.INVENTORY_POOL_RESULT);
       // Fail open with default values - unknown availability treated as unlimited
       return { isOpen: true, available: null };
     }

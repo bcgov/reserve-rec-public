@@ -314,6 +314,63 @@ describe('FacilityDetailsComponent', () => {
     });
   });
 
+  describe('loading spinner on number of passes', () => {
+    const mockDate = '2026-07-15';
+    let loadingService: any;
+    let apiService: any;
+
+    beforeEach(() => {
+      component.isLoggedIn = true;
+      component.selectedActivitySubType = 'trailUse';
+      (component as any).selectedCollectionId = 'bcparks_1';
+      (component as any).selectedActivityType = 'dayuse';
+      (component as any).selectedActivityId = 1;
+      component.form.get('selectedProduct').setValue('product::c1::dayuse::a1#1', { emitEvent: false });
+      
+      component.availableDates = {
+        [mockDate]: {
+          reservationContext: {
+            minDailyInventory: 1,
+            maxDailyInventory: 4,
+            temporalWindows: {
+              reservationWindow: {
+                open: Date.now() - 1000,
+                close: Date.now() + 86400000
+              }
+            }
+          },
+          inventoryPool: { isOpen: true, available: 10 }
+        }
+      };
+      
+      loadingService = (component as any).loadingService;
+      apiService = (component as any).apiService;
+      spyOn(apiService, 'get').and.returnValue(of({
+        data: { waitingRoomActive: false }
+      }));
+      fixture.detectChanges();
+    });
+
+    it('triggers loading service when fetching available passes', async () => {
+      spyOn(loadingService, 'addToFetchList');
+      spyOn(loadingService, 'removeFromFetchList');
+      
+      await (component as any).loadPassesAvailable(mockDate);
+
+      expect(loadingService.addToFetchList).toHaveBeenCalled();
+      expect(loadingService.removeFromFetchList).toHaveBeenCalled();
+    });
+
+    it('populates available visitor counts after loading completes', async () => {
+      await (component as any).loadPassesAvailable(mockDate);
+
+      expect(component.loadingPasses).toBeFalse();
+      expect(component.availableVisitorsAllowed.length).toBeGreaterThan(0);
+      expect(component.availableVisitorsAllowed[0].display).toBe('1');
+      expect(component.availableVisitorsAllowed[component.availableVisitorsAllowed.length - 1].display).toBe('4');
+    });
+  });
+
   describe('email verified', () => {
     const product = 'product::c1::dayuse::a1#p1';
     let loadProductDates: jasmine.Spy;

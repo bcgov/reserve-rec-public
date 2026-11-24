@@ -20,7 +20,6 @@
             "allowedCommonJsDependencies": [
               "lodash",
               "qrcode",
-              "maplibre-gl",
               "guid-typescript"
             ],
             "outputPath": "dist/reserve-rec-public",
@@ -36,6 +35,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "maplibre-gl-worker.mjs",
+                "input": "node_modules/maplibre-gl/dist",
+                "output": "/"
               },
               "src/assets",
               "src/env.js",
@@ -89,6 +93,11 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "prebundle": {
+              "exclude": ["maplibre-gl"]
+            }
+          },
           "configurations": {
             "production": {
               "buildTarget": "reserve-rec-public:build:production"

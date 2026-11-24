@@ -18,7 +18,7 @@ import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
 import { ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { CartTimerComponent } from '../cart/cart-timer/cart-timer.component';
-// import Modal from 'bootstrap/js/dist/modal';
+import { getBookingCompletionDetails } from '../utils/reservation-form.utils';
 
 @Component({
   selector: 'app-reservation-flow',
@@ -422,64 +422,11 @@ export class ReservationFlowComponent implements OnInit, OnDestroy {
     return productId.split('::')[0] || null;
   }
 
-  private getBookingFormDetails(formValue: any): {
-    namedOccupant: any;
-    vehicleInformation: any[];
-    equipmentInformation: string;
-  } {
-    return {
-      namedOccupant: this.getNamedOccupantInfo(formValue),
-      vehicleInformation: this.getVehicleInformation(formValue),
-      equipmentInformation: formValue?.equipmentDetails || formValue?.additionalEquipment || ''
-    };
-  }
-
-  private getNamedOccupantInfo(formValue: any): any {
-    // Identity fields (firstName, lastName, email, mobilePhone) are resolved
-    // server-side from the authenticated Cognito sub — the FE must not send
-    // them or the booking can be made to carry another user's identity
-    // (Ref #480). Address fields stay client-provided since Cognito does not
-    // reliably carry them for BCSC users.
-    const addressInfo = formValue.addressInfo || {};
-
-    return {
-      contactInfo: {
-        streetAddress: addressInfo.streetAddress || '',
-        city: addressInfo.city || '',
-        postalCode: addressInfo.postalCode || '',
-        province: addressInfo.province || '',
-        country: addressInfo.country || ''
-      }
-    };
-  }
-
-  private getVehicleInformation(formValue: any): any[] {
-    const equipmentInfo = formValue?.equipmentInfo || {};
-    const licensePlate = (equipmentInfo?.licensePlate || '').trim();
-    const registeredProvince = (equipmentInfo?.registeredProvince || '').trim();
-
-    if (!licensePlate && !registeredProvince) {
-      return [];
-    }
-
-    return [
-      {
-        licensePlate,
-        licensePlateRegistrationRegion: registeredProvince
-      }
-    ];
-  }
-
   private getCompletionPayload(formValue: any, sessionId: string | null, queryTime: number): any {
-    const bookingDetails = this.getBookingFormDetails(formValue);
-
     return {
       sessionId: sessionId,
       queryTime: queryTime,
-      namedOccupant: bookingDetails.namedOccupant,
-      vehicleInformation: bookingDetails.vehicleInformation,
-      equipmentInformation: bookingDetails.equipmentInformation,
-      smsOptIn: formValue?.smsOptIn || false,
+      ...getBookingCompletionDetails(formValue)
     };
   }
 

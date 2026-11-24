@@ -10,6 +10,7 @@ import { OrderSummaryComponent } from '../../../../shared/components/order-summa
 import { RouterLink } from '@angular/router';
 import { AccountInfo, AccountInfoComponent } from '../../../../shared/components/account-info/account-info.component';
 import { toWorldlineBillingLocation } from '../../../../data/worldline-billing-location';
+import { getBookingCompletionDetails } from '../../../../utils/reservation-form.utils';
 
 // Used for Worldline custom checkout form
 declare let customcheckout: any;
@@ -184,7 +185,6 @@ export class PaymentStepComponent implements OnInit, AfterViewInit, AfterViewChe
     ).subscribe(() => {
       this.validateStep();
     });
-
     this.validateStep();
   }
 
@@ -366,13 +366,19 @@ export class PaymentStepComponent implements OnInit, AfterViewInit, AfterViewChe
           billingDetails.country
         );
 
+        const formValue = this.form?.value || {};
+        const bookingDetails = getBookingCompletionDetails(formValue);
+
         const paymentPayload = {
           bookingId: this.bookingId,
           sessionId: this.sessionId,
           trnAmount,
           token: result.token,
           userId: this.user?.sub,
-          namedOccupant: `${this.user?.given_name} ${this.user?.family_name}`,
+          namedOccupant: bookingDetails.namedOccupant,
+          vehicleInformation: bookingDetails.vehicleInformation,
+          equipmentInformation: bookingDetails.equipmentInformation,
+          smsOptIn: bookingDetails.smsOptIn,
           cardholderName: this.cardholderName.trim(),
           billingName: `${billingDetails.firstName} ${billingDetails.lastName}`,
           email: billingDetails.email,

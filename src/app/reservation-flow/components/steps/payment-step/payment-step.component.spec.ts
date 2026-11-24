@@ -92,6 +92,55 @@ describe('PaymentStepComponent', () => {
     expect(apiService.post).toHaveBeenCalledTimes(1);
   });
 
+  it('sends booking completion details from the form in the payment request', () => {
+    component.form = {
+      value: {
+        addressInfo: {
+          streetAddress: '12 Main Street',
+          city: 'Victoria',
+          postalCode: 'V8W 1A1',
+          province: 'British Columbia',
+          country: 'Canada'
+        },
+        equipmentInfo: {
+          licensePlate: 'ABC123',
+          registeredProvince: 'BC'
+        },
+        equipmentDetails: 'Tent',
+        smsOptIn: true
+      }
+    } as any;
+    component.cartItem = {
+      feeInformation: { total: 25.5 },
+      vehicleInformation: [{ licensePlate: '', licensePlateRegistrationRegion: '' }],
+      smsOptIn: false
+    } as any;
+    apiService.post.and.returnValue(of({ success: true }) as any);
+    checkoutInstance.createToken.and.callFake((callback: (result: any) => void) => {
+      callback({ token: 'token-1' });
+    });
+
+    component.onSubmit();
+
+    expect(apiService.post).toHaveBeenCalledWith('transactions', jasmine.objectContaining({
+      namedOccupant: {
+        contactInfo: {
+          streetAddress: '12 Main Street',
+          city: 'Victoria',
+          postalCode: 'V8W 1A1',
+          province: 'British Columbia',
+          country: 'Canada'
+        }
+      },
+      vehicleInformation: [{
+        licensePlate: 'ABC123',
+        licensePlateRegistrationRegion: 'BC'
+      }],
+      equipmentInformation: 'Tent',
+      smsOptIn: true
+    }));
+  });
+
   it('allows another attempt when the transaction is declined', () => {
     apiService.post.and.returnValues(
       of({ success: false }) as any,

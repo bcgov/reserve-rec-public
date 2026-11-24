@@ -18,6 +18,8 @@ export interface CartItem {
   dateRange: [string, string];
   startDate: string;
   endDate: string;
+  equipmentInformation?: string;
+  smsOptIn?: boolean;
   namedOccupant: {
     firstName: string;
     lastName: string;

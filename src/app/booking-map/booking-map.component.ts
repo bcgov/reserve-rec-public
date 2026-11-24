@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild } from '@angular/core';
-import maplibregl, { Map } from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
+import { Map } from 'maplibre-gl';
 import { Router } from '@angular/router';
 
 @Component({

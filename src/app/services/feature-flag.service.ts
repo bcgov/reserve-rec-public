@@ -18,7 +18,7 @@ export class FeatureFlagService {
 
   // Default flags (used as fallback)
   private readonly defaultFlags: Record<string, boolean> = {
-    enablePayments: true
+    enablePayments: false
   };
 
   constructor(

@@ -1,63 +1,205 @@
-import { Component, Input, Output, EventEmitter, OnInit, signal } from '@angular/core';
+import { AfterViewInit, Component, Input, Output, EventEmitter, OnInit, signal, OnDestroy, inject, DestroyRef, ChangeDetectorRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgdsFormsModule } from '@digitalspace/ngds-forms';
 import { StepperService } from '../../../services/stepper.service';
 import { CartItem } from '../../../../services/cart.service';
-import { BookingService } from '../../../../services/booking.service';
-import { Router } from '@angular/router';
 import { ApiService } from '../../../../services/api.service';
-import { DataService } from '../../../../services/data.service';
-import { LoadingService } from '../../../../services/loading.service';
-import { Constants } from '../../../../constants';
-import { lastValueFrom } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { OrderSummaryComponent } from '../../../../shared/components/order-summary/order-summary.component';
+import { RouterLink } from '@angular/router';
+import { AccountInfo, AccountInfoComponent } from '../../../../shared/components/account-info/account-info.component';
+import { toWorldlineBillingLocation } from '../../../../data/worldline-billing-location';
+import { getBookingCompletionDetails } from '../../../../utils/reservation-form.utils';
+
+// Used for Worldline custom checkout form
+declare let customcheckout: any;
+
+type BillingAddressOption = 'account' | 'different';
+
+interface BillingDetails {
+  firstName: string;
+  lastName: string;
+  email: string;
+  address1: string;
+  address2: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  country: string;
+  phoneNumber: string;
+}
 
 @Component({
   selector: 'app-payment-step',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, NgdsFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, NgdsFormsModule, OrderSummaryComponent, RouterLink, AccountInfoComponent],
   templateUrl: './payment-step.component.html',
   styleUrl: './payment-step.component.scss'
 })
-export class PaymentStepComponent implements OnInit {
+export class PaymentStepComponent implements OnInit, AfterViewInit, AfterViewChecked, OnDestroy {
   @Input() form: FormGroup | null = null;
-  @Input() cartItem: CartItem | null = null; // Added: cart-based input
-  @Input() bookingSummary: any = null; // Added: booking summary
-  @Input() user: any = null; // Added: user information
-  @Input() bookingId: string | null = null; // Booking ID from parent (created before payment)
-  @Input() sessionId: string | null = null; // Session ID from booking creation
+  @Input() cartItem: CartItem | null = null;
+  @Input() bookingSummary: any = null;
+  @Input() user: any = null;
+  @Input() bookingId: string | null = null;
+  @Input() sessionId: string | null = null;
   
   @Output() stepCompleted = new EventEmitter<boolean>();
   @Output() stepValidated = new EventEmitter<boolean>();
-  @Output() paymentProcessed = new EventEmitter<any>(); // Added: payment processing event
+  @Output() paymentProcessed = new EventEmitter<any>();
+  @Output() processingChange = new EventEmitter<boolean>();
 
   isProcessingPayment = false;
 
-  public transactionUrl;
-  public _transactionUrlSignal = signal(null);
+  cardholderName = '';
+  billingAddressOption: BillingAddressOption = 'account';
+  alternateBillingDetails: BillingDetails = this.emptyBillingDetails();
+
+  private checkoutInstance: any;
+  private cardNumberField: any;
+  private cardExpiryField: any;
+  private cardCVVField: any;
+  private destroyRef = inject(DestroyRef);
+
+  cardNumberError = signal<string | null>(null);
+  cardExpiryError = signal<string | null>(null);
+  cardCVVError = signal<string | null>(null);
+
+  cardNumberComplete = signal(false);
+  cardExpiryComplete = signal(false);
+  cardCVVComplete = signal(false);
+
+  isProcessing = signal(false);
+  paymentError = signal<string | null>(null);
+  paymentSucceeded = signal(false);
+
+  // Validate the form and card details to determine if the step is valid
+  isFormValid(): boolean {
+    return this.isCardDetailsValid() &&
+      this.isBillingDetailsValid() &&
+      !this.cardNumberError() &&
+      !this.cardExpiryError() &&
+      !this.cardCVVError();
+  }
+
+  // Validate card details based on the custom checkout fields
+  private isCardDetailsValid(): boolean {
+    return this.cardholderName.trim().length > 0 &&
+      this.cardNumberComplete() &&
+      this.cardExpiryComplete() &&
+      this.cardCVVComplete();
+  }
+
+  // Validate billing details based on the selected option (account or different)
+  private isBillingDetailsValid(): boolean {
+    const details = this.billingAddressOption === 'account'
+      ? this.accountBillingDetails
+      : this.alternateBillingDetails;
+    return Boolean(
+      details.firstName.trim() &&
+      details.lastName.trim() &&
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(details.email.trim()) &&
+      details.address1.trim() &&
+      details.city.trim() &&
+      details.province.trim() &&
+      details.postalCode.trim() &&
+      details.country.trim() &&
+      details.phoneNumber.trim()
+    );
+  }
+
+  // Extract billing details from the user object, handling both stringified and object formats for the address
+  get accountBillingDetails(): BillingDetails {
+    const user = this.user || {};
+    let address: Record<string, string> = {};
+
+    // Handle the case where the address is a stringified JSON object
+    if (typeof user.address === 'string') {
+      try {
+        const parsedAddress = JSON.parse(user.address);
+        if (parsedAddress && typeof parsedAddress === 'object' && !Array.isArray(parsedAddress)) {
+          address = parsedAddress;
+        }
+      } catch {
+        address = {};
+      }
+
+    // Handle the case where the address is already an object
+    } else if (user.address && typeof user.address === 'object' && !Array.isArray(user.address)) {
+      address = user.address;
+    }
+
+    // Helper function to get the first non-empty string from a list of values
+    const value = (...values: unknown[]): string =>
+      values.find((candidate): candidate is string =>
+        typeof candidate === 'string' && candidate.trim().length > 0
+      )?.trim() || '';
+    const country = value(user['custom:country'], address['country']);
+
+    return {
+      firstName: value(user.given_name),
+      lastName: value(user.family_name),
+      email: value(user.email),
+      address1: value(user['custom:streetAddress'], user.streetAddress, address['street_address']),
+      address2: value(user['custom:unitNumber'], user.unitNumber),
+      city: value(user['custom:city'], user.city, address['locality']),
+      province: value(user['custom:province'], user.province, address['region']),
+      postalCode: value(user['custom:postalCode'], user.postalCode, address['postal_code']),
+      country: country === 'CA' ? 'Canada' : country,
+      phoneNumber: value(user['custom:mobilePhone'], user.phone_number),
+    };
+  }
+
+  // Construct an AccountInfo object for display in the account info component
+  get accountInfo(): AccountInfo {
+    const details = this.accountBillingDetails;
+    const cityLine = [details.city, details.province].filter(Boolean)
+      .join(details.city && details.province ? ', ' : '') +
+      (details.postalCode ? ` ${details.postalCode}` : '');
+    const fullName = `${details.firstName} ${details.lastName}`.trim() || 'Not provided';
+
+    return {
+      fullName,
+      email: details.email || 'Not provided',
+      addressLines: [
+        details.address1 || 'Not provided',
+        ...(details.address2 ? [details.address2] : []),
+        cityLine,
+        details.country
+      ],
+      phoneHeading: 'Mobile phone',
+      phones: [{ value: details.phoneNumber || 'Not provided' }]
+    };
+  }
   
   constructor(
     private stepperService: StepperService,
-    private bookingService: BookingService,
-    private router: Router,
     private apiService: ApiService,
-    private dataService: DataService,
-    private loadingService: LoadingService
+    private cdr: ChangeDetectorRef
   ) {}
   
   ngOnInit(): void {
-
-    if (this.form) {
-      this.form.valueChanges.subscribe(() => {
-        this.validateStep();
-      });
-    }
-    
+    this.form?.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
+      this.validateStep();
+    });
     this.validateStep();
   }
-  
+
+  ngAfterViewInit(): void {
+    this.initializeCustomCheckout();
+  }
+
+  ngAfterViewChecked(): void {
+    // Prevent stacking issues
+    this.cdr.detectChanges();
+  }
+
   isStepValid(): boolean {
-    return !!(this.form && this.cartItem && this.bookingSummary);
+    // Enable stepper validation based on whether the form and card details are complete/valid
+    return this.isFormValid();
   }
   
   validateStep(): void {
@@ -66,283 +208,254 @@ export class PaymentStepComponent implements OnInit {
     this.stepValidated.emit(isValid);
   }
   
-  async processPayment(): Promise<void> {
-    if (!this.isStepValid() || this.isProcessingPayment) return;
-  
-    this.isProcessingPayment = true;
+  // Initialize and set the checkout fields and style
+  private initializeCustomCheckout(): void {
+    if (typeof customcheckout !== 'function') {
+      this.paymentError.set('Secure checkout could not be loaded. Please refresh and try again.');
+      return;
+    }
 
     try {
-      // Use existing booking from cart item (created when user clicked "book")
-      const bookingId = this.cartItem?.bookingId || this.bookingId;
-      const sessionId = this.cartItem?.sessionId || this.sessionId;
+      this.checkoutInstance = customcheckout();
 
-      if (!bookingId || !sessionId) {
-        throw new Error('Booking ID and Session ID required. Booking may have expired.');
-      }
+      // Style the custom checkout when it's loaded in
+      const style = {
+        base: {
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+          fontSize: '16px',
+          fontWeight: '400',
+          color: '#212529',
+        },
+        error: {
+          color: '#dc3545',
+          ':focus': {
+            fontStyle: 'normal',
+          },
+        },
+      };
 
-      // This will redirect the user to the payment gateway
-      await this.initiateTransaction(bookingId, sessionId, this.form.get('primaryOccupant.email').value || this.user?.email || '');
-    } catch (error: any) {
-      console.error('Error processing payment:', error);
+      this.cardNumberField = this.checkoutInstance.create('card-number', {
+        // placeholder: 'Card Number',
+        style: style,
+      });
+      this.cardNumberField.mount('#card-number');
 
-      // Check for waiting room admission expiration
-      if (error?.waitingRoom && this.cartItem) {
-        // Admission expired or invalidated — send user back to the waiting room
-        const params = new URLSearchParams({
-          collectionId: this.cartItem.collectionId,
-          activityType: this.cartItem.activityType,
-          activityId: this.cartItem.activityId,
-          startDate: this.cartItem.startDate,
-          returnUrl: '/checkout',
-        });
-        window.location.href = new URL(`waitingroom.html?${params.toString()}`, document.baseURI).toString();
-        return;
-      }
+      this.cardExpiryField = this.checkoutInstance.create('expiry', {
+        placeholder: 'MM / YY',
+        style: style,
+      });
+      this.cardExpiryField.mount('#card-expiry');
 
-      alert(`There was an error processing your payment. Please try again later.`);
-      this.isProcessingPayment = false;
+      this.cardCVVField = this.checkoutInstance.create('cvv', {
+        // placeholder: 'CVV',
+        style: style,
+      });
+      this.cardCVVField.mount('#card-cvv');
+
+      // Listeners for errors and completions
+      this.checkoutInstance.on('error', (event: any) => {
+        this.handleFieldError(event);
+      });
+
+      this.checkoutInstance.on('complete', (event: any) => {
+        this.handleFieldComplete(event);
+      });
+
+    } catch (err: any) {
+      console.error('Failed to initialize Custom Checkout:', err);
+      this.paymentError.set('Failed to load secure checkout fields. Please try again.');
     }
   }
 
-  formatFormForSubmission() {
-    const formValue = this.form.value;
-    const normalizedProductId = this.normalizeProductId(this.cartItem?.productId);
+  private handleFieldError(event: any): void {
+    switch (event.field) {
+      case 'card-number':
+        this.cardNumberComplete.set(false);
+        this.cardNumberError.set(event.message);
+        break;
+      case 'expiry':
+        this.cardExpiryComplete.set(false);
+        this.cardExpiryError.set(event.message);
+        break;
+      case 'cvv':
+        this.cardCVVComplete.set(false);
+        this.cardCVVError.set(event.message);
+        break;
+    }
+    this.validateStep();
+  }
 
-    const bookedAt = new Date().toISOString();
-    const formattedValue = {
-      startDate: formValue.dateRange[0],
-      endDate: formValue.dateRange[1],
-      productId: normalizedProductId,
-      entryPoint: this.getFormattedAccessPointKey(formValue?.entryPoint),
-      exitPoint: this.getFormattedAccessPointKey(formValue?.exitPoint),
-      displayName: this.cartItem?.activityName || '',
-      timezone: 'America/Vancouver', // Todo - update to reflect activity timezone
-      bookedAt: bookedAt,
-      collectionId: this.cartItem?.collectionId || '',
-      activityId: this.cartItem?.activityId || '',
-      activityType: this.cartItem?.activityType || '',
-      feeInformation: {
-        registrationFees: 0, // Todo - update to reflect registration fees
-        transactionFees: 0, // Todo - update to reflect transaction fees
-        tax: this.getTaxes() || 0, // Todo - update to reflect tax calculation
-        total: this.getTotalCost(),
-      },
-      userId: this.user?.sub ? this.user.sub : 'guest',
-      partyInformation: {
-        adult: parseInt(formValue.occupants.totalAdult) || 0,
-        senior: parseInt(formValue.occupants.totalSenior) || 0,
-        youth: parseInt(formValue.occupants.totalYouth) || 0,
-        child: parseInt(formValue.occupants.totalChild) || 0,
-      },
-      rateClass: 'standard', // Todo - update to reflect activity rate class
-      namedOccupant: this.getNamedOccupantInformation(),
-      smsOptIn: Boolean(formValue?.smsOptIn),
-      vehicleInformation: this.getVehicleInformation(formValue),
-      equipmentInformation: formValue?.equipmentDetails || formValue?.additionalEquipment || '',
-      bookingStatus: 'confirmed',
-      location: formValue?.entryPoint?.location ? formValue.entryPoint?.location : { type: "point", coordinates: [-127.86704491749371, 50.85383286629616] } // Todo - update to reflect actual location
-    };
+  private handleFieldComplete(event: any): void {
+    switch (event.field) {
+      case 'card-number':
+        this.cardNumberComplete.set(true);
+        this.cardNumberError.set(null);
+        break;
+      case 'expiry':
+        this.cardExpiryComplete.set(true);
+        this.cardExpiryError.set(null);
+        break;
+      case 'cvv':
+        this.cardCVVComplete.set(true);
+        this.cardCVVError.set(null);
+        break;
+    }
+    this.validateStep();
+  }
 
-    console.log('Formatted Submission Value:', formattedValue);
+  // Called in the reservation-flow component
+  onSubmit(event?: Event): void {
+    event?.preventDefault();
 
-    if (!formattedValue.userId) {
-      delete formattedValue.userId; // Remove user if not logged in
+    if (this.isProcessing() || this.paymentSucceeded()) {
+      return;
     }
 
-    return formattedValue;
-  }
-
-  private normalizeProductId(productId?: string): string | null {
-    if (!productId) {
-      return null;
+    if (!this.isCardDetailsValid() || this.cardNumberError() || this.cardExpiryError() || this.cardCVVError()) {
+      this.paymentError.set('Enter your name and complete all card fields before continuing.');
+      return;
     }
 
-    return productId.split('::')[0] || null;
-  }
-
-  getFormattedAccessPointKey(accessPoint){
-    if (!accessPoint) return null;
-
-    const mockData = [
-      { pk: 'facility::bcparks_9398', sk: 'accessPoint::1', value: 'Main Trailhead' },
-      { pk: 'facility::bcparks_9398', sk: 'accessPoint::2', value: 'North Access Point' },
-      { pk: 'facility::bcparks_9398', sk: 'accessPoint::3', value: 'South Access Point' }
-    ];
-
-    const entryPointKey = mockData.find(item => item.value === accessPoint);
-
-    return entryPointKey ? { pk: entryPointKey.pk, sk: entryPointKey.sk } : null;
-  }
-
-  getNamedOccupantInformation() {
-    // Identity fields (firstName, lastName, email, mobilePhone) are resolved
-    // server-side from the authenticated Cognito sub — the FE must not send
-    // them or the booking can be made to carry another user's identity
-    // (Ref #480). Address fields stay client-provided since Cognito does not
-    // reliably carry them for BCSC users.
-    const obj: any = {
-      contactInfo: {
-        streetAddress: this.user?.address?.streetAddress || this.form.get('addressInfo.streetAddress')?.value || '',
-        unitNumber: this.user?.address?.unitNumber || this.form.get('addressInfo.unitNumber')?.value || '',
-        postalCode: this.user?.address?.postalCode || this.form.get('addressInfo.postalCode')?.value || '',
-        city: this.user?.address?.city || this.form.get('addressInfo.city')?.value || '',
-        province: this.user?.address?.province || this.form.get('addressInfo.province')?.value || '',
-        country: this.user?.address?.country || this.form.get('addressInfo.country')?.value || '',
-      }
-    };
-
-    for (const key in obj.contactInfo) {
-      if (obj.contactInfo[key] === '') {
-        delete obj.contactInfo[key];
-      }
-    }
-    return obj;
-  }
-
-  private getVehicleInformation(formValue: any): any[] {
-    const equipmentInfo = formValue?.equipmentInfo || {};
-    const licensePlate = (equipmentInfo?.licensePlate || '').trim();
-    const registeredProvince = (equipmentInfo?.registeredProvince || '').trim();
-
-    if (!licensePlate && !registeredProvince) {
-      return [];
+    if (!this.isBillingDetailsValid()) {
+      this.paymentError.set('Complete all required billing information with a valid email address.');
+      return;
     }
 
-    return [
-      {
-        licensePlate,
-        licensePlateRegistrationRegion: registeredProvince
-      }
-    ];
-  }
+    if (!this.checkoutInstance) {
+      this.paymentError.set('Secure checkout is unavailable. Please refresh and try again.');
+      return;
+    }
 
-  getTotalCost(): number {
-    const totalNights = this.calculateTotalNights();
-    const nightlyAdultCost = this.getNightlyAdultCost();
-    const nightlyYouthCost = this.getNightlyYouthCost();
-    const totalAdultCost = nightlyAdultCost * totalNights;
-    const totalYouthCost = nightlyYouthCost * totalNights;
-    return totalAdultCost + totalYouthCost;
-  }
+    const trnAmount = Number(this.cartItem?.feeInformation?.total);
+    if (!Number.isFinite(trnAmount) || trnAmount <= 0) {
+      this.paymentError.set('There is no payment amount available for this booking.');
+      return;
+    }
 
-  // TODO: GST calculation needs to be fixed based on correct tax rates
-  // calculateInclusiveGST(): number {
-  //   const totalCost = this.getTotalCost();
-  //   const gstAmount = totalCost * (1 - 1 / (1 + this.cartItem?.total));
-  //   return parseFloat(gstAmount.toFixed(2));
-  // }
+    if (!this.bookingId || !this.sessionId || !this.user?.sub) {
+      this.paymentError.set('Booking information is missing. Please return to the previous step and try again.');
+      return;
+    }
 
-  getNightlyAdultCost(): number {
-    const totalAdults = this.getAdultOccupants();
-    return totalAdults * this.cartItem.occupants?.totalAdult;
-  }
-
-  getNightlyYouthCost(): number {
-    const totalYouth = this.getYouthOccupants();
-    return totalYouth * this.cartItem.occupants?.totalYouth;
-  }
-
-  getAdultOccupants(): number {
-    return parseInt(this.form.get('occupants.totalAdult').value || 0) + parseInt(this.form.get('occupants.totalSenior').value || 0);
-  }
-
-  getYouthOccupants(): number {
-    return parseInt(this.form.get('occupants.totalYouth').value || 0) + parseInt(this.form.get('occupants.totalChild').value || 0);
-  }
-
-  async initiateTransaction(bookingId: string, sessionId: string, email: string) {
-    const totalCost = this.getTotalCost();
-    const body = {
-      trnAmount: totalCost,
-      bookingId: bookingId,
-      sessionId: sessionId,
-      email: email,
-    };
+    this.isProcessing.set(true);
+    this.processingChange.emit(true);
+    this.paymentError.set(null);
 
     try {
-      this.loadingService.addToFetchList(Constants.dataIds.TRANSACTION_POST_RESULTS);
-      const res: any = await lastValueFrom(this.apiService.post(`transactions`, body, {}));
+      this.checkoutInstance.createToken((result: any) => {
+        if (result?.error) {
+          this.isProcessing.set(false);
+          this.processingChange.emit(false);
+          this.paymentError.set(result.error.message || 'Card tokenization failed. Please check the card details.');
+          return;
+        }
 
-      const transactionUrl = res?.data?.response?.transaction?.data?.transactionUrl;
+        if (!result?.token) {
+          this.isProcessing.set(false);
+          this.processingChange.emit(false);
+          this.paymentError.set('Secure checkout did not return a payment token. Please try again.');
+          return;
+        }
 
-      if (transactionUrl) {
-        this.dataService.setItemValue(Constants.dataIds.TRANSACTION_POST_RESULTS, res);
-        this.loadingService.removeFromFetchList(Constants.dataIds.TRANSACTION_POST_RESULTS);
+        const billingDetails = this.billingAddressOption === 'account'
+          ? this.accountBillingDetails
+          : this.alternateBillingDetails;
 
-        // Redirect to payment gateway
-        window.location.href = transactionUrl;
-      } else {
-        throw new Error('No transaction URL returned');
-      }
-    } catch (error: any) {
-      console.error('Failed to create transaction:', error);
-      this.loadingService.removeFromFetchList(Constants.dataIds.TRANSACTION_POST_RESULTS);
+        const worldlineLocation = toWorldlineBillingLocation(
+          billingDetails.province,
+          billingDetails.country
+        );
 
-      // Check for waiting room admission expiration
-      if (error?.waitingRoom && this.cartItem) {
-        // Admission expired or invalidated — send user back to the waiting room
-        const params = new URLSearchParams({
-          collectionId: this.cartItem.collectionId,
-          activityType: this.cartItem.activityType,
-          activityId: this.cartItem.activityId,
-          startDate: this.cartItem.startDate,
-          returnUrl: '/checkout',
+        const formValue = this.form?.value || {};
+        const bookingDetails = getBookingCompletionDetails(formValue);
+
+        const paymentPayload = {
+          bookingId: this.bookingId,
+          sessionId: this.sessionId,
+          trnAmount,
+          token: result.token,
+          userId: this.user?.sub,
+          namedOccupant: bookingDetails.namedOccupant,
+          vehicleInformation: bookingDetails.vehicleInformation,
+          equipmentInformation: bookingDetails.equipmentInformation,
+          smsOptIn: bookingDetails.smsOptIn,
+          cardholderName: this.cardholderName.trim(),
+          billingName: `${billingDetails.firstName} ${billingDetails.lastName}`,
+          email: billingDetails.email,
+          address1: billingDetails.address1,
+          address2: billingDetails.address2,
+          city: billingDetails.city,
+          province: worldlineLocation.province,
+          country: worldlineLocation.country,
+          postalCode: billingDetails.postalCode,
+          phoneNumber: billingDetails.phoneNumber,
+        };
+
+        this.apiService.post('transactions', paymentPayload).subscribe({
+          next: (response: any) => {
+            console.log('Transaction response:', response);
+            if (response?.data?.response?.success || response?.success) {
+              this.paymentSucceeded.set(true);
+              this.isProcessing.set(false);
+              this.processingChange.emit(false);
+              this.stepCompleted.emit(true);
+            } else {
+              this.isProcessing.set(false);
+              this.processingChange.emit(false);
+              this.paymentError.set(response?.response?.message || 'Payment was declined by processor.');
+            }
+          },
+          error: (error: any) => {
+            this.isProcessing.set(false);
+            this.processingChange.emit(false);
+            console.error('POST to /transactions failed:', error);
+            this.paymentError.set(error?.error?.message || error?.error?.msg || 'Failed to submit transaction to backend.');
+          }
         });
-        window.location.href = new URL(`waitingroom.html?${params.toString()}`, document.baseURI).toString();
-        return;
-      }
-
-      alert('Failed to initiate payment. Please try again.');
+      });
+    } catch (error) {
+      this.isProcessing.set(false);
+      this.processingChange.emit(false);
+      console.error('Worldline tokenization failed:', error);
+      this.paymentError.set('Card tokenization failed. Please try again.');
     }
   }
-  
-  goToPrevious(): void {
-    this.stepperService.goPrevious();
+
+  ngOnDestroy(): void {
+    // Clean up custom checkout references and elements safely
+    try {
+      if (this.cardNumberField?.destroy) this.cardNumberField.destroy();
+      if (this.cardExpiryField?.destroy) this.cardExpiryField.destroy();
+      if (this.cardCVVField?.destroy) this.cardCVVField.destroy();
+    } catch (e) {
+      console.error('Error destroying secure fields:', e);
+    }
+
+    this.cardNumberField = null;
+    this.cardExpiryField = null;
+    this.cardCVVField = null;
+    this.checkoutInstance = null;
   }
 
-  // Helper methods for template
-  getParkName(): string {
-    return this.cartItem?.geozoneName || 'Unknown Park';
+  getBillingFullName(): string {
+    const first = this.accountBillingDetails?.firstName?.trim() || '';
+    const last = this.accountBillingDetails?.lastName?.trim() || '';
+    const fullName = `${first} ${last}`.trim();
+    return fullName || 'Not provided';
   }
-  
-  getActivityName(): string {
-    return this.cartItem?.activityName || 'Unknown Activity';
-  }
-  
-  calculateTotalOccupants(): number {
-    if (!this.cartItem?.occupants) return 0;
-    
-    const occupants = this.cartItem.occupants;
-    return (occupants.totalAdult || 0) + 
-           (occupants.totalSenior || 0) + 
-           (occupants.totalYouth || 0) + 
-           (occupants.totalChild || 0);
-  }
-  
-  calculateTotalNights(): number {
-    if (!this.cartItem) return 0;
-    
-    const startDate = new Date(this.cartItem.startDate);
-    const endDate = new Date(this.cartItem.endDate);
-    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-    const totalNights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return totalNights;
-  }
-  
-  // Booking summary helpers
-  getSubtotal(): number {
-    return this.bookingSummary?.basePrice || this.cartItem?.feeInformation?.total || 0;
-  }
-  
-  getEquipmentTotal(): number {
-    return this.bookingSummary?.equipmentTotal || 0;
-  }
-  
-  getTaxes(): number {
-    return this.bookingSummary?.taxes || 0;
-  }
-  
-  getGrandTotal(): number {
-    return this.getSubtotal() + this.getEquipmentTotal() + this.getTaxes();
+
+  private emptyBillingDetails(): BillingDetails {
+    return {
+      firstName: '',
+      lastName: '',
+      email: '',
+      address1: '',
+      address2: '',
+      city: '',
+      province: '',
+      postalCode: '',
+      country: '',
+      phoneNumber: '',
+    };
   }
 }

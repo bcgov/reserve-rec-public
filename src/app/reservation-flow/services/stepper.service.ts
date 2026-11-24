@@ -98,7 +98,7 @@ export class StepperService {
 
   canGoNext(): boolean {
     const currentStep = this.getCurrentStep();
-    return currentStep.isValid && this.currentStepIndex() < this.steps.length - 1;
+    return currentStep.isValid && this.currentStepIndex() < this.stepsSignal().length - 1;
   }
 
   canGoPrevious(): boolean {

@@ -5,14 +5,16 @@ import { StepperService } from '../../../services/stepper.service';
 import { CartItem } from '../../../../services/cart.service';
 import { Utils } from '../../../../utils/utils';
 import { Router } from '@angular/router';
+import { AccountInfo, AccountInfoComponent } from '../../../../shared/components/account-info/account-info.component';
 
 @Component({
   selector: 'app-visitor-details-step',
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    FormsModule
-],
+    FormsModule,
+    AccountInfoComponent
+  ],
   templateUrl: './visitor-details-step.component.html',
   styleUrl: './visitor-details-step.component.scss'
 })
@@ -49,6 +51,29 @@ export class VisitorDetailsStepComponent implements OnInit {
   hasMobilePhone(): boolean {
     const mobile = this.user?.['custom:mobilePhone'];
     return typeof mobile === 'string' && mobile.trim().length > 0;
+  }
+
+  get accountInfo(): AccountInfo {
+    const address = this.formatAddress();
+    const city = address['city'] || this.user?.['custom:city'] || '';
+    const province = address['province'] || this.user?.['custom:province'] || '';
+    const postalCode = address['postalCode'] || this.user?.['custom:postalCode'] || '';
+
+    return {
+      fullName: `${this.user?.given_name || 'N/A'} ${this.user?.family_name || ''}`,
+      email: this.user?.email || 'N/A',
+      addressLines: [
+        address['streetAddress'] || this.user?.['custom:streetAddress'] || 'N/A',
+        [city, province].filter(Boolean).join(city && province ? ', ' : '') +
+          (postalCode ? ` ${postalCode}` : ''),
+        address['country'] || this.user?.['custom:country'] || ''
+      ],
+      phoneHeading: 'Phone number',
+      phones: [
+        { label: 'Mobile', value: this.utils.formatPhone(this.user?.['custom:mobilePhone']) || 'N/A' },
+        { label: 'Alternate', value: this.utils.formatPhone(this.user?.['custom:secondaryNumber']) || 'N/A' }
+      ]
+    };
   }
   
   formatAddress() {

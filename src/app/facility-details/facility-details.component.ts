@@ -638,7 +638,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
         },
         occupants: { totalAdult: visitors, totalSenior: 0, totalYouth: 0, totalChild: 0 },
         // TODO: these prevent a payment from being completed so long as they're hard-coded as 0
-        feeInformation: { registrationFees: 1, transactionFees: 1, tax: 1, total: 1 },
+        feeInformation: { registrationFees: 0, transactionFees: 0, tax: 0, total: 0 },
         detailsStepCompleted: false,
         visitorDetailsStepCompleted: false,
         equipmentStepCompleted: false,

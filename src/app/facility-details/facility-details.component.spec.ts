@@ -28,6 +28,8 @@ import { BookingService } from '../services/booking.service';
 import { CartItem, CartService } from '../services/cart.service';
 import { ToastService } from '../services/toast.service';
 import { ProductDateService } from '../services/product-date.service';
+import { ApiService } from '../services/api.service';
+import { InventoryPoolService } from '../services/inventory-pool.service';
 
 describe('FacilityDetailsComponent', () => {
   let component: FacilityDetailsComponent;
@@ -517,6 +519,110 @@ describe('FacilityDetailsComponent', () => {
       await component.submit();
 
       expect(cartService.items()[0]?.holdLimits).toEqual({ freeRemovalsLeft: 1 });
+    });
+  });
+
+  describe('error banners', () => {
+    const date = '2026-07-15';
+    let productDateService: ProductDateService;
+    let inventoryPoolService: InventoryPoolService;
+    let apiService: ApiService;
+
+    beforeEach(() => {
+      component.isLoggedIn = true;
+      component.selectedActivitySubType = 'trailUse';
+      (component as any).selectedCollectionId = 'bcparks_1';
+      (component as any).selectedActivityType = 'dayuse';
+      (component as any).selectedActivityId = 1;
+      component.form.get('selectedProduct').setValue('product::c1::dayuse::a1#1', { emitEvent: false });
+
+      productDateService = TestBed.inject(ProductDateService);
+      inventoryPoolService = TestBed.inject(InventoryPoolService);
+      apiService = TestBed.inject(ApiService);
+      fixture.detectChanges();
+    });
+
+    afterEach(() => fixture.destroy());
+
+    describe('dates-load-failed banner', () => {
+      it('shows "Unable to load available dates" banner when product dates fail to load', async () => {
+        spyOn(productDateService, 'getProductDates').and.returnValue(Promise.resolve(null));
+
+        await (component as any).loadProductDates('product::c1::dayuse::a1#1');
+        fixture.detectChanges();
+
+        expect(component.datesLoadFailed).toBeTrue();
+        expect(component.passStatus).toBe('dates-load-failed');
+        
+        const banner = fixture.nativeElement.querySelector('[role="status"]');
+        expect(banner?.textContent).toContain('Unable to load available dates');
+        expect(banner?.textContent).toContain('Please try again in a few moments');
+      });
+    });
+
+    describe('inventory-pool-failed banner', () => {
+      it('shows "Failed to retrieve information" banner when inventory pool fails', async () => {
+        component.availableDates = {
+          [date]: {
+            reservationContext: {
+              minDailyInventory: 1,
+              maxDailyInventory: 4,
+              temporalWindows: {
+                reservationWindow: {
+                  open: Date.now() - 1000,
+                  close: Date.now() + 86400000
+                }
+              }
+            },
+            inventoryPool: null
+          }
+        };
+        component.datesLoadFailed = false;
+        component.inventoryPoolFailed = false;
+
+        spyOn(inventoryPoolService, 'getInventoryPool').and.returnValue(Promise.resolve({ failed: true, available: null }));
+        spyOn(apiService, 'get').and.returnValue(of({ data: { waitingRoomActive: false } }));
+
+        await (component as any).loadPassesAvailable(date);
+        fixture.detectChanges();
+
+        expect(component.inventoryPoolFailed).toBeTrue();
+        expect(component.passStatus).toBe('failed');
+        
+        const banner = fixture.nativeElement.querySelector('[role="status"]');
+        expect(banner?.textContent).toContain('Failed to retrieve information');
+        expect(banner?.textContent).toContain('If you are using a VPN, please disconnect');
+      });
+
+      it('prevents submit button from appearing when inventory pool fails', async () => {
+        component.availableDates = {
+          [date]: {
+            reservationContext: {
+              minDailyInventory: 1,
+              maxDailyInventory: 4,
+              temporalWindows: {
+                reservationWindow: {
+                  open: Date.now() - 1000,
+                  close: Date.now() + 86400000
+                }
+              }
+            },
+            inventoryPool: null
+          }
+        };
+        component.datesLoadFailed = false;
+        component.inventoryPoolFailed = false;
+
+        spyOn(inventoryPoolService, 'getInventoryPool').and.returnValue(Promise.resolve({ failed: true, available: null }));
+        spyOn(apiService, 'get').and.returnValue(of({ data: { waitingRoomActive: false } }));
+
+        await (component as any).loadPassesAvailable(date);
+        fixture.detectChanges();
+
+        // When passStatus is 'failed', the button should not be rendered
+        const button = fixture.nativeElement.querySelector('button[class*="disable-btn"]');
+        expect(button).toBeNull();
+      });
     });
   });
 });

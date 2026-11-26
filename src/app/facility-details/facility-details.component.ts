@@ -88,9 +88,8 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   private waitingRoomActive = false;
   // Set from a hold-create 429; applies only to the product and date it was returned for.
   private holdRetry: { key: string; retryAt: DateTime } | null = null;
-  // Prevents race condition where old inventory pool requests complete after product change
+  // Prevents race condition where old inventory pool requests complete after product or date change
   private pendingInventoryPoolRequestId = 0;
-  private currentInventoryPoolRequestId = 0;
 
   private destroyRef = inject(DestroyRef);
   private cartService = inject(CartService);
@@ -293,7 +292,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
     this.passStatus = 'available'; // Reset these when product changges and clear the other fields. 
     this.inventoryPoolFailed = false;
     // Invalidate any pending inventory pool requests from the previous product
-    this.currentInventoryPoolRequestId++;
+    this.pendingInventoryPoolRequestId++;
     this.form.get('selectedDate').setValue(null, { emitEvent: false });
     this.form.get('selectedVisitors').setValue(null, { emitEvent: false });
 

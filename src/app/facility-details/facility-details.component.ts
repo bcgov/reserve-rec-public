@@ -43,7 +43,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   public facilityOpen = true;
   public isLoggedIn = false;
   public passesAvailable = false;
-  public passStatus: 'closed' | 'available' | 'not-required' | 'sold-out' | 'not-open-yet' = 'available';
+  public passStatus: 'closed' | 'available' | 'not-required' | 'sold-out' | 'not-open-yet' | 'failed' | 'dates-load-failed' = 'available';
   // In park time, so a visitor in another zone is told 7:00 AM Pacific, not their local hour.
   public reservationOpensAt: DateTime | null = null;
   private windowTimer: any = null;
@@ -71,6 +71,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   // Distinguishes "the availability lookup failed" from "there genuinely are no passes" —
   // the two rendered identically, so an API outage looked like a sold-out facility.
   public datesLoadFailed = false;
+  public inventoryPoolFailed = false;
   public startDate = DateTime.now().startOf('day');
   public endDate = this.startDate.plus({ days: 2 });
 
@@ -87,6 +88,8 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   private waitingRoomActive = false;
   // Set from a hold-create 429; applies only to the product and date it was returned for.
   private holdRetry: { key: string; retryAt: DateTime } | null = null;
+  // Prevents race condition where old inventory pool requests complete after product or date change
+  private pendingInventoryPoolRequestId = 0;
 
   private destroyRef = inject(DestroyRef);
   private cartService = inject(CartService);
@@ -287,6 +290,9 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
     this.loadingDates = true;
     this.passValidity = null;
     this.passStatus = 'available'; // Reset these when product changges and clear the other fields. 
+    this.inventoryPoolFailed = false;
+    // Invalidate any pending inventory pool requests from the previous product
+    this.pendingInventoryPoolRequestId++;
     this.form.get('selectedDate').setValue(null, { emitEvent: false });
     this.form.get('selectedVisitors').setValue(null, { emitEvent: false });
 
@@ -306,8 +312,10 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
     // than falling through to the empty-array path, which would report a sold-out facility.
     if (productDatesResult === null) {
       this.datesLoadFailed = true;
+      this.passStatus = 'dates-load-failed';
       this.passesAvailable = false;
       this.availableDates = {};
+      this.cdr.detectChanges();
       return;
     }
     this.datesLoadFailed = false;
@@ -345,14 +353,27 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   private async loadPassesAvailable(date: any) {
+      // If product dates failed to load, don't try to load passes for any date
+      if (this.datesLoadFailed) {
+        this.loadingPasses = false;
+        this.cdr.detectChanges();
+        return;
+      }
+
       clearTimeout(this.windowTimer);
       this.loadingPasses = true;
       this.passesAvailable = false;
       this.passStatus = 'available';
+      // Reset inventory pool failure so this date can be retried
+      this.inventoryPoolFailed = false;
       this.availableVisitorsAllowed = [];
       this.selectedDateStr = typeof date === 'string' ? date : (date?.['toISODate'] ? date['toISODate']() : String(date));
       this.waitingRoomActive = false;
       this.updatePassValidity(this.selectedDateStr);
+
+      // Create a request ID for this inventory pool fetch to prevent race conditions
+      this.pendingInventoryPoolRequestId++;
+      const requestId = this.pendingInventoryPoolRequestId;
 
       // Check Mode 1 waiting room status for the selected date
       if (this.selectedCollectionId && this.selectedActivityType && this.selectedActivityId) {
@@ -374,7 +395,7 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
       const resContext = selectedDate?.reservationContext;
       let inventoryPool = selectedDate?.inventoryPool;
       
-      // When we select a date, get the inventory data for banners.
+      // When we select a date, get the inventory data for banners if not already set
       if (!inventoryPool) {
         const productId = this.getProductIdFromForm();
         inventoryPool = await this.inventoryPoolService.getInventoryPool(
@@ -385,6 +406,13 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
           this.selectedDateStr
         );
       }
+      
+      if (requestId !== this.pendingInventoryPoolRequestId) {
+        this.loadingPasses = false;
+        this.cdr.detectChanges();
+        return;
+      }
+      
       //const isReservable = resContext?.isReservable; will be used in future state to determine reservability from policies
       const minInv = resContext?.minDailyInventory;
       const maxInv = resContext?.maxDailyInventory;
@@ -392,6 +420,17 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
       const reservationWindowOpen = this.parseDateTimeValue(reservationWindow?.open);
       const reservationWindowClose = this.parseDateTimeValue(reservationWindow?.close);
       const currentDateTime = this.serverTime.now();
+
+      // Check if inventory pool lookup failed first, before any other status checks
+      if (inventoryPool?.failed) {
+        this.inventoryPoolFailed = true;
+        this.passStatus = 'failed';
+        this.passesAvailable = false;
+        this.availableVisitorsAllowed = [{display: 'Unavailable', value: '0' }];
+        this.loadingPasses = false;
+        this.cdr.detectChanges();
+        return;
+      }
 
       // inventoryPool.isOpen indicates if passes are required. Display the banner
        if (inventoryPool && inventoryPool?.closureStatus === true) {

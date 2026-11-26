@@ -32,8 +32,8 @@ export class InventoryPoolService {
       this.loggerService.error(`Failed to fetch inventory pool for date ${date}:`);
       this.loggerService.error(error);
       this.loadingService.removeFromFetchList(Constants.dataIds.INVENTORY_POOL_RESULT);
-      // Fail open with default values - unknown availability treated as unlimited
-      return { isOpen: true, available: null };
+      // Fail without default values. Dont default to passes not required.
+      return { failed: true, available: null };
     }
   }
 }

@@ -227,7 +227,7 @@
                 [hideInvalidState]="true"
                 [minDate]="startDate"
                 [maxDate]="endDate"
-                [disabled]="!isLoggedIn || !this.form.get('selectedProduct').value || this.availableProducts.length === 0 || loadingDates"
+                [disabled]="!isLoggedIn || !this.form.get('selectedProduct').value || this.availableProducts.length === 0 || loadingDates || passStatus === 'dates-load-failed'"
                 (displayChange)="onCalendarDisplayChange()"
                 >
                 <i
@@ -243,11 +243,13 @@
                   [control]="this.form.get('selectedVisitors')"
                   [selectionListItems]="availableVisitorsAllowed"
                   [label]="'Number of passes'"
-                  [placeholder]="loadingPasses ? 'Loading...' : (passesAvailable ? 'Select number of passes' : (datesLoadFailed ? 'Unable to load' : 'Unavailable'))"
+                  [placeholder]="loadingPasses ? 'Loading...' : (passesAvailable ? 'Select number of passes' : 'Unavailable')"
                   [disabled]="!this.form.get('selectedProduct').value ||
                     this.availableProducts.length === 0 ||
                     loadingPasses ||
-                    !passesAvailable"
+                    !passesAvailable ||
+                    passStatus === 'failed' ||
+                    passStatus === 'dates-load-failed'"
                 ></ngds-picklist-input>
               </div>
             }
@@ -314,6 +316,26 @@
                     }
                   </div>
                 </div>
+              } @else if (passStatus === 'dates-load-failed') {
+                <div class="alert alert-danger p-3 d-flex align-items-start" role="status">
+                  <div class="me-3" style="margin-top: 2px;">
+                    <i class="fa-regular fa-circle-exclamation text-danger fs-5"></i>
+                  </div>
+                  <div>
+                    <strong class="text-dark">Unable to load available dates.</strong>
+                    <p class="text-dark mb-0">Please try again in a few moments. If the problem persists, check your internet connection and refresh the page.</p>
+                  </div>
+                </div>
+              } @else if(passStatus === 'failed') {
+                <div class="alert alert-danger p-3 d-flex align-items-start" role="status">
+                  <div class="me-3" style="margin-top: 2px;">
+                    <i class="fa-regular fa-circle-xmark text-danger fs-5"></i>
+                  </div>
+                  <div>
+                    <strong class="text-dark">Failed to retrieve information on this offering.</strong>
+                    <p class="text-dark">If you are using a VPN, please disconnect and try again.</p>
+                  </div>
+                </div>
               } @else if (emailVerificationLoaded && !emailVerified) {
                 <app-account-verification (emailVerified)="onEmailVerified()" />
               } @else if (passStatus === 'available' && isLoggedIn) {
@@ -325,7 +347,7 @@
                   [attr.aria-describedby]="holdRetryAt ? 'hold-retry-notice' : null"
                   (click)="submit()"
                   >
-                  {{ passesAvailable ? "Book day-use pass" : (datesLoadFailed ? "Availability unavailable — try again" : "No passes available") }}
+                  {{ passesAvailable ? "Book day-use pass" : "No passes available" }}
                 </button>
               } @else { <!-- Status is passes not required.... or unknown  -->
                 <div class="alert alert-info p-3 d-flex align-items-start" role="status">

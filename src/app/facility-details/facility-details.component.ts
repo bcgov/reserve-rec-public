@@ -88,6 +88,9 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   private waitingRoomActive = false;
   // Set from a hold-create 429; applies only to the product and date it was returned for.
   private holdRetry: { key: string; retryAt: DateTime } | null = null;
+  // Prevents race condition where old inventory pool requests complete after product change
+  private pendingInventoryPoolRequestId = 0;
+  private currentInventoryPoolRequestId = 0;
 
   private destroyRef = inject(DestroyRef);
   private cartService = inject(CartService);
@@ -289,6 +292,8 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
     this.passValidity = null;
     this.passStatus = 'available'; // Reset these when product changges and clear the other fields. 
     this.inventoryPoolFailed = false;
+    // Invalidate any pending inventory pool requests from the previous product
+    this.currentInventoryPoolRequestId++;
     this.form.get('selectedDate').setValue(null, { emitEvent: false });
     this.form.get('selectedVisitors').setValue(null, { emitEvent: false });
 
@@ -349,8 +354,8 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   private async loadPassesAvailable(date: any) {
-      // If dates failed to load or inventory pool failed, don't try to load passes again
-      if (this.datesLoadFailed || this.inventoryPoolFailed) {
+      // If product dates failed to load, don't try to load passes for any date
+      if (this.datesLoadFailed) {
         this.loadingPasses = false;
         this.cdr.detectChanges();
         return;
@@ -360,10 +365,16 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
       this.loadingPasses = true;
       this.passesAvailable = false;
       this.passStatus = 'available';
+      // Reset inventory pool failure so this date can be retried
+      this.inventoryPoolFailed = false;
       this.availableVisitorsAllowed = [];
       this.selectedDateStr = typeof date === 'string' ? date : (date?.['toISODate'] ? date['toISODate']() : String(date));
       this.waitingRoomActive = false;
       this.updatePassValidity(this.selectedDateStr);
+
+      // Create a request ID for this inventory pool fetch to prevent race conditions
+      this.pendingInventoryPoolRequestId++;
+      const requestId = this.pendingInventoryPoolRequestId;
 
       // Check Mode 1 waiting room status for the selected date
       if (this.selectedCollectionId && this.selectedActivityType && this.selectedActivityId) {
@@ -395,6 +406,12 @@ export class FacilityDetailsComponent implements OnInit, AfterViewInit, OnDestro
           productId,
           this.selectedDateStr
         );
+      }
+      
+      if (requestId !== this.pendingInventoryPoolRequestId) {
+        this.loadingPasses = false;
+        this.cdr.detectChanges();
+        return;
       }
       
       //const isReservable = resContext?.isReservable; will be used in future state to determine reservability from policies

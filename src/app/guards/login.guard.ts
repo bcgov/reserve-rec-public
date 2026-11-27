@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { CanActivate, Router, UrlTree } from "@angular/router";
+import { ActivatedRouteSnapshot, CanActivate, Router, UrlTree } from "@angular/router";
 import { AuthService } from "../services/auth.service";
 
 @Injectable({
@@ -10,7 +10,7 @@ import { AuthService } from "../services/auth.service";
         private router: Router
     ) {}
 
-    async canActivate(): Promise<boolean | UrlTree> {
+    async canActivate(route?: ActivatedRouteSnapshot): Promise<boolean | UrlTree> {
         // The user signal only knows about sign-ins made in this tab. Ask Amplify
         // again so a session started in another tab skips the login page (#796).
         if (!this.authService.user()) {
@@ -29,7 +29,9 @@ import { AuthService } from "../services/auth.service";
         // their own returnUrl and ask us to keep it; otherwise replace any
         // left over from an abandoned login.
         const from = this.router.url;
-        const keep = this.router.getCurrentNavigation()?.extras.state?.['keepReturnUrl'];
+        // The standalone waiting room page arrives by full page load, so it can't pass state.
+        const keep = this.router.getCurrentNavigation()?.extras.state?.['keepReturnUrl']
+            || route?.queryParamMap.get('reason') === 'waiting-room';
         if (!keep && !from.startsWith('/login')) {
             if (from === '/') {
                 sessionStorage.removeItem('returnUrl');

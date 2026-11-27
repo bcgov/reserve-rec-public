@@ -4,29 +4,32 @@
 (function () {
   'use strict';
 
-  // App base derived from this page's own path ('/waitingroom.html' or
-  // '/dayuse/waitingroom.html') so the page works both at the domain root and
-  // path-mounted behind the front door.
+  // Derived from this page's own path so it works at the domain root and under /dayuse/.
   var APP_BASE = window.location.pathname.replace(/waitingroom\.html$/, '');
 
   // ── State ────────────────────────────────────────────────────────────────
   let config = null;
   let queueId = null;
   let ws = null;
-  let openingTime = null;
   let countdownInterval = null;
+  let tokenCheckInterval = null;
+  let refreshPromise = null;   // single in-flight token refresh
   let reconnectTimeout = null;
   let reconnectAttempts = 0;
   let wsToken = null;          // JWT cached for WebSocket reconnects
   let isAdmitted = false;
   let isQueueClosed = false;   // suppresses reconnect after server pushes 'queueClosed'
+  let waitEnded = false;       // sign-in expired: no reconnects, no leave warning
   let joinParams = null;
   let isMode2 = false;         // true when handling full-site Mode 2 queue
 
   const MAX_RECONNECT_DELAY_MS = 30000;
+  const MAX_JOIN_RETRY_DELAY_MS = 30000;
+  const TOKEN_REFRESH_MARGIN_MS = 2 * 60 * 1000;
+  const TOKEN_CHECK_INTERVAL_MS = 60 * 1000;
 
   // ── UI helpers ────────────────────────────────────────────────────────────
-  const STATES = ['loading', 'preopen', 'randomizing', 'releasing', 'admitted', 'mode2', 'error'];
+  const STATES = ['loading', 'preopen', 'randomizing', 'releasing', 'admitted', 'mode2', 'notice', 'error'];
 
   function showState(name) {
     STATES.forEach(function (s) {
@@ -42,22 +45,138 @@
     console.error('[WaitingRoom]', msg);
   }
 
-  // ── Token: read from Amplify v6 localStorage ─────────────────────────────
-  // Amplify v6 stores tokens as:
-  //   CognitoIdentityServiceProvider.{clientId}.LastAuthUser  → username
-  //   CognitoIdentityServiceProvider.{clientId}.{username}.accessToken
-  function getAmplifyToken(clientId) {
+  // Card for a refusal the visitor can act on; link is optional ({ text, href }).
+  function showNotice(title, message, link) {
+    setText('notice-title', title);
+    setText('notice-message', message);
+    var a = document.getElementById('notice-link');
+    if (a) {
+      a.classList.toggle('d-none', !link);
+      if (link) {
+        a.textContent = link.text;
+        a.href = link.href;
+      }
+    }
+    showState('notice');
+  }
+
+  function stopWaiting() {
+    waitEnded = true;
+    clearInterval(countdownInterval);
+    clearInterval(tokenCheckInterval);
+    clearTimeout(reconnectTimeout);
+    if (ws) { ws.close(); ws = null; }
+  }
+
+  function showSessionExpired() {
+    stopWaiting();
+    saveReturnUrl();
+    showNotice('Sign-in expired', 'Your sign-in has expired. Sign in again to rejoin the queue.',
+      { text: 'Sign in', href: APP_BASE + 'login?reason=waiting-room' });
+  }
+
+  // Keys: CognitoIdentityServiceProvider.{clientId}.LastAuthUser, then .{user}.accessToken.
+  // This page does not run Amplify, so it refreshes tokens itself and writes them back.
+  function amplifyKeyPrefix(clientId) {
     var prefix = 'CognitoIdentityServiceProvider.' + clientId;
     var lastUser = localStorage.getItem(prefix + '.LastAuthUser');
     if (!lastUser || lastUser === 'username') return null;
-    var token = localStorage.getItem(prefix + '.' + lastUser + '.accessToken') || null;
-    if (!token) return null;
-    // Check expiry by decoding the JWT payload (no signature verification needed here)
+    return prefix + '.' + lastUser;
+  }
+
+  // Expiry in ms from the JWT payload, or null when unreadable (no signature check needed).
+  function tokenExpiryMs(token) {
     try {
       var payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-      if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) return null;
-    } catch (e) { /* malformed token — let the server reject it */ }
+      return payload.exp ? payload.exp * 1000 : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function getAmplifyToken(clientId) {
+    var keyPrefix = amplifyKeyPrefix(clientId);
+    if (!keyPrefix) return null;
+    var token = localStorage.getItem(keyPrefix + '.accessToken') || null;
+    if (!token) return null;
+    // A malformed token is left for the server to reject
+    var exp = tokenExpiryMs(token);
+    if (exp !== null && exp < Date.now()) return null;
     return token;
+  }
+
+  function getAmplifyIdToken(clientId) {
+    var keyPrefix = amplifyKeyPrefix(clientId);
+    return (keyPrefix && localStorage.getItem(keyPrefix + '.idToken')) || null;
+  }
+
+  function sessionExpiredError() {
+    var e = new Error('Sign-in expired');
+    e.sessionExpired = true;
+    return e;
+  }
+
+  // Cognito refresh-token call for a public client (no secret). A 4xx means the
+  // refresh token is expired or revoked; anything else is transient.
+  async function refreshTokens() {
+    var clientId = config.PUBLIC_USER_POOL_CLIENT_ID;
+    var keyPrefix = amplifyKeyPrefix(clientId);
+    var refreshToken = keyPrefix && localStorage.getItem(keyPrefix + '.refreshToken');
+    if (!refreshToken) throw sessionExpiredError();
+
+    var poolId = config.PUBLIC_USER_POOL_ID || '';
+    var region = poolId.split('_')[0] || 'ca-central-1';
+    // The region becomes part of the host the refresh token is sent to.
+    if (!/^[a-z]{2}(-[a-z]+)+-\d$/.test(region)) {
+      console.error('[WaitingRoom] Refusing token refresh: invalid region in config');
+      throw new Error('Token refresh unavailable');
+    }
+    var resp = await fetch('https://cognito-idp.' + region + '.amazonaws.com/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-amz-json-1.1',
+        'X-Amz-Target': 'AWSCognitoIdentityProviderService.InitiateAuth',
+      },
+      body: JSON.stringify({
+        AuthFlow: 'REFRESH_TOKEN_AUTH',
+        ClientId: clientId,
+        AuthParameters: { REFRESH_TOKEN: refreshToken },
+      }),
+    });
+    if (resp.status >= 400 && resp.status < 500) throw sessionExpiredError();
+    if (!resp.ok) throw new Error('Token refresh failed (HTTP ' + resp.status + ')');
+
+    var result = (await resp.json()).AuthenticationResult || {};
+    if (!result.AccessToken) throw new Error('Token refresh returned no access token');
+    localStorage.setItem(keyPrefix + '.accessToken', result.AccessToken);
+    if (result.IdToken) localStorage.setItem(keyPrefix + '.idToken', result.IdToken);
+    wsToken = result.AccessToken;
+    return wsToken;
+  }
+
+  // Resolves a token with more than the refresh margin left, refreshing if needed.
+  // Rejects with sessionExpired when the refresh token is rejected.
+  function ensureFreshToken(force) {
+    var token = getAmplifyToken(config.PUBLIC_USER_POOL_CLIENT_ID);
+    var exp = token && tokenExpiryMs(token);
+    if (!force && token && (exp === null || exp - Date.now() > TOKEN_REFRESH_MARGIN_MS)) {
+      wsToken = token;
+      return Promise.resolve(token);
+    }
+    if (!refreshPromise) {
+      refreshPromise = refreshTokens().finally(function () { refreshPromise = null; });
+    }
+    return refreshPromise;
+  }
+
+  function startTokenCheck() {
+    tokenCheckInterval = setInterval(function () {
+      if (isAdmitted || waitEnded) return;
+      ensureFreshToken().catch(function (e) {
+        if (e.sessionExpired) showSessionExpired();
+        else console.warn('[WaitingRoom] Token refresh failed, will retry', e.message);
+      });
+    }, TOKEN_CHECK_INTERVAL_MS);
   }
 
   // ── Config ────────────────────────────────────────────────────────────────
@@ -99,52 +218,111 @@
     return '';
   }
 
-  // The SPA passes root-absolute paths like '/checkout'. Behind the front door
-  // the app is mounted at /dayuse/, so a bare '/checkout' escapes the prefix,
-  // hits the root redirect and loses the return. Resolve every return against
-  // APP_BASE, and refuse anything that is not a same-app path — a returnUrl
-  // of 'https://elsewhere' was previously assigned to location.href verbatim.
+  // Resolve like the browser (so '/\evil.com' is caught) and accept only same-origin paths
+  // under APP_BASE; the SPA's bare '/checkout' is re-prefixed.
+  function resolveAppPath(raw) {
+    function sameApp(candidate) {
+      try {
+        var url = new URL(candidate, window.location.origin + APP_BASE);
+        if (url.origin !== window.location.origin || url.pathname.indexOf(APP_BASE) !== 0) return null;
+        return url.pathname + url.search + url.hash;
+      } catch (e) {
+        return null;
+      }
+    }
+    if (!raw) return null;
+    return sameApp(raw)
+      || (/^\/[^\/\\%]/.test(raw) ? sameApp(APP_BASE + raw.slice(1)) : null);
+  }
+
   function getReturnUrl() {
     var p = new URLSearchParams(window.location.search);
-    var raw = p.get('returnUrl');
-    if (!raw || /^[a-z][a-z0-9+.-]*:|^\/\//i.test(raw)) return APP_BASE;
-    if (raw.indexOf(APP_BASE) === 0) return raw;
-    return APP_BASE + raw.replace(/^\/+/, '');
+    return resolveAppPath(p.get('returnUrl')) || APP_BASE;
   }
 
   // ── Countdown ─────────────────────────────────────────────────────────────
-  function updateCountdown() {
-    if (!openingTime) return;
-    var diff = openingTime - Date.now();
-    if (diff <= 0) {
-      clearInterval(countdownInterval);
-      var el = document.getElementById('countdown-timer');
-      if (el) el.textContent = '00:00:00';
-      return;
-    }
+  function setText(id, text) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = text;
+  }
+
+  function formatRemaining(diff) {
     var h = Math.floor(diff / 3600000);
     var m = Math.floor((diff % 3600000) / 60000);
     var s = Math.floor((diff % 60000) / 1000);
-    var display = [h, m, s].map(function (n) { return String(n).padStart(2, '0'); }).join(':');
-    var el = document.getElementById('countdown-timer');
-    if (el) el.textContent = display;
+    return [h, m, s].map(function (n) { return String(n).padStart(2, '0'); }).join(':');
+  }
+
+  function formatOpensAt(date) {
+    return 'Opens at '
+      + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+  }
+
+  // Ticks once now, then every second; onZero runs once when the target passes.
+  function startCountdown(targetMs, timerId, onZero) {
+    function tick() {
+      var diff = targetMs - Date.now();
+      if (diff <= 0) {
+        clearInterval(countdownInterval);
+        setText(timerId, '00:00:00');
+        if (onZero) onZero();
+        return;
+      }
+      setText(timerId, formatRemaining(diff));
+    }
+    tick();
+    countdownInterval = setInterval(tick, 1000);
+  }
+
+  // Mode 2 card: countdown block, or the position block once positions exist.
+  function showMode2Countdown(show) {
+    document.getElementById('mode2-countdown-block').classList.toggle('d-none', !show);
+    document.getElementById('mode2-position-block').classList.toggle('d-none', show);
+  }
+
+  function startMode2Countdown(firstReleaseAt) {
+    var target = new Date(firstReleaseAt);
+    if (isNaN(target) || target.getTime() <= Date.now()) return;
+    setText('mode2-opening-time-display', formatOpensAt(target));
+    showMode2Countdown(true);
+    startCountdown(target.getTime(), 'mode2-countdown-timer', function () {
+      document.getElementById('mode2-countdown-live').classList.add('d-none');
+      document.getElementById('mode2-opening-now').classList.remove('d-none');
+    });
   }
 
   // ── API calls ─────────────────────────────────────────────────────────────
+  function errorCodeOf(json) {
+    return (json && (json.errorCode || json.error)) || null;
+  }
+
+  // The API checks the account against the ID token, sent alongside the access token.
   async function joinQueue(token, params) {
+    var idToken = getAmplifyIdToken(config.PUBLIC_USER_POOL_CLIENT_ID);
+    if (!idToken) {
+      redirectToLogin();
+      return null;
+    }
     var resp = await fetch(APP_BASE + 'api/waiting-room/join', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + token,
+        'X-Id-Token': idToken,
       },
       body: JSON.stringify(params),
     });
 
-    if (resp.status === 401 || resp.status === 403) {
+    // Only a 401 means "not signed in"; 403 carries a refusal reason below.
+    if (resp.status === 401) {
+      var body401 = await resp.json().catch(function () { return null; });
+      if (errorCodeOf(body401) === 'ID_TOKEN_INVALID') return { idTokenInvalid: true };
       redirectToLogin();
       return null;
     }
+
+    // Transient failure (e.g. the account check is unavailable): caller retries.
+    if (resp.status === 503) return { retry: true };
 
     // Queue is closed — no waiting room needed, proceed directly to booking
     if (resp.status === 410) {
@@ -161,9 +339,37 @@
 
     var json = await resp.json();
     if (!resp.ok) {
-      throw new Error((json && (json.msg || json.error)) || 'Failed to join queue');
+      var err = new Error((json && (json.msg || json.error)) || 'Failed to join queue');
+      err.errorCode = errorCodeOf(json);
+      throw err;
     }
     return json.data;
+  }
+
+  // Backoff of 2s, 4s, 8s ... capped at 30s, with up to half the delay shaved off as jitter.
+  function joinRetryDelayMs(attempt) {
+    var base = Math.min(2000 * Math.pow(2, attempt), MAX_JOIN_RETRY_DELAY_MS);
+    return base / 2 + Math.random() * base / 2;
+  }
+
+  // Keeps retrying while the page is open; refreshes the token before every attempt.
+  // A rejected ID token gets one forced refresh and one retry, then counts as signed out.
+  async function joinWithRetry(params) {
+    var idTokenRefreshed = false;
+    for (var attempt = 0; ; attempt++) {
+      var token = await ensureFreshToken();
+      var result = await joinQueue(token, params);
+      if (result && result.idTokenInvalid) {
+        if (idTokenRefreshed) throw sessionExpiredError();
+        idTokenRefreshed = true;
+        await ensureFreshToken(true);
+        attempt--;
+        continue;
+      }
+      if (!result || !result.retry) return result;
+      setText('loading-message', 'Busy, retrying…');
+      await new Promise(function (resolve) { setTimeout(resolve, joinRetryDelayMs(attempt)); });
+    }
   }
 
   async function claimAdmission(token, claimQueueId) {
@@ -185,21 +391,25 @@
   }
 
   // ── WebSocket ─────────────────────────────────────────────────────────────
-  function connectWebSocket() {
+  async function connectWebSocket() {
     if (!queueId || !config.WS_URL) {
       console.warn('[WaitingRoom] Cannot connect WebSocket: missing queueId or WS_URL');
       return;
     }
 
-    // Refresh token from localStorage on every connect attempt — Amplify auto-refreshes
-    // access tokens there. This prevents expired-token rejections during long waits.
-    var currentToken = getAmplifyToken(config.PUBLIC_USER_POOL_CLIENT_ID) || wsToken;
-    if (!currentToken) {
-      console.warn('[WaitingRoom] Cannot connect WebSocket: no valid token');
-      window.location.href = APP_BASE + 'login';
+    // A reconnect after a long wait finds an expired access token; refresh it first.
+    try {
+      await ensureFreshToken();
+    } catch (e) {
+      if (e.sessionExpired) {
+        showSessionExpired();
+      } else {
+        console.warn('[WaitingRoom] Token refresh failed before connect', e.message);
+        if (!isAdmitted && !isQueueClosed && !waitEnded) scheduleReconnect();
+      }
       return;
     }
-    wsToken = currentToken;
+    if (isAdmitted || isQueueClosed || waitEnded) return;
 
     var url = config.WS_URL
       + '?token=' + encodeURIComponent(wsToken)
@@ -224,7 +434,7 @@
 
     ws.onclose = function (event) {
       console.debug('[WaitingRoom] WebSocket closed', event.code);
-      if (!isAdmitted && !isQueueClosed) scheduleReconnect();
+      if (!isAdmitted && !isQueueClosed && !waitEnded) scheduleReconnect();
     };
 
     ws.onerror = function () {
@@ -249,6 +459,8 @@
     switch (msg.type) {
       case 'position':
         if (isMode2) {
+          clearInterval(countdownInterval);
+          showMode2Countdown(false);
           updateMode2PositionDisplay(msg.position, msg.total);
         } else {
           if (msg.queueStatus === 'releasing' || msg.queueStatus === 'randomizing') {
@@ -268,14 +480,13 @@
 
       case 'admitted':
         isAdmitted = true;
+        clearInterval(tokenCheckInterval);
         if (ws) { ws.close(); ws = null; }
         handleAdmission();
         break;
 
       case 'queueClosed':
-        // Admin force-closed the queue. Stop reconnecting and proceed to the
-        // booking flow (mirrors the join-time 410 path and the initial
-        // status === 'closed' branch).
+        // Admin force-closed the queue: stop reconnecting and go on to booking.
         isQueueClosed = true;
         if (ws) { ws.close(); ws = null; }
         if (!isMode2) sessionStorage.setItem('wr_bypass_guard', '1');
@@ -319,10 +530,8 @@
   async function handleAdmission() {
     showState('admitted');
     try {
-      var result = await claimAdmission(wsToken, queueId);
-      // Store non-sensitive admission context for the Angular SPA.
-      // For Mode 2, facilityKey starts with 'MODE2' — the SPA guard accepts this as site access.
-      // Claim handler returns fields directly (not wrapped in { data: ... })
+      var result = await claimAdmission(await ensureFreshToken(), queueId);
+      // Non-sensitive admission context for the SPA; a 'MODE2' facilityKey counts as site access.
       if (result && result.facilityKey) {
         sessionStorage.setItem('wr_admission', JSON.stringify({
           facilityKey:  result.facilityKey,
@@ -334,19 +543,23 @@
       // Redirect to the Angular SPA booking flow (or home for Mode 2)
       window.location.href = getReturnUrl();
     } catch (e) {
-      showError('Failed to claim your admission: ' + e.message);
+      if (e.sessionExpired) showSessionExpired();
+      else showError('Failed to claim your admission: ' + e.message);
     }
   }
 
   // ── Auth redirect ─────────────────────────────────────────────────────────
-  // The Angular SPA handles Cognito login. Store the intended URL so it can
-  // redirect back after authentication.
+  // The SPA restores returnUrl via router.navigateByUrl, so prefer the SPA path over this page's URL.
+  function saveReturnUrl() {
+    var p = new URLSearchParams(window.location.search);
+    var raw = p.get('returnUrl');
+    sessionStorage.setItem('returnUrl', resolveAppPath(raw) ? raw : window.location.href);
+  }
+
   function redirectToLogin() {
-    // Preserve the intended return URL and send the user to the login page.
     // The SPA guard normally routes here already; this is the fallback for
     // direct hits on the standalone waiting room page without a valid token.
-    var p = new URLSearchParams(window.location.search);
-    sessionStorage.setItem('returnUrl', p.get('returnUrl') || window.location.href);
+    saveReturnUrl();
     window.location.href = APP_BASE + 'login?reason=waiting-room';
   }
 
@@ -361,12 +574,13 @@
       config = await fetchConfig();
 
       // Step 2 — Get JWT from Amplify localStorage
-      var token = getAmplifyToken(config.PUBLIC_USER_POOL_CLIENT_ID);
-      if (!token) {
+      try {
+        await ensureFreshToken();
+      } catch (e) {
+        if (!e.sessionExpired) throw e;
         redirectToLogin();
         return;
       }
-      wsToken = token;
 
       // Step 3 — Parse queue params from URL
       joinParams = getJoinParams();
@@ -387,7 +601,7 @@
 
       // Step 4 — Join the queue
       if (loadMsg) loadMsg.textContent = 'Joining the waiting room…';
-      var joinResult = await joinQueue(token, joinParams);
+      var joinResult = await joinWithRetry(joinParams);
       if (!joinResult) return;   // redirected to login
 
       // Queue already closed — no waiting room needed
@@ -417,22 +631,17 @@
       var status = joinResult.queueStatus;
 
       if (isMode2) {
-        // Mode 2 always shows mode2 state with position display
         showState('mode2');
+        if (joinResult.firstReleaseAt) startMode2Countdown(joinResult.firstReleaseAt);
 
       } else if (status === 'pre-open') {
+        var openingTime = null;
         if (joinResult.openingTime) {
-          openingTime = new Date(joinResult.openingTime).getTime();
-          var openingDate = new Date(joinResult.openingTime);
-          var otEl = document.getElementById('opening-time-display');
-          if (otEl) {
-            otEl.textContent = 'Opens at '
-              + openingDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
-          }
+          openingTime = new Date(joinResult.openingTime);
+          setText('opening-time-display', formatOpensAt(openingTime));
         }
         showState('preopen');
-        updateCountdown();
-        countdownInterval = setInterval(updateCountdown, 1000);
+        if (openingTime) startCountdown(openingTime.getTime(), 'countdown-timer');
 
       } else if (status === 'randomizing') {
         showState('randomizing');
@@ -450,16 +659,21 @@
       }
 
       // Step 6 — Open WebSocket for push updates
+      startTokenCheck();
       connectWebSocket();
 
     } catch (e) {
-      showError(e.message || 'An unexpected error occurred.');
+      if (e.sessionExpired) showSessionExpired();
+      else if (e.errorCode === 'EMAIL_UNVERIFIED') {
+        showNotice('Verify your email address', 'Verify your email address to join the waiting room.',
+          { text: 'Go to account settings', href: APP_BASE + 'account-details' });
+      } else showError(e.message || 'An unexpected error occurred.');
     }
   }
 
   // ── Leave-page warning ────────────────────────────────────────────────────
   window.addEventListener('beforeunload', function (e) {
-    if (!isAdmitted && queueId) {
+    if (!isAdmitted && !waitEnded && queueId) {
       e.preventDefault();
       // Modern browsers show their own message, but we still set returnValue
       e.returnValue = 'Leaving this page will remove you from the waiting room. Are you sure?';

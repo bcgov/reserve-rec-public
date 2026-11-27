@@ -98,17 +98,43 @@
         <div class="card-body text-center py-4 px-4">
           <h1 class="card-title h3">High Demand</h1>
           <p class="text-muted mb-3">This site is experiencing high demand. You are in the queue — access is being restored in batches.</p>
-          <div class="wr-position mt-2">
-            <span class="wr-position-number" id="mode2-position-number" aria-live="polite">—</span>
-            <div class="text-muted" id="mode2-position-total"></div>
+          <div id="mode2-countdown-block" class="d-none">
+            <div id="mode2-countdown-live">
+              <p class="mb-1">Opens in:</p>
+              <div class="wr-countdown" id="mode2-countdown-timer" aria-live="polite">--:--:--</div>
+              <p class="text-muted small mt-2" id="mode2-opening-time-display"></p>
+              <p class="text-muted small mb-0">
+                Everyone who arrives before then is placed in random order when it opens, so there's no need to rush.
+              </p>
+            </div>
+            <p class="d-none mb-0" id="mode2-opening-now" role="status">
+              Opening now. Your place in line will appear shortly.
+            </p>
           </div>
-          <div class="progress mt-4" style="height:8px" role="progressbar"
-               aria-label="Queue progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-            <div class="progress-bar bg-success" id="mode2-progress-bar" style="width:0%"></div>
+          <div id="mode2-position-block">
+            <div class="wr-position mt-2">
+              <span class="wr-position-number" id="mode2-position-number" aria-live="polite">—</span>
+              <div class="text-muted" id="mode2-position-total"></div>
+            </div>
+            <div class="progress mt-4" style="height:8px" role="progressbar"
+                 aria-label="Queue progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+              <div class="progress-bar bg-success" id="mode2-progress-bar" style="width:0%"></div>
+            </div>
           </div>
           <p class="text-muted small mt-3 mb-0">
             <strong>Stay on this page</strong> — leaving will remove you from the queue.
           </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notice: refusal or expired sign-in the visitor can act on -->
+    <div id="state-notice" class="d-none">
+      <div class="card shadow-sm mx-auto wr-card border-danger">
+        <div class="card-body text-center py-4 px-4">
+          <h1 class="card-title h3 text-danger" id="notice-title">Waiting Room</h1>
+          <p class="text-muted" id="notice-message"></p>
+          <a href="./" class="btn btn-outline-primary mt-2 d-none" id="notice-link">Return to Home</a>
         </div>
       </div>
     </div>

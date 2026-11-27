@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter, Router, UrlTree } from '@angular/router';
+import { ActivatedRouteSnapshot, convertToParamMap, provideRouter, Router, UrlTree } from '@angular/router';
 import { LoginGuard } from './login.guard';
 import { AuthService } from '../services/auth.service';
 
@@ -72,6 +72,16 @@ describe('LoginGuard', () => {
       spyOn(router, 'getCurrentNavigation').and.returnValue({ extras: { state: { keepReturnUrl: true } } } as any);
 
       await guard.canActivate();
+
+      expect(sessionStorage.getItem('returnUrl')).toBe('/checkout');
+    });
+
+    it('keeps the page the waiting room saved before a full page load to login', async () => {
+      const { guard } = setup(false);
+      sessionStorage.setItem('returnUrl', '/checkout');
+      const route = { queryParamMap: convertToParamMap({ reason: 'waiting-room' }) } as ActivatedRouteSnapshot;
+
+      await guard.canActivate(route);
 
       expect(sessionStorage.getItem('returnUrl')).toBe('/checkout');
     });
